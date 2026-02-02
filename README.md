@@ -20,6 +20,8 @@ A web-based Cash Flow Management System for tracking income and expenses with fi
 - Monthly financial summary
 - Category-wise breakdown
 - Overall profit/loss calculation
+- Due Management
+- Staff Role with only add permissions
 
 ## Project Structure
 
@@ -31,6 +33,7 @@ clubzen-cfms/
 │   ├── controllers/      # Controller layer
 │   ├── data/             # Data layer
 │   └── ui/               # UI components (React)
+│   └── data_access/      # Data Access Layer 
 ├── tests/                # Unit tests
 ├── package.json
 ├── tsconfig.json
