@@ -15,13 +15,13 @@ A web-based Cash Flow Management System for tracking income and expenses with fi
 
 ### Features (Planned)
 
-- Add transactions (Income/Expense)
-- View transaction list
-- Monthly financial summary
-- Category-wise breakdown
-- Overall profit/loss calculation
-- Due Management
-- Staff Role with only add permissions
+- Add transactions (Income/Expense).
+- View transaction list.
+- Monthly financial summary.
+- Category-wise breakdown.
+- Overall profit/loss calculation.
+- Due Management.
+- Staff Role with only add permissions.
 
 ## Project Structure
 
