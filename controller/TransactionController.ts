@@ -1,63 +1,116 @@
-export interface ExpenseInput {
-  amount: number;
-  date: string;
-  categoryId: string;
-  method: string;
-  description?: string;
+// src/controllers/TransactionController.ts
+
+// Local request & response models
+interface HttpRequest<T = any> {
+  body?: T;
 }
 
-export interface IncomeInput {
-  amount: number;
-  date: string;
-  categoryId: string;
-  method: string;
-  description?: string;
+interface HttpResponse {
+  statusCode: number;
+  body: any;
 }
 
-export interface DueInput {
-  amount: number;
-  dueDate: string;
-  partyName: string;
-  type: "TAKEN" | "GIVEN";
-}
+export class TransactionController {
 
-export class TransactionService {
-  async addExpense(expense: ExpenseInput) {
-    if (expense.amount <= 0) {
-      throw new Error("Expense amount must be positive");
+  async addExpense(req: HttpRequest): Promise<HttpResponse> {
+    const { amount, date, categoryId, method, description } = req.body || {};
+
+    if (!amount || amount <= 0) {
+      return {
+        statusCode: 400,
+        body: { message: "Expense amount must be positive" },
+      };
+    }
+
+    if (!date || !categoryId || !method) {
+      return {
+        statusCode: 400,
+        body: { message: "Required expense fields missing" },
+      };
     }
 
     return {
-      id: "exp-001",
-      type: "EXPENSE",
-      ...expense,
-      createdAt: new Date().toISOString(),
+      statusCode: 201,
+      body: {
+        id: "exp-001",
+        type: "EXPENSE",
+        amount,
+        date,
+        categoryId,
+        method,
+        description: description || null,
+        createdAt: new Date().toISOString(),
+      },
     };
   }
 
-  async addIncome(income: IncomeInput) {
-    if (income.amount <= 0) {
-      throw new Error("Income amount must be positive");
+  async addIncome(req: HttpRequest): Promise<HttpResponse> {
+    const { amount, date, categoryId, method, description } = req.body || {};
+
+    if (!amount || amount <= 0) {
+      return {
+        statusCode: 400,
+        body: { message: "Income amount must be positive" },
+      };
+    }
+
+    if (!date || !categoryId || !method) {
+      return {
+        statusCode: 400,
+        body: { message: "Required income fields missing" },
+      };
     }
 
     return {
-      id: "inc-001",
-      type: "INCOME",
-      ...income,
-      createdAt: new Date().toISOString(),
+      statusCode: 201,
+      body: {
+        id: "inc-001",
+        type: "INCOME",
+        amount,
+        date,
+        categoryId,
+        method,
+        description: description || null,
+        createdAt: new Date().toISOString(),
+      },
     };
   }
 
-  async addDue(due: DueInput) {
-    if (due.amount <= 0) {
-      throw new Error("Due amount must be positive");
+  async addDue(req: HttpRequest): Promise<HttpResponse> {
+    const { amount, dueDate, partyName, type } = req.body || {};
+
+    if (!amount || amount <= 0) {
+      return {
+        statusCode: 400,
+        body: { message: "Due amount must be positive" },
+      };
+    }
+
+    if (!dueDate || !partyName || !type) {
+      return {
+        statusCode: 400,
+        body: { message: "Required due fields missing" },
+      };
+    }
+
+    if (type !== "TAKEN" && type !== "GIVEN") {
+      return {
+        statusCode: 400,
+        body: { message: "Due type must be TAKEN or GIVEN" },
+      };
     }
 
     return {
-      id: "due-001",
-      ...due,
-      status: "PENDING",
-      createdAt: new Date().toISOString(),
+      statusCode: 201,
+      body: {
+        id: "due-001",
+        amount,
+        dueDate,
+        partyName,
+        type,
+        status: "PENDING",
+        createdAt: new Date().toISOString(),
+      },
     };
   }
 }
