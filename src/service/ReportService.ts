@@ -40,36 +40,42 @@ export class ReportService {
 
   /* ── Aggregate helpers ────────────────────────────────────── */
 
-  getTotalIncome(): number {
-    return this.transactionService
-      .getIncomes()
-      .reduce((sum, t) => sum + t.amount, 0);
+  async getTotalIncome(): Promise<number> {
+    const incomes = await this.transactionService.getIncomes();
+    return incomes.reduce((sum, t) => sum + t.amount, 0);
   }
 
-  getTotalExpense(): number {
-    return this.transactionService
-      .getExpenses()
-      .reduce((sum, t) => sum + t.amount, 0);
+  async getTotalExpense(): Promise<number> {
+    const expenses = await this.transactionService.getExpenses();
+    return expenses.reduce((sum, t) => sum + t.amount, 0);
   }
 
-  getNetProfitLoss(): number {
-    return this.getTotalIncome() - this.getTotalExpense();
+  async getNetProfitLoss(): Promise<number> {
+    const [income, expense] = await Promise.all([
+      this.getTotalIncome(),
+      this.getTotalExpense(),
+    ]);
+    return income - expense;
   }
 
   /* ── Dashboard ────────────────────────────────────────────── */
 
-  getDashboardSummary(): DashboardSummary {
+  async getDashboardSummary(): Promise<DashboardSummary> {
+    const [totalIncome, totalExpense] = await Promise.all([
+      this.getTotalIncome(),
+      this.getTotalExpense(),
+    ]);
     return {
-      totalIncome: this.getTotalIncome(),
-      totalExpense: this.getTotalExpense(),
-      netProfitLoss: this.getNetProfitLoss(),
+      totalIncome,
+      totalExpense,
+      netProfitLoss: totalIncome - totalExpense,
     };
   }
 
   /* ── Daily summary ────────────────────────────────────────── */
 
-  getDailySummary(): DailySummary[] {
-    const all = this.transactionService.getAll();
+  async getDailySummary(): Promise<DailySummary[]> {
+    const all = await this.transactionService.getAll();
     const grouped = this.groupBy(all, (t) => this.formatDate(t.date));
 
     return Object.entries(grouped).map(([date, txns]) => {
@@ -85,8 +91,8 @@ export class ReportService {
 
   /* ── Monthly summary ──────────────────────────────────────── */
 
-  getMonthlySummary(): MonthlySummary[] {
-    const all = this.transactionService.getAll();
+  async getMonthlySummary(): Promise<MonthlySummary[]> {
+    const all = await this.transactionService.getAll();
     const grouped = this.groupBy(all, (t) => this.formatMonth(t.date));
 
     return Object.entries(grouped).map(([month, txns]) => {

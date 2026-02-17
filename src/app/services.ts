@@ -1,10 +1,15 @@
 /**
  * Service & Controller singletons — shared across the entire app.
  *
- * Moved from presentation/ServiceInstances.ts so that the polished
- * app/ pages can import directly without cross‑layer dependencies.
+ * Wiring order:
+ *   Repository  →  Service  →  Controller
+ *
+ * The SupabaseTransactionRepository is the concrete data-access layer
+ * that talks to the cloud database.  Everything else is injected via
+ * constructor parameters (Dependency Inversion).
  */
 
+import { SupabaseTransactionRepository } from "@core/repository";
 import { TransactionService, ReportService } from "@core/service";
 import {
   AuthController,
@@ -15,8 +20,11 @@ import {
   UserController,
 } from "@core/controller";
 
+// ── Data Access layer singleton ─────────────────────────────
+export const transactionRepository = new SupabaseTransactionRepository();
+
 // ── Service layer singletons ────────────────────────────────
-export const transactionService = new TransactionService();
+export const transactionService = new TransactionService(transactionRepository);
 export const reportService = new ReportService(transactionService);
 
 // ── Controller layer singletons ─────────────────────────────
