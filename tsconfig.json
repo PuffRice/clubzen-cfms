@@ -11,7 +11,12 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
-    },
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@core/*": ["./src/*"]
+    }
+  },
   "include": ["controller", "UI", "**/*.ts", "**/*.tsx", "**/*.d.ts"],
   "exclude": ["node_modules", "dist"]
 }
