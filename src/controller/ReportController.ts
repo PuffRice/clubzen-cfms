@@ -1,11 +1,8 @@
 /**
  * ReportController — Thin controller that delegates to ReportService.
  *
- * Design Decision:
- *   The original ReportController.ts returned hardcoded numbers and
- *   used HttpRequest/HttpResponse.  This version delegates to the
- *   ReportService so the data is live and calculated from the
- *   in‑memory transaction store.
+ * All methods are async because the underlying service now queries
+ * the Supabase database through the repository layer.
  */
 
 import { ReportService, DashboardSummary, DailySummary, MonthlySummary } from "../service";
@@ -13,15 +10,15 @@ import { ReportService, DashboardSummary, DailySummary, MonthlySummary } from ".
 export class ReportController {
   constructor(private readonly reportService: ReportService) {}
 
-  getDashboardSummary(): DashboardSummary {
+  async getDashboardSummary(): Promise<DashboardSummary> {
     return this.reportService.getDashboardSummary();
   }
 
-  getDailySummary(): DailySummary[] {
+  async getDailySummary(): Promise<DailySummary[]> {
     return this.reportService.getDailySummary();
   }
 
-  getMonthlySummary(): MonthlySummary[] {
+  async getMonthlySummary(): Promise<MonthlySummary[]> {
     return this.reportService.getMonthlySummary();
   }
 }

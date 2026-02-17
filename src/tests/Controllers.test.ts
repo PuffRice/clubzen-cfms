@@ -17,6 +17,7 @@ import { TransactionController } from "@core/controller/TransactionController";
 import { ReportController } from "@core/controller/ReportController";
 import { TransactionService } from "@core/service/TransactionService";
 import { ReportService } from "@core/service/ReportService";
+import { InMemoryTransactionRepository } from "./InMemoryTransactionRepository";
 
 /* ================================================================
    AuthController
@@ -71,28 +72,31 @@ describe("AuthController", () => {
    ================================================================ */
 
 describe("TransactionController", () => {
+  let repo: InMemoryTransactionRepository;
   let txService: TransactionService;
   let controller: TransactionController;
 
   beforeEach(() => {
-    txService = new TransactionService();
+    repo = new InMemoryTransactionRepository();
+    repo.clear();
+    txService = new TransactionService(repo);
     controller = new TransactionController(txService);
   });
 
-  it("should delegate addIncome to TransactionService", () => {
-    const tx = controller.addIncome(500, new Date(), "Salary", "Monthly pay");
+  it("should delegate addIncome to TransactionService", async () => {
+    const tx = await controller.addIncome(500, new Date(), "Salary", "Monthly pay");
 
     expect(tx.type).toBe("income");
     expect(tx.amount).toBe(500);
-    expect(txService.getAll()).toHaveLength(1);
+    expect(await txService.getAll()).toHaveLength(1);
   });
 
-  it("should delegate addExpense to TransactionService", () => {
-    const tx = controller.addExpense(120, new Date(), "Food", "Team lunch");
+  it("should delegate addExpense to TransactionService", async () => {
+    const tx = await controller.addExpense(120, new Date(), "Food", "Team lunch");
 
     expect(tx.type).toBe("expense");
     expect(tx.amount).toBe(120);
-    expect(txService.getAll()).toHaveLength(1);
+    expect(await txService.getAll()).toHaveLength(1);
   });
 
   it("should propagate validation errors from the service", () => {
@@ -101,11 +105,12 @@ describe("TransactionController", () => {
     ).toThrow("Amount must be greater than zero.");
   });
 
-  it("should return all transactions via getAllTransactions", () => {
-    controller.addIncome(100, new Date(), "Salary", "Pay");
-    controller.addExpense(50, new Date(), "Food", "Snacks");
+  it("should return all transactions via getAllTransactions", async () => {
+    await controller.addIncome(100, new Date(), "Salary", "Pay");
+    await controller.addExpense(50, new Date(), "Food", "Snacks");
 
-    expect(controller.getAllTransactions()).toHaveLength(2);
+    const all = await controller.getAllTransactions();
+    expect(all).toHaveLength(2);
   });
 });
 
@@ -114,39 +119,42 @@ describe("TransactionController", () => {
    ================================================================ */
 
 describe("ReportController", () => {
+  let repo: InMemoryTransactionRepository;
   let txService: TransactionService;
   let reportCtrl: ReportController;
 
   beforeEach(() => {
-    txService = new TransactionService();
+    repo = new InMemoryTransactionRepository();
+    repo.clear();
+    txService = new TransactionService(repo);
     const reportService = new ReportService(txService);
     reportCtrl = new ReportController(reportService);
   });
 
-  it("should return correct dashboard summary from service", () => {
-    txService.addIncome(2000, new Date("2026-02-01"), "Salary", "Pay");
-    txService.addExpense(800, new Date("2026-02-05"), "Rent", "Office");
+  it("should return correct dashboard summary from service", async () => {
+    await txService.addIncome(2000, new Date("2026-02-01"), "Salary", "Pay");
+    await txService.addExpense(800, new Date("2026-02-05"), "Rent", "Office");
 
-    const summary = reportCtrl.getDashboardSummary();
+    const summary = await reportCtrl.getDashboardSummary();
 
     expect(summary.totalIncome).toBe(2000);
     expect(summary.totalExpense).toBe(800);
     expect(summary.netProfitLoss).toBe(1200);
   });
 
-  it("should delegate getDailySummary to service", () => {
-    txService.addIncome(1000, new Date("2026-03-01"), "Salary", "Mar pay");
-    const daily = reportCtrl.getDailySummary();
+  it("should delegate getDailySummary to service", async () => {
+    await txService.addIncome(1000, new Date("2026-03-01"), "Salary", "Mar pay");
+    const daily = await reportCtrl.getDailySummary();
 
     expect(daily).toHaveLength(1);
     expect(daily[0].date).toBe("2026-03-01");
   });
 
-  it("should delegate getMonthlySummary to service", () => {
-    txService.addIncome(1000, new Date("2026-01-15"), "Salary", "Jan");
-    txService.addExpense(300, new Date("2026-02-10"), "Food", "Feb food");
+  it("should delegate getMonthlySummary to service", async () => {
+    await txService.addIncome(1000, new Date("2026-01-15"), "Salary", "Jan");
+    await txService.addExpense(300, new Date("2026-02-10"), "Food", "Feb food");
 
-    const monthly = reportCtrl.getMonthlySummary();
+    const monthly = await reportCtrl.getMonthlySummary();
     expect(monthly).toHaveLength(2);
   });
 });

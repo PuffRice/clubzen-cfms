@@ -13,18 +13,22 @@
 
 import { describe, it, expect, beforeEach } from "vitest";
 import { TransactionService } from "@core/service/TransactionService";
+import { InMemoryTransactionRepository } from "./InMemoryTransactionRepository";
 
 describe("TransactionService", () => {
+  let repo: InMemoryTransactionRepository;
   let service: TransactionService;
 
   beforeEach(() => {
-    service = new TransactionService();
+    repo = new InMemoryTransactionRepository();
+    repo.clear();
+    service = new TransactionService(repo);
   });
 
   /* ── addIncome ────────────────────────────────────────────── */
 
-  it("should add an income transaction with correct properties", () => {
-    const tx = service.addIncome(1000, new Date("2026-02-01"), "Salary", "Monthly salary");
+  it("should add an income transaction with correct properties", async () => {
+    const tx = await service.addIncome(1000, new Date("2026-02-01"), "Salary", "Monthly salary");
 
     expect(tx.type).toBe("income");
     expect(tx.amount).toBe(1000);
@@ -35,8 +39,8 @@ describe("TransactionService", () => {
 
   /* ── addExpense ───────────────────────────────────────────── */
 
-  it("should add an expense transaction with correct properties", () => {
-    const tx = service.addExpense(250, new Date("2026-02-05"), "Food", "Team lunch");
+  it("should add an expense transaction with correct properties", async () => {
+    const tx = await service.addExpense(250, new Date("2026-02-05"), "Food", "Team lunch");
 
     expect(tx.type).toBe("expense");
     expect(tx.amount).toBe(250);
@@ -81,27 +85,30 @@ describe("TransactionService", () => {
 
   /* ── getAll / getIncomes / getExpenses ────────────────────── */
 
-  it("should return all transactions via getAll", () => {
-    service.addIncome(500, new Date(), "Salary", "Pay");
-    service.addExpense(100, new Date(), "Food", "Lunch");
-    service.addIncome(200, new Date(), "Donation", "Sponsor");
+  it("should return all transactions via getAll", async () => {
+    await service.addIncome(500, new Date(), "Salary", "Pay");
+    await service.addExpense(100, new Date(), "Food", "Lunch");
+    await service.addIncome(200, new Date(), "Donation", "Sponsor");
 
-    expect(service.getAll()).toHaveLength(3);
+    const all = await service.getAll();
+    expect(all).toHaveLength(3);
   });
 
-  it("should filter only incomes", () => {
-    service.addIncome(500, new Date(), "Salary", "Pay");
-    service.addExpense(100, new Date(), "Food", "Lunch");
+  it("should filter only incomes", async () => {
+    await service.addIncome(500, new Date(), "Salary", "Pay");
+    await service.addExpense(100, new Date(), "Food", "Lunch");
 
-    expect(service.getIncomes()).toHaveLength(1);
-    expect(service.getIncomes()[0].type).toBe("income");
+    const incomes = await service.getIncomes();
+    expect(incomes).toHaveLength(1);
+    expect(incomes[0].type).toBe("income");
   });
 
-  it("should filter only expenses", () => {
-    service.addIncome(500, new Date(), "Salary", "Pay");
-    service.addExpense(100, new Date(), "Food", "Lunch");
+  it("should filter only expenses", async () => {
+    await service.addIncome(500, new Date(), "Salary", "Pay");
+    await service.addExpense(100, new Date(), "Food", "Lunch");
 
-    expect(service.getExpenses()).toHaveLength(1);
-    expect(service.getExpenses()[0].type).toBe("expense");
+    const expenses = await service.getExpenses();
+    expect(expenses).toHaveLength(1);
+    expect(expenses[0].type).toBe("expense");
   });
 });

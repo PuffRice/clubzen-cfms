@@ -1,1 +1,2 @@
-export type { ITransactionRepository } from "./ITransactionRepository";
+export type { ITransactionRepository, TransactionRow } from "./ITransactionRepository";
+export { SupabaseTransactionRepository } from "./SupabaseTransactionRepository";
