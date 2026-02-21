@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -16,42 +16,65 @@ import type { DashboardSummary } from "@core/service";
 
 export function Dashboard() {
   const navigate = useNavigate();
-  const [summary, setSummary] = useState<DashboardSummary>(
-    reportController.getDashboardSummary(),
-  );
+  const [summary, setSummary] = useState<DashboardSummary>({
+    totalIncome: 0,
+    totalExpense: 0,
+    netProfitLoss: 0,
+  });
+  const [transactions, setTransactions] = useState<
+    { id: string; name: string; category: string; date: string; amount: number }[]
+  >([]);
+  const [expenseBreakdown, setExpenseBreakdown] = useState<
+    { name: string; value: number; color: string }[]
+  >([]);
+  const [loading, setLoading] = useState(true);
 
-  // Refresh summary so it stays in sync when navigating back
-  function refreshSummary() {
-    setSummary(reportController.getDashboardSummary());
-  }
-
-  // Build transactions list from live data
-  const allTransactions = transactionController.getAllTransactions();
-  const transactions = allTransactions
-    .slice()
-    .reverse()
-    .slice(0, 5)
-    .map((t) => ({
-      id: t.id,
-      name: t.description,
-      category: t.category,
-      date: t.date.toISOString().slice(0, 10),
-      amount: t.type === "income" ? t.amount : -t.amount,
-    }));
-
-  // Build expense breakdown from live data
-  const expenses = transactionController.getAllTransactions().filter((t) => t.type === "expense");
-  const totalExp = expenses.reduce((s, t) => s + t.amount, 0);
-  const categoryMap = new Map<string, number>();
-  for (const t of expenses) {
-    categoryMap.set(t.category, (categoryMap.get(t.category) ?? 0) + t.amount);
-  }
   const colors = ["#3B82F6", "#10B981", "#F59E0B", "#A855F7", "#EF4444", "#6B7280"];
-  const expenseBreakdown = [...categoryMap.entries()].map(([name, val], i) => ({
-    name,
-    value: totalExp > 0 ? Math.round((val / totalExp) * 100) : 0,
-    color: colors[i % colors.length],
-  }));
+
+  async function loadData() {
+    try {
+      const [dashSummary, allTx] = await Promise.all([
+        reportController.getDashboardSummary(),
+        transactionController.getAllTransactions(),
+      ]);
+
+      setSummary(dashSummary);
+
+      // Build recent transactions list
+      const recent = allTx
+        .slice()
+        .reverse()
+        .slice(0, 5)
+        .map((t) => ({
+          id: t.id,
+          name: t.description,
+          category: t.category,
+          date: t.date.toISOString().slice(0, 10),
+          amount: t.type === "income" ? t.amount : -t.amount,
+        }));
+      setTransactions(recent);
+
+      // Build expense breakdown
+      const expenses = allTx.filter((t) => t.type === "expense");
+      const totalExp = expenses.reduce((s, t) => s + t.amount, 0);
+      const categoryMap = new Map<string, number>();
+      for (const t of expenses) {
+        categoryMap.set(t.category, (categoryMap.get(t.category) ?? 0) + t.amount);
+      }
+      const breakdown = [...categoryMap.entries()].map(([name, val], i) => ({
+        name,
+        value: totalExp > 0 ? Math.round((val / totalExp) * 100) : 0,
+        color: colors[i % colors.length],
+      }));
+      setExpenseBreakdown(breakdown);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const userName = sessionStorage.getItem("userEmail")?.split("@")[0] ?? "User";
 

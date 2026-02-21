@@ -37,12 +37,12 @@ export function AddExpense() {
     "Digital Wallet",
   ];
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setFormError(null);
     setFormSuccess(false);
     try {
-      transactionController.addExpense(
+      await transactionController.addExpense(
         Number(formData.amount),
         new Date(formData.date),
         formData.category,

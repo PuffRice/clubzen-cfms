@@ -1,37 +1,59 @@
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { FileText, Download, TrendingUp, TrendingDown, Calendar } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { reportController, transactionController } from "../services";
 
 export function MonthlyReports() {
-  const summary = reportController.getDashboardSummary();
-  const monthlySummaries = reportController.getMonthlySummary();
+  const [monthlyData, setMonthlyData] = useState({
+    totalIncome: 0,
+    totalExpenses: 0,
+    netSavings: 0,
+    savingsRate: 0,
+  });
+  const [categoryBreakdown, setCategoryBreakdown] = useState<
+    { category: string; amount: number; percentage: number }[]
+  >([]);
+  const [loading, setLoading] = useState(true);
 
-  const totalIncome = summary.totalIncome;
-  const totalExpenses = summary.totalExpense;
-  const netSavings = summary.netProfitLoss;
-  const savingsRate = totalIncome > 0 ? Math.round((netSavings / totalIncome) * 100 * 10) / 10 : 0;
+  useEffect(() => {
+    async function load() {
+      try {
+        const [summary, allTx] = await Promise.all([
+          reportController.getDashboardSummary(),
+          transactionController.getAllTransactions(),
+        ]);
 
-  const monthlyData = {
-    totalIncome,
-    totalExpenses,
-    netSavings,
-    savingsRate,
-  };
+        const totalIncome = summary.totalIncome;
+        const totalExpenses = summary.totalExpense;
+        const netSavings = summary.netProfitLoss;
+        const savingsRate =
+          totalIncome > 0
+            ? Math.round((netSavings / totalIncome) * 100 * 10) / 10
+            : 0;
 
-  // Build category breakdown from live expense data
-  const expenses = transactionController.getAllTransactions().filter((t) => t.type === "expense");
-  const totalExp = expenses.reduce((s, t) => s + t.amount, 0);
-  const catMap = new Map<string, number>();
-  for (const t of expenses) {
-    catMap.set(t.category, (catMap.get(t.category) ?? 0) + t.amount);
-  }
-  const categoryBreakdown = [...catMap.entries()].map(([category, amount]) => ({
-    category,
-    amount,
-    percentage: totalExp > 0 ? Math.round((amount / totalExp) * 100) : 0,
-  }));
+        setMonthlyData({ totalIncome, totalExpenses, netSavings, savingsRate });
+
+        // Build category breakdown from live expense data
+        const expenses = allTx.filter((t) => t.type === "expense");
+        const totalExp = expenses.reduce((s, t) => s + t.amount, 0);
+        const catMap = new Map<string, number>();
+        for (const t of expenses) {
+          catMap.set(t.category, (catMap.get(t.category) ?? 0) + t.amount);
+        }
+        setCategoryBreakdown(
+          [...catMap.entries()].map(([category, amount]) => ({
+            category,
+            amount,
+            percentage: totalExp > 0 ? Math.round((amount / totalExp) * 100) : 0,
+          })),
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
 
   return (
     <div className="p-8">

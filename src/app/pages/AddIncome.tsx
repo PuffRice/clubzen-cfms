@@ -35,12 +35,12 @@ export function AddIncome() {
     "Passive",
   ];
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setFormError(null);
     setFormSuccess(false);
     try {
-      transactionController.addIncome(
+      await transactionController.addIncome(
         Number(formData.amount),
         new Date(formData.date),
         formData.source,

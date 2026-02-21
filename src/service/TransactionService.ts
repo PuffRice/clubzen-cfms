@@ -2,90 +2,88 @@
  * TransactionService — Application‑level logic for managing transactions.
  *
  * Responsibilities:
- *   • Add income / expense with validation
- *   • Store data in an in‑memory array (acts as a simple repository)
- *   • Expose the list so other services (ReportService) can consume it
+ *   • Validate inputs (amount > 0, category required, etc.)
+ *   • Delegate persistence to an ITransactionRepository
+ *   • Convert raw rows into domain objects for the rest of the app
  *
  * Design Decision:
  *   Business rules live here, NOT in the controller or UI.
- *   The in‑memory array satisfies the "no database" constraint while
- *   still keeping a clean separation.  When a real repository is added
- *   we simply inject it via the constructor.
+ *   The service receives a repository through its constructor so
+ *   storage is fully decoupled (Dependency Inversion).
  */
 
 import { Transaction, IncomeTransaction, ExpenseTransaction } from "../domain";
+import type { ITransactionRepository, TransactionRow } from "../repository";
 
 export class TransactionService {
-  private transactions: Transaction[] = [];
-  private nextId = 1;
+  constructor(private readonly repo: ITransactionRepository) {}
 
   /* ── Commands ─────────────────────────────────────────────── */
 
   /**
    * Add an income transaction after validating the input.
-   * @throws Error when validation fails.
+   * @throws Error when validation fails or persistence fails.
    */
-  addIncome(
+  async addIncome(
     amount: number,
     date: Date,
     category: string,
     description: string,
-  ): IncomeTransaction {
+  ): Promise<IncomeTransaction> {
     this.validate(amount, category, description);
 
-    const tx = new IncomeTransaction(
-      this.generateId(),
+    const row = await this.repo.save({
+      type: "income",
       amount,
-      date,
-      category,
-      description,
-    );
-    this.transactions.push(tx);
-    return tx;
+      date: this.toDateString(date),
+      category: category.trim(),
+      description: description.trim(),
+    });
+
+    return this.toDomainIncome(row);
   }
 
   /**
    * Add an expense transaction after validating the input.
-   * @throws Error when validation fails.
+   * @throws Error when validation fails or persistence fails.
    */
-  addExpense(
+  async addExpense(
     amount: number,
     date: Date,
     category: string,
     description: string,
-  ): ExpenseTransaction {
+  ): Promise<ExpenseTransaction> {
     this.validate(amount, category, description);
 
-    const tx = new ExpenseTransaction(
-      this.generateId(),
+    const row = await this.repo.save({
+      type: "expense",
       amount,
-      date,
-      category,
-      description,
-    );
-    this.transactions.push(tx);
-    return tx;
+      date: this.toDateString(date),
+      category: category.trim(),
+      description: description.trim(),
+    });
+
+    return this.toDomainExpense(row);
   }
 
   /* ── Queries ──────────────────────────────────────────────── */
 
-  /** Return all stored transactions (read‑only copy). */
-  getAll(): Transaction[] {
-    return [...this.transactions];
+  /** Return all stored transactions (domain objects). */
+  async getAll(): Promise<Transaction[]> {
+    const rows = await this.repo.findAll();
+    return rows.map((r) => this.toDomain(r));
   }
 
   /** Return only income transactions. */
-  getIncomes(): IncomeTransaction[] {
-    return this.transactions.filter(
-      (t): t is IncomeTransaction => t.type === "income",
-    );
+  async getIncomes(): Promise<IncomeTransaction[]> {
+    const rows = await this.repo.findByType("income");
+    return rows.map((r) => this.toDomainIncome(r));
   }
 
   /** Return only expense transactions. */
-  getExpenses(): ExpenseTransaction[] {
-    return this.transactions.filter(
-      (t): t is ExpenseTransaction => t.type === "expense",
-    );
+  async getExpenses(): Promise<ExpenseTransaction[]> {
+    const rows = await this.repo.findByType("expense");
+    return rows.map((r) => this.toDomainExpense(r));
   }
 
   /* ── Private helpers ──────────────────────────────────────── */
@@ -106,7 +104,34 @@ export class TransactionService {
     }
   }
 
-  private generateId(): string {
-    return `txn-${this.nextId++}`;
+  /** Format a Date as "YYYY-MM-DD" for the database. */
+  private toDateString(d: Date): string {
+    return d.toISOString().slice(0, 10);
+  }
+
+  /** Convert a raw row into the correct domain subclass. */
+  private toDomain(row: TransactionRow): Transaction {
+    if (row.type === "income") return this.toDomainIncome(row);
+    return this.toDomainExpense(row);
+  }
+
+  private toDomainIncome(row: TransactionRow): IncomeTransaction {
+    return new IncomeTransaction(
+      row.id,
+      Number(row.amount),
+      new Date(row.date),
+      row.category,
+      row.description,
+    );
+  }
+
+  private toDomainExpense(row: TransactionRow): ExpenseTransaction {
+    return new ExpenseTransaction(
+      row.id,
+      Number(row.amount),
+      new Date(row.date),
+      row.category,
+      row.description,
+    );
   }
 }
