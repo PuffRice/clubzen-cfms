@@ -1,34 +1,58 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Calendar, Download, TrendingUp, TrendingDown } from "lucide-react";
 import { reportController, transactionController } from "../services";
 
 export function DailyReports() {
-  const dailySummaries = reportController.getDailySummary();
-  const allTransactions = transactionController.getAllTransactions();
+  const [dailySummary, setDailySummary] = useState({
+    totalIncome: 0,
+    totalExpenses: 0,
+    netChange: 0,
+    transactionCount: 0,
+  });
+  const [dailyTransactions, setDailyTransactions] = useState<
+    { id: string; time: string; type: string; category: string; amount: number; method: string }[]
+  >([]);
+  const [loading, setLoading] = useState(true);
 
-  // Build timeline from live data
-  const dailyTransactions = allTransactions
-    .slice()
-    .reverse()
-    .map((t, i) => ({
-      id: t.id,
-      time: t.date.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' }),
-      type: t.type,
-      category: t.category,
-      amount: t.amount,
-      method: "In-memory",
-    }));
+  useEffect(() => {
+    async function load() {
+      try {
+        const allTransactions = await transactionController.getAllTransactions();
 
-  const totalIncome = allTransactions.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
-  const totalExpenses = allTransactions.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+        const txList = allTransactions
+          .slice()
+          .reverse()
+          .map((t) => ({
+            id: t.id,
+            time: t.date.toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" }),
+            type: t.type,
+            category: t.category,
+            amount: t.amount,
+            method: "Supabase",
+          }));
+        setDailyTransactions(txList);
 
-  const dailySummary = {
-    totalIncome,
-    totalExpenses,
-    netChange: totalIncome - totalExpenses,
-    transactionCount: allTransactions.length,
-  };
+        const totalIncome = allTransactions
+          .filter((t) => t.type === "income")
+          .reduce((s, t) => s + t.amount, 0);
+        const totalExpenses = allTransactions
+          .filter((t) => t.type === "expense")
+          .reduce((s, t) => s + t.amount, 0);
+
+        setDailySummary({
+          totalIncome,
+          totalExpenses,
+          netChange: totalIncome - totalExpenses,
+          transactionCount: allTransactions.length,
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
 
   return (
     <div className="p-8">
