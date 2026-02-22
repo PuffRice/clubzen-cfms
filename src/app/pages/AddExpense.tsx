@@ -47,6 +47,7 @@ export function AddExpense() {
         new Date(formData.date),
         formData.category,
         formData.description || formData.category,
+        formData.paymentMethod || undefined,
       );
       setFormSuccess(true);
       setFormData({ amount: "", category: "", date: new Date().toISOString().split('T')[0], description: "", paymentMethod: "" });

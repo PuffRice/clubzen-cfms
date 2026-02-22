@@ -29,6 +29,7 @@ export class TransactionService {
     date: Date,
     category: string,
     description: string,
+    incomeType?: string,
   ): Promise<IncomeTransaction> {
     this.validate(amount, category, description);
 
@@ -36,11 +37,16 @@ export class TransactionService {
       type: "income",
       amount,
       date: this.toDateString(date),
-      category: category.trim(),
+      category: category.trim(), // treated as "source" by the UI
       description: description.trim(),
     });
 
-    return this.toDomainIncome(row);
+    const tx = this.toDomainIncome(row);
+    if (incomeType) {
+      // copy optional field into the domain object (immutable once set)
+      (tx as any).incomeType = incomeType;
+    }
+    return tx;
   }
 
   /**
@@ -52,6 +58,7 @@ export class TransactionService {
     date: Date,
     category: string,
     description: string,
+    paymentMethod?: string,
   ): Promise<ExpenseTransaction> {
     this.validate(amount, category, description);
 
@@ -63,7 +70,11 @@ export class TransactionService {
       description: description.trim(),
     });
 
-    return this.toDomainExpense(row);
+    const tx = this.toDomainExpense(row);
+    if (paymentMethod) {
+      (tx as any).paymentMethod = paymentMethod;
+    }
+    return tx;
   }
 
   /* ── Queries ──────────────────────────────────────────────── */
