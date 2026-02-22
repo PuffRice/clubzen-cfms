@@ -18,10 +18,12 @@ export class TransactionController {
   async addIncome(
     amount: number,
     date: Date,
-    category: string,
+    source: string,
     description: string,
+    incomeType?: string,
   ): Promise<IncomeTransaction> {
-    return this.transactionService.addIncome(amount, date, category, description);
+    // service still expects category param but we treat it as source
+    return this.transactionService.addIncome(amount, date, source, description, incomeType);
   }
 
   async addExpense(
@@ -29,11 +31,18 @@ export class TransactionController {
     date: Date,
     category: string,
     description: string,
+    paymentMethod?: string,
   ): Promise<ExpenseTransaction> {
-    return this.transactionService.addExpense(amount, date, category, description);
+    return this.transactionService.addExpense(amount, date, category, description, paymentMethod);
   }
 
   async getAllTransactions(): Promise<Transaction[]> {
-    return this.transactionService.getAll();
+    try {
+      return await this.transactionService.getAll();
+    } catch (err) {
+      console.error("TransactionController.getAllTransactions error:", err);
+      // return empty list so UI can continue without crashing
+      return [];
+    }
   }
 }

@@ -45,6 +45,7 @@ export function AddIncome() {
         new Date(formData.date),
         formData.source,
         formData.description || formData.source,
+        formData.type || undefined,
       );
       setFormSuccess(true);
       setFormData({ amount: "", source: "", date: new Date().toISOString().split('T')[0], description: "", type: "" });

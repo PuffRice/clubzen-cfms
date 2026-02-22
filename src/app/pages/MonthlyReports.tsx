@@ -48,6 +48,8 @@ export function MonthlyReports() {
             percentage: totalExp > 0 ? Math.round((amount / totalExp) * 100) : 0,
           })),
         );
+      } catch (err) {
+        console.error("MonthlyReports load error:", err);
       } finally {
         setLoading(false);
       }

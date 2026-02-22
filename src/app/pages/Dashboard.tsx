@@ -67,6 +67,9 @@ export function Dashboard() {
         color: colors[i % colors.length],
       }));
       setExpenseBreakdown(breakdown);
+    } catch (err) {
+      console.error("Dashboard loadData error:", err);
+      // optionally you could show a toast or set an error state here
     } finally {
       setLoading(false);
     }

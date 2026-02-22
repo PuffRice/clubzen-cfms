@@ -32,9 +32,12 @@ describe("TransactionService", () => {
 
     expect(tx.type).toBe("income");
     expect(tx.amount).toBe(1000);
+    // source is alias for category
+    expect(tx.source).toBe("Salary");
     expect(tx.category).toBe("Salary");
     expect(tx.description).toBe("Monthly salary");
     expect(tx.id).toBeDefined();
+    expect(tx.incomeType).toBeUndefined();
   });
 
   /* ── addExpense ───────────────────────────────────────────── */
@@ -45,6 +48,7 @@ describe("TransactionService", () => {
     expect(tx.type).toBe("expense");
     expect(tx.amount).toBe(250);
     expect(tx.category).toBe("Food");
+    expect(tx.paymentMethod).toBeUndefined();
   });
 
   /* ── Validation: amount ───────────────────────────────────── */
