@@ -1,12 +1,3 @@
-/**
- * ITransactionRepository — Abstract repository interface.
- *
- * Design Decision:
- *   We program against an interface so the service layer never depends
- *   on a concrete storage mechanism.  All methods are async because
- *   real implementations (Supabase, etc.) perform network I/O.
- */
-
 import { Transaction, TransactionType } from "../domain";
 
 /** Raw row shape coming from / going to the data store. */
