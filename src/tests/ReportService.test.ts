@@ -11,21 +11,25 @@
  *   7. Empty data edge case
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterAll } from "vitest";
 import { TransactionService } from "@core/service/TransactionService";
 import { ReportService } from "@core/service/ReportService";
-import { InMemoryTransactionRepository } from "./InMemoryTransactionRepository";
+import { SupabaseTransactionRepository } from "@core/repository/SupabaseTransactionRepository";
+import { clearSupabaseTables } from "./SupabaseTestHelper";
 
 describe("ReportService", () => {
-  let repo: InMemoryTransactionRepository;
   let txService: TransactionService;
   let reportService: ReportService;
 
-  beforeEach(() => {
-    repo = new InMemoryTransactionRepository();
-    repo.clear();
+  beforeEach(async () => {
+    await clearSupabaseTables();
+    const repo = new SupabaseTransactionRepository();
     txService = new TransactionService(repo);
     reportService = new ReportService(txService);
+  });
+
+  afterAll(async () => {
+    await clearSupabaseTables();
   });
 
   /* ── Totals ───────────────────────────────────────────────── */

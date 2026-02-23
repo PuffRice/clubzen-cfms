@@ -11,13 +11,14 @@
  *   3. ReportController — getDashboardSummary delegation
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterAll } from "vitest";
 import { AuthController } from "@core/controller/AuthController";
 import { TransactionController } from "@core/controller/TransactionController";
 import { ReportController } from "@core/controller/ReportController";
 import { TransactionService } from "@core/service/TransactionService";
 import { ReportService } from "@core/service/ReportService";
-import { InMemoryTransactionRepository } from "./InMemoryTransactionRepository";
+import { SupabaseTransactionRepository } from "@core/repository/SupabaseTransactionRepository";
+import { clearSupabaseTables } from "./SupabaseTestHelper";
 
 /* ================================================================
    AuthController
@@ -72,15 +73,18 @@ describe("AuthController", () => {
    ================================================================ */
 
 describe("TransactionController", () => {
-  let repo: InMemoryTransactionRepository;
   let txService: TransactionService;
   let controller: TransactionController;
 
-  beforeEach(() => {
-    repo = new InMemoryTransactionRepository();
-    repo.clear();
+  beforeEach(async () => {
+    await clearSupabaseTables();
+    const repo = new SupabaseTransactionRepository();
     txService = new TransactionService(repo);
     controller = new TransactionController(txService);
+  });
+
+  afterAll(async () => {
+    await clearSupabaseTables();
   });
 
   it("should delegate addIncome to TransactionService", async () => {
@@ -99,10 +103,10 @@ describe("TransactionController", () => {
     expect(await txService.getAll()).toHaveLength(1);
   });
 
-  it("should propagate validation errors from the service", () => {
-    expect(() =>
+  it("should propagate validation errors from the service", async () => {
+    await expect(
       controller.addIncome(0, new Date(), "Salary", "Bad amount"),
-    ).toThrow("Amount must be greater than zero.");
+    ).rejects.toThrow("Amount must be greater than zero.");
   });
 
   it("should return all transactions via getAllTransactions", async () => {
@@ -119,16 +123,19 @@ describe("TransactionController", () => {
    ================================================================ */
 
 describe("ReportController", () => {
-  let repo: InMemoryTransactionRepository;
   let txService: TransactionService;
   let reportCtrl: ReportController;
 
-  beforeEach(() => {
-    repo = new InMemoryTransactionRepository();
-    repo.clear();
+  beforeEach(async () => {
+    await clearSupabaseTables();
+    const repo = new SupabaseTransactionRepository();
     txService = new TransactionService(repo);
     const reportService = new ReportService(txService);
     reportCtrl = new ReportController(reportService);
+  });
+
+  afterAll(async () => {
+    await clearSupabaseTables();
   });
 
   it("should return correct dashboard summary from service", async () => {
