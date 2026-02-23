@@ -11,18 +11,23 @@
  *   7. getIncomes / getExpenses filter correctly
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterAll } from "vitest";
 import { TransactionService } from "@core/service/TransactionService";
-import { InMemoryTransactionRepository } from "./InMemoryTransactionRepository";
+import { SupabaseTransactionRepository } from "@core/repository/SupabaseTransactionRepository";
+import { clearSupabaseTables } from "./SupabaseTestHelper";
 
 describe("TransactionService", () => {
-  let repo: InMemoryTransactionRepository;
+  let repo: SupabaseTransactionRepository;
   let service: TransactionService;
 
-  beforeEach(() => {
-    repo = new InMemoryTransactionRepository();
-    repo.clear();
+  beforeEach(async () => {
+    await clearSupabaseTables();
+    repo = new SupabaseTransactionRepository();
     service = new TransactionService(repo);
+  });
+
+  afterAll(async () => {
+    await clearSupabaseTables();
   });
 
   /* ── addIncome ────────────────────────────────────────────── */
@@ -53,38 +58,38 @@ describe("TransactionService", () => {
 
   /* ── Validation: amount ───────────────────────────────────── */
 
-  it("should throw when income amount is zero", () => {
-    expect(() =>
+  it("should throw when income amount is zero", async () => {
+    await expect(
       service.addIncome(0, new Date(), "Salary", "Zero salary"),
-    ).toThrow("Amount must be greater than zero.");
+    ).rejects.toThrow("Amount must be greater than zero.");
   });
 
-  it("should throw when expense amount is negative", () => {
-    expect(() =>
+  it("should throw when expense amount is negative", async () => {
+    await expect(
       service.addExpense(-50, new Date(), "Food", "Negative"),
-    ).toThrow("Amount must be greater than zero.");
+    ).rejects.toThrow("Amount must be greater than zero.");
   });
 
   /* ── Validation: category ─────────────────────────────────── */
 
-  it("should throw when category is empty string", () => {
-    expect(() =>
+  it("should throw when category is empty string", async () => {
+    await expect(
       service.addIncome(100, new Date(), "", "No category"),
-    ).toThrow("Category is required.");
+    ).rejects.toThrow("Category is required.");
   });
 
-  it("should throw when category is only whitespace", () => {
-    expect(() =>
+  it("should throw when category is only whitespace", async () => {
+    await expect(
       service.addExpense(100, new Date(), "   ", "Whitespace category"),
-    ).toThrow("Category is required.");
+    ).rejects.toThrow("Category is required.");
   });
 
   /* ── Validation: description ──────────────────────────────── */
 
-  it("should throw when description is empty", () => {
-    expect(() =>
+  it("should throw when description is empty", async () => {
+    await expect(
       service.addIncome(100, new Date(), "Misc", ""),
-    ).toThrow("Description is required.");
+    ).rejects.toThrow("Description is required.");
   });
 
   /* ── getAll / getIncomes / getExpenses ────────────────────── */
