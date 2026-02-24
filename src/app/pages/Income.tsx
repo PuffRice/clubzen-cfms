@@ -1,8 +1,38 @@
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Plus, Filter } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "../components/ui/dialog";
+import { IncomeForm } from "../components/IncomeForm";
 
 export function Income() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [open, setOpen] = useState(false);
+
+  const handleOpenChange = (val: boolean) => {
+    setOpen(val);
+    if (!val) {
+      navigate("/income");
+    }
+  };
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("add") === "true") {
+      setOpen(true);
+    }
+  }, [location.search]);
+
   const incomeItems = [
     { id: 1, source: "Salary", amount: 5000.00, date: "Feb 5, 2026", type: "Recurring" },
     { id: 2, source: "Freelance Project", amount: 1500.00, date: "Feb 1, 2026", type: "One-time" },
@@ -19,10 +49,23 @@ export function Income() {
           <h1 className="text-3xl font-bold text-gray-900">Income</h1>
           <p className="text-gray-500 mt-1">Track your income sources</p>
         </div>
-        <Button className="bg-green-600 hover:bg-green-700">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Income
-        </Button>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
+          <DialogTrigger asChild>
+            <Button className="bg-green-600 hover:bg-green-700">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Income
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>New Income</DialogTitle>
+            </DialogHeader>
+            <IncomeForm onSuccess={() => setOpen(false)} />
+            <DialogClose className="absolute top-2 right-2">
+              <span className="sr-only">Close</span>
+            </DialogClose>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Filters */}

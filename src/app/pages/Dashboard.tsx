@@ -173,14 +173,14 @@ export function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Button
             className="h-14 bg-blue-600 hover:bg-blue-700 text-white justify-center"
-            onClick={() => navigate("/add-expense")}
+            onClick={() => navigate("/expenses?add=true")}
           >
             <Plus className="h-5 w-5 mr-2" />
             Add New Expense
           </Button>
           <Button
             className="h-14 bg-green-600 hover:bg-green-700 text-white justify-center"
-            onClick={() => navigate("/add-income")}
+            onClick={() => navigate("/income?add=true")}
           >
             <Receipt className="h-5 w-5 mr-2" />
             Add Income
