@@ -60,8 +60,8 @@ export function AddExpense() {
     <div className="p-8">
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Add Expense</h1>
-        <p className="text-gray-500 mt-1">Record a new expense transaction</p>
+        <h1 className="text-3xl font-bold text-foreground">Add Expense</h1>
+        <p className="text-muted-foreground mt-1">Record a new expense transaction</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -81,7 +81,7 @@ export function AddExpense() {
                   <div>
                     <Label htmlFor="amount">Amount *</Label>
                     <div className="relative mt-1">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                         $
                       </span>
                       <input
@@ -89,7 +89,7 @@ export function AddExpense() {
                         type="number"
                         step="0.01"
                         placeholder="0.00"
-                        className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full pl-8 pr-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-input-background text-foreground"
                         value={formData.amount}
                         onChange={(e) =>
                           setFormData({ ...formData, amount: e.target.value })
@@ -103,7 +103,7 @@ export function AddExpense() {
                     <Label htmlFor="category">Category *</Label>
                     <select
                       id="category"
-                      className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full mt-1 px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-input-background text-foreground"
                       value={formData.category}
                       onChange={(e) =>
                         setFormData({ ...formData, category: e.target.value })
@@ -124,7 +124,7 @@ export function AddExpense() {
                     <input
                       id="date"
                       type="date"
-                      className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full mt-1 px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-input-background text-foreground"
                       value={formData.date}
                       onChange={(e) =>
                         setFormData({ ...formData, date: e.target.value })
@@ -137,7 +137,7 @@ export function AddExpense() {
                     <Label htmlFor="paymentMethod">Payment Method *</Label>
                     <select
                       id="paymentMethod"
-                      className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full mt-1 px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-input-background text-foreground"
                       value={formData.paymentMethod}
                       onChange={(e) =>
                         setFormData({ ...formData, paymentMethod: e.target.value })
@@ -160,7 +160,7 @@ export function AddExpense() {
                     id="description"
                     rows={4}
                     placeholder="Add notes about this expense..."
-                    className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full mt-1 px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-input-background text-foreground"
                     value={formData.description}
                     onChange={(e) =>
                       setFormData({ ...formData, description: e.target.value })
@@ -171,12 +171,12 @@ export function AddExpense() {
                 {/* Receipt Upload */}
                 <div>
                   <Label>Attach Receipt</Label>
-                  <div className="mt-1 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors cursor-pointer">
-                    <Upload className="h-10 w-10 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600">
+                  <div className="mt-1 border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer">
+                    <Upload className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">
                       Click to upload or drag and drop
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       PNG, JPG, PDF up to 10MB
                     </p>
                   </div>
@@ -193,7 +193,7 @@ export function AddExpense() {
                 <div className="flex gap-3 pt-4">
                   <Button
                     type="submit"
-                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                    className="flex-1"
                   >
                     Save Expense
                   </Button>
@@ -214,25 +214,25 @@ export function AddExpense() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600 mb-1">Total Amount</p>
-                  <p className="text-3xl font-bold text-gray-900">
+                <div className="p-4 bg-primary/20 rounded-lg border border-primary/30">
+                  <p className="text-sm text-muted-foreground mb-1">Total Amount</p>
+                  <p className="text-3xl font-bold text-foreground">
                     ${formData.amount || "0.00"}
                   </p>
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Category</span>
+                    <span className="text-muted-foreground">Category</span>
                     <span className="font-medium">
                       {formData.category || "Not selected"}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Date</span>
+                    <span className="text-muted-foreground">Date</span>
                     <span className="font-medium">{formData.date}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Payment</span>
+                    <span className="text-muted-foreground">Payment</span>
                     <span className="font-medium">
                       {formData.paymentMethod || "Not selected"}
                     </span>

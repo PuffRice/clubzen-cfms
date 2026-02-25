@@ -43,7 +43,7 @@ export function Login() {
             <div className="h-10 w-10 rounded-lg bg-blue-500 flex items-center justify-center">
               <DollarSign className="h-6 w-6 text-white" />
             </div>
-            <span className="font-bold text-2xl text-gray-900">ClubZen CFMS</span>
+            <span className="font-bold text-2xl text-foreground">ClubZen CFMS</span>
           </div>
         </div>
 
@@ -89,7 +89,7 @@ export function Login() {
                 Sign In
               </Button>
 
-              <p className="text-xs text-center text-gray-500 mt-4">
+              <p className="text-xs text-center text-muted-foreground mt-4">
                 Use <span className="font-medium">admin@clubzen.com</span> for Admin role,
                 or any email for Staff role.
               </p>

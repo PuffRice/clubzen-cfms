@@ -39,8 +39,8 @@ export function AddDue() {
     <div className="p-8">
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Add Due</h1>
-        <p className="text-gray-500 mt-1">Set up a payment reminder or recurring bill</p>
+        <h1 className="text-3xl font-bold text-foreground">Add Due</h1>
+        <p className="text-muted-foreground mt-1">Set up a payment reminder or recurring bill</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -75,7 +75,7 @@ export function AddDue() {
                   <div>
                     <Label htmlFor="amount">Amount *</Label>
                     <div className="relative mt-1">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                         $
                       </span>
                       <input
@@ -230,26 +230,26 @@ export function AddDue() {
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Due Date</span>
+                    <span className="text-muted-foreground">Due Date</span>
                     <span className="font-medium">
                       {formData.dueDate || "Not set"}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Category</span>
+                    <span className="text-muted-foreground">Category</span>
                     <span className="font-medium">
                       {formData.category || "Not selected"}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Type</span>
+                    <span className="text-muted-foreground">Type</span>
                     <span className="font-medium capitalize">
                       {formData.recurring.replace("-", " ")}
                     </span>
                   </div>
                   {formData.recurring === "recurring" && formData.frequency && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Frequency</span>
+                      <span className="text-muted-foreground">Frequency</span>
                       <span className="font-medium">{formData.frequency}</span>
                     </div>
                   )}

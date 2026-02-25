@@ -15,8 +15,8 @@ export function Events() {
       {/* Page Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Events</h1>
-          <p className="text-gray-500 mt-1">Track important financial dates and reminders</p>
+          <h1 className="text-3xl font-bold text-foreground">Events</h1>
+          <p className="text-muted-foreground mt-1">Track important financial dates and reminders</p>
         </div>
         <Button className="bg-blue-600 hover:bg-blue-700">
           <Plus className="h-4 w-4 mr-2" />
@@ -27,8 +27,8 @@ export function Events() {
       {/* Calendar View Placeholder */}
       <Card className="mb-6">
         <CardContent className="p-8 text-center">
-          <CalendarIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">Calendar view coming soon</p>
+          <CalendarIcon className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <p className="text-muted-foreground">Calendar view coming soon</p>
         </CardContent>
       </Card>
 
@@ -52,9 +52,9 @@ export function Events() {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 mb-1">{event.title}</h3>
-                  <p className="text-sm text-gray-600 mb-2">{event.description}</p>
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <h3 className="font-semibold text-foreground mb-1">{event.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-2">{event.description}</p>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock className="h-4 w-4" />
                     <span>{event.time}</span>
                   </div>

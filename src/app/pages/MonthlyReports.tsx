@@ -62,8 +62,8 @@ export function MonthlyReports() {
       {/* Page Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Monthly Reports</h1>
-          <p className="text-gray-500 mt-1">Comprehensive monthly financial analysis</p>
+          <h1 className="text-3xl font-bold text-foreground">Monthly Reports</h1>
+          <p className="text-muted-foreground mt-1">Comprehensive monthly financial analysis</p>
         </div>
         <Button className="bg-purple-600 hover:bg-purple-700">
           <Download className="h-4 w-4 mr-2" />
@@ -76,8 +76,8 @@ export function MonthlyReports() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
-              <Calendar className="h-5 w-5 text-gray-500" />
-              <select className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+              <Calendar className="h-5 w-5 text-muted-foreground" />
+              <select className="px-4 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary">
                 <option>February 2026</option>
                 <option>January 2026</option>
                 <option>December 2025</option>
@@ -92,7 +92,7 @@ export function MonthlyReports() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">Total Income</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Income</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
@@ -106,7 +106,7 @@ export function MonthlyReports() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">Total Expenses</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Expenses</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
@@ -120,7 +120,7 @@ export function MonthlyReports() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">Net Savings</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Net Savings</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
@@ -133,7 +133,7 @@ export function MonthlyReports() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">Savings Rate</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Savings Rate</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
@@ -156,14 +156,14 @@ export function MonthlyReports() {
               {categoryBreakdown.map((item) => (
                 <div key={item.category}>
                   <div className="flex justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">
+                    <span className="text-sm font-medium text-muted-foreground">
                       {item.category}
                     </span>
-                    <span className="text-sm font-semibold text-gray-900">
+                    <span className="text-sm font-semibold text-foreground">
                       ${item.amount.toFixed(2)} ({item.percentage}%)
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-muted rounded-full h-2">
                     <div
                       className="bg-blue-600 h-2 rounded-full"
                       style={{ width: `${item.percentage}%` }}
@@ -181,21 +181,21 @@ export function MonthlyReports() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                <h4 className="font-semibold text-green-800 mb-2">Great Progress! 🎉</h4>
-                <p className="text-sm text-green-700">
+              <div className="p-4 bg-green-800/20 border border-green-600 rounded-lg">
+                <h4 className="font-semibold text-green-300 mb-2">Great Progress! 🎉</h4>
+                <p className="text-sm text-green-300">
                   You saved 53.7% of your income this month. That's above your target of 50%.
                 </p>
               </div>
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h4 className="font-semibold text-blue-800 mb-2">Top Spending Category</h4>
-                <p className="text-sm text-blue-700">
+              <div className="p-4 bg-blue-800/20 border border-blue-600 rounded-lg">
+                <h4 className="font-semibold text-blue-300 mb-2">Top Spending Category</h4>
+                <p className="text-sm text-blue-300">
                   Groceries accounted for 28% of your total expenses. Consider meal planning to reduce costs.
                 </p>
               </div>
-              <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                <h4 className="font-semibold text-purple-800 mb-2">Budget Status</h4>
-                <p className="text-sm text-purple-700">
+              <div className="p-4 bg-purple-800/20 border border-purple-600 rounded-lg">
+                <h4 className="font-semibold text-purple-300 mb-2">Budget Status</h4>
+                <p className="text-sm text-purple-300">
                   You're on track with your monthly budget. Keep up the good work!
                 </p>
               </div>

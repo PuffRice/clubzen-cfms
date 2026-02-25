@@ -45,20 +45,20 @@ export function Layout() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Left Sidebar - Dark Theme */}
-      <aside className="w-64 bg-slate-900 flex flex-col">
+    <div className="flex h-screen bg-background">
+      {/* Left Sidebar */}
+      <aside className="w-64 bg-sidebar flex flex-col">
         {/* User Profile */}
-        <div className="p-6 border-b border-slate-700">
+        <div className="p-6 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
             <Avatar className="h-12 w-12">
-              <AvatarFallback className="bg-blue-500 text-white">
+              <AvatarFallback className="bg-primary text-primary-foreground">
                 {initials}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-semibold text-white">{userName}</h3>
-              <p className="text-sm text-slate-400">{userRole}</p>
+              <h3 className="font-semibold text-sidebar-foreground">{userName}</h3>
+              <p className="text-sm text-muted-foreground">{userRole}</p>
             </div>
           </div>
         </div>
@@ -70,7 +70,7 @@ export function Layout() {
             <li>
               <button
                 onClick={() => setReportsOpen(!reportsOpen)}
-                className="flex items-center justify-between w-full px-4 py-3 rounded-lg transition-colors text-white hover:bg-slate-800"
+                className="flex items-center justify-between w-full px-4 py-3 rounded-lg transition-colors text-sidebar-foreground hover:bg-sidebar-accent"
               >
                 <div className="flex items-center gap-3">
                   <FileText className="h-5 w-5" />
@@ -124,8 +124,8 @@ export function Layout() {
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                       isActive
-                        ? "bg-blue-600 text-white"
-                        : "text-white hover:bg-slate-800"
+                        ? "bg-primary text-primary-foreground"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent"
                     }`
                   }
                 >
@@ -138,12 +138,14 @@ export function Layout() {
         </nav>
 
         {/* Application Logo */}
-        <div className="p-6 border-t border-slate-700">
+        <div className="p-6 border-t border-sidebar-border">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-blue-500 flex items-center justify-center">
-              <DollarSign className="h-5 w-5 text-white" />
+            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+              <DollarSign className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="font-bold text-lg text-white">ClubZen CFMS</span>
+            <span className="font-bold text-lg text-sidebar-foreground">
+              ClubZen CFMS
+            </span>
           </div>
         </div>
 
@@ -151,7 +153,7 @@ export function Layout() {
         <div className="p-4">
           <Button
             variant="ghost"
-            className="w-full justify-start text-white hover:bg-slate-800"
+            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent"
             onClick={handleLogout}
           >
             <LogOut className="h-5 w-5 mr-3" />
@@ -161,7 +163,7 @@ export function Layout() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto bg-gray-50">
+      <main className="flex-1 overflow-y-auto bg-background">
         <Outlet />
       </main>
     </div>

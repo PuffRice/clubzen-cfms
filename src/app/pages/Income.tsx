@@ -16,8 +16,8 @@ export function Income() {
       {/* Page Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Income</h1>
-          <p className="text-gray-500 mt-1">Track your income sources</p>
+          <h1 className="text-3xl font-bold text-foreground">Income</h1>
+          <p className="text-muted-foreground mt-1">Track your income sources</p>
         </div>
         <Button className="bg-green-600 hover:bg-green-700">
           <Plus className="h-4 w-4 mr-2" />
@@ -43,10 +43,10 @@ export function Income() {
             <table className="w-full">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left py-3 px-4 font-medium text-gray-700">Source</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-700">Amount</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-700">Date</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-700">Type</th>
+                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Source</th>
+                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Amount</th>
+                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Date</th>
+                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Type</th>
                 </tr>
               </thead>
               <tbody>
@@ -56,7 +56,7 @@ export function Income() {
                     <td className="py-3 px-4 font-semibold text-green-600">
                       +${income.amount.toFixed(2)}
                     </td>
-                    <td className="py-3 px-4 text-gray-600">{income.date}</td>
+                    <td className="py-3 px-4 text-muted-foreground">{income.date}</td>
                     <td className="py-3 px-4">
                       <span
                         className={`px-3 py-1 rounded-full text-sm ${
@@ -64,7 +64,7 @@ export function Income() {
                             ? "bg-blue-100 text-blue-700"
                             : income.type === "Investment"
                             ? "bg-purple-100 text-purple-700"
-                            : "bg-gray-100 text-gray-700"
+                            : "bg-muted text-muted-foreground"
                         }`}
                       >
                         {income.type}

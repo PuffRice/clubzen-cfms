@@ -59,8 +59,8 @@ export function DailyReports() {
       {/* Page Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Daily Reports</h1>
-          <p className="text-gray-500 mt-1">Track your daily financial activities</p>
+          <h1 className="text-3xl font-bold text-foreground">Daily Reports</h1>
+          <p className="text-muted-foreground mt-1">Track your daily financial activities</p>
         </div>
         <Button className="bg-purple-600 hover:bg-purple-700">
           <Download className="h-4 w-4 mr-2" />
@@ -73,11 +73,11 @@ export function DailyReports() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
-              <Calendar className="h-5 w-5 text-gray-500" />
+              <Calendar className="h-5 w-5 text-muted-foreground" />
               <input
                 type="date"
                 defaultValue={new Date().toISOString().split('T')[0]}
-                className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary"
               />
               <Button variant="outline" size="sm">Today</Button>
               <Button variant="outline" size="sm">Yesterday</Button>
@@ -90,7 +90,7 @@ export function DailyReports() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">Income Today</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Income Today</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
@@ -104,7 +104,7 @@ export function DailyReports() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">Expenses Today</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Expenses Today</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
@@ -118,7 +118,7 @@ export function DailyReports() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">Net Change</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Net Change</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
@@ -131,11 +131,11 @@ export function DailyReports() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">Transactions</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Transactions</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-foreground">
                 {dailySummary.transactionCount}
               </p>
             </div>
@@ -156,7 +156,7 @@ export function DailyReports() {
                 className="flex items-center gap-4 p-4 border rounded-lg hover:shadow-md transition-shadow"
               >
                 <div className="flex-shrink-0">
-                  <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
+                  <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
                     {transaction.type === "income" ? (
                       <TrendingUp className="h-6 w-6 text-green-600" />
                     ) : (
@@ -166,7 +166,7 @@ export function DailyReports() {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
-                    <h4 className="font-semibold text-gray-900">{transaction.category}</h4>
+                    <h4 className="font-semibold text-foreground">{transaction.category}</h4>
                     <span
                       className={`font-bold text-lg ${
                         transaction.type === "income" ? "text-green-600" : "text-red-600"
@@ -175,7 +175,7 @@ export function DailyReports() {
                       {transaction.type === "income" ? "+" : "-"}${transaction.amount.toFixed(2)}
                     </span>
                   </div>
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span>{transaction.time}</span>
                     <span>•</span>
                     <span>{transaction.method}</span>

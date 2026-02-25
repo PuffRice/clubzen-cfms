@@ -13,8 +13,8 @@ export function BankDetails() {
       {/* Page Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Bank Details</h1>
-          <p className="text-gray-500 mt-1">Manage your connected bank accounts</p>
+          <h1 className="text-3xl font-bold text-foreground">Bank Details</h1>
+          <p className="text-muted-foreground mt-1">Manage your connected bank accounts</p>
         </div>
         <Button className="bg-blue-600 hover:bg-blue-700">
           <Plus className="h-4 w-4 mr-2" />
@@ -35,15 +35,15 @@ export function BankDetails() {
             <CardContent>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Account Number</span>
+                  <span className="text-muted-foreground">Account Number</span>
                   <span className="font-mono">{account.accountNumber}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Account Type</span>
+                  <span className="text-muted-foreground">Account Type</span>
                   <span className="font-medium">{account.type}</span>
                 </div>
                 <div className="flex justify-between items-center pt-3 border-t">
-                  <span className="text-gray-600">Balance</span>
+                  <span className="text-muted-foreground">Balance</span>
                   <span className="font-bold text-xl">${account.balance.toLocaleString()}</span>
                 </div>
                 <div className="flex gap-2 pt-3">
@@ -83,7 +83,7 @@ export function BankDetails() {
                 </div>
                 <div>
                   <p className="font-semibold">**** **** **** 1234</p>
-                  <p className="text-sm text-gray-500">Expires 12/2026</p>
+                  <p className="text-sm text-muted-foreground">Expires 12/2026</p>
                 </div>
               </div>
               <Button variant="outline" size="sm">Edit</Button>

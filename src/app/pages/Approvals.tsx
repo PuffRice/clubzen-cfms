@@ -14,8 +14,8 @@ export function Approvals() {
     <div className="p-8">
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Approvals</h1>
-        <p className="text-gray-500 mt-1">Review and approve pending requests</p>
+        <h1 className="text-3xl font-bold text-foreground">Approvals</h1>
+        <p className="text-muted-foreground mt-1">Review and approve pending requests</p>
       </div>
 
       {/* Approvals List */}
@@ -36,13 +36,13 @@ export function Approvals() {
                       <XCircle className="h-5 w-5 text-red-600" />
                     )}
                     <div>
-                      <h3 className="font-semibold text-gray-900">{approval.description}</h3>
-                      <p className="text-sm text-gray-500">{approval.type} • {approval.date}</p>
+                      <h3 className="font-semibold text-foreground">{approval.description}</h3>
+                      <p className="text-sm text-muted-foreground">{approval.type} • {approval.date}</p>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="font-bold text-lg text-gray-900">
+                  <span className="font-bold text-lg text-foreground">
                     ${approval.amount.toFixed(2)}
                   </span>
                   {approval.status === "pending" ? (

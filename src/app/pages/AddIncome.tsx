@@ -58,8 +58,8 @@ export function AddIncome() {
     <div className="p-8">
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Add Income</h1>
-        <p className="text-gray-500 mt-1">Record a new income transaction</p>
+        <h1 className="text-3xl font-bold text-foreground">Add Income</h1>
+        <p className="text-muted-foreground mt-1">Record a new income transaction</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -79,7 +79,7 @@ export function AddIncome() {
                   <div>
                     <Label htmlFor="amount">Amount *</Label>
                     <div className="relative mt-1">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                         $
                       </span>
                       <input
@@ -87,7 +87,7 @@ export function AddIncome() {
                         type="number"
                         step="0.01"
                         placeholder="0.00"
-                        className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        className="w-full pl-8 pr-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-input-background text-foreground"
                         value={formData.amount}
                         onChange={(e) =>
                           setFormData({ ...formData, amount: e.target.value })
@@ -101,7 +101,7 @@ export function AddIncome() {
                     <Label htmlFor="source">Income Source *</Label>
                     <select
                       id="source"
-                      className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      className="w-full mt-1 px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-input-background text-foreground"
                       value={formData.source}
                       onChange={(e) =>
                         setFormData({ ...formData, source: e.target.value })
@@ -122,7 +122,7 @@ export function AddIncome() {
                     <input
                       id="date"
                       type="date"
-                      className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      className="w-full mt-1 px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-input-background text-foreground"
                       value={formData.date}
                       onChange={(e) =>
                         setFormData({ ...formData, date: e.target.value })
@@ -135,7 +135,7 @@ export function AddIncome() {
                     <Label htmlFor="type">Income Type *</Label>
                     <select
                       id="type"
-                      className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      className="w-full mt-1 px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-input-background text-foreground"
                       value={formData.type}
                       onChange={(e) =>
                         setFormData({ ...formData, type: e.target.value })
@@ -158,7 +158,7 @@ export function AddIncome() {
                     id="description"
                     rows={4}
                     placeholder="Add notes about this income..."
-                    className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="w-full mt-1 px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary bg-input-background text-foreground"
                     value={formData.description}
                     onChange={(e) =>
                       setFormData({ ...formData, description: e.target.value })
@@ -177,7 +177,7 @@ export function AddIncome() {
                 <div className="flex gap-3 pt-4">
                   <Button
                     type="submit"
-                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    className="flex-1"
                   >
                     Save Income
                   </Button>
@@ -198,25 +198,25 @@ export function AddIncome() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <p className="text-sm text-green-700 mb-1">Total Amount</p>
-                  <p className="text-3xl font-bold text-green-700">
+                <div className="p-4 bg-primary/20 rounded-lg border border-primary/30">
+                  <p className="text-sm text-muted-foreground mb-1">Total Amount</p>
+                  <p className="text-3xl font-bold text-foreground">
                     +${formData.amount || "0.00"}
                   </p>
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Source</span>
+                    <span className="text-muted-foreground">Source</span>
                     <span className="font-medium">
                       {formData.source || "Not selected"}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Date</span>
+                    <span className="text-muted-foreground">Date</span>
                     <span className="font-medium">{formData.date}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Type</span>
+                    <span className="text-muted-foreground">Type</span>
                     <span className="font-medium">
                       {formData.type || "Not selected"}
                     </span>
