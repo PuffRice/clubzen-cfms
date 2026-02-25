@@ -33,20 +33,21 @@ export class TransactionService {
   ): Promise<IncomeTransaction> {
     this.validate(amount, category, description);
 
+    // include optional field in the row sent to the repository so it can be
+    // persisted once the DB schema supports it.  The repo implementation is
+    // responsible for ignoring undefined values when generating SQL.
     const row = await this.repo.save({
       type: "income",
       amount,
       date: this.toDateString(date),
       category: category.trim(), // treated as "source" by the UI
       description: description.trim(),
+      ...(incomeType ? { incomeType } : {}),
     });
 
-    const tx = this.toDomainIncome(row);
-    if (incomeType) {
-      // copy optional field into the domain object (immutable once set)
-      (tx as any).incomeType = incomeType;
-    }
-    return tx;
+    // when repo returns the saved row it should include any optional fields
+    // that were stored; our helper will propagate them to the domain object.
+    return this.toDomainIncome(row);
   }
 
   /**
@@ -68,13 +69,10 @@ export class TransactionService {
       date: this.toDateString(date),
       category: category.trim(),
       description: description.trim(),
+      ...(paymentMethod ? { paymentMethod } : {}),
     });
 
-    const tx = this.toDomainExpense(row);
-    if (paymentMethod) {
-      (tx as any).paymentMethod = paymentMethod;
-    }
-    return tx;
+    return this.toDomainExpense(row);
   }
 
   /* ── Queries ──────────────────────────────────────────────── */
@@ -133,6 +131,7 @@ export class TransactionService {
       new Date(row.date),
       row.category,
       row.description,
+      row.incomeType, // may be undefined
     );
   }
 
@@ -143,6 +142,7 @@ export class TransactionService {
       new Date(row.date),
       row.category,
       row.description,
+      row.paymentMethod, // may be undefined
     );
   }
 }

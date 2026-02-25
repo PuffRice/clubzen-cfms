@@ -8,6 +8,19 @@ export interface TransactionRow {
   date: string;          // "YYYY-MM-DD"
   category: string;
   description: string;
+
+  /**
+   * Optional, user‑selected classification for income records.  Stored
+   * in the database once we add the corresponding column (Sprint 4).
+   */
+  incomeType?: string;
+
+  /**
+   * Optional, user‑selected payment method for expenses.  Also
+   * persisted once the schema supports it.
+   */
+  paymentMethod?: string;
+
   created_at?: string;
 }
 

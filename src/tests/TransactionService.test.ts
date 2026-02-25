@@ -45,6 +45,21 @@ describe("TransactionService", () => {
     expect(tx.incomeType).toBeUndefined();
   });
 
+  it("should persist incomeType when provided and return it on later queries", async () => {
+    const tx = await service.addIncome(
+      1200,
+      new Date("2026-03-01"),
+      "Bonus",
+      "Performance bonus",
+      "one-time",
+    );
+
+    expect(tx.incomeType).toBe("one-time");
+
+    const incomes = await service.getIncomes();
+    expect(incomes[0].incomeType).toBe("one-time");
+  });
+
   /* ── addExpense ───────────────────────────────────────────── */
 
   it("should add an expense transaction with correct properties", async () => {
@@ -54,6 +69,21 @@ describe("TransactionService", () => {
     expect(tx.amount).toBe(250);
     expect(tx.category).toBe("Food");
     expect(tx.paymentMethod).toBeUndefined();
+  });
+
+  it("should persist paymentMethod when provided and return it on later queries", async () => {
+    const tx = await service.addExpense(
+      300,
+      new Date("2026-03-05"),
+      "Supplies",
+      "Office supplies",
+      "cash",
+    );
+
+    expect(tx.paymentMethod).toBe("cash");
+
+    const expenses = await service.getExpenses();
+    expect(expenses[0].paymentMethod).toBe("cash");
   });
 
   /* ── Validation: amount ───────────────────────────────────── */

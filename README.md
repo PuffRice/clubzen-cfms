@@ -8,6 +8,13 @@ A web-based Cash Flow Management System for tracking income and expenses with fi
 
 ### Technology Stack
 
+> **Note:** The database schema was recently extended with `income_type` on the
+> `income` table and `payment_method` on `expense`.  Developers must run the
+> corresponding migration or re-import `src/supabase/schema.sql` before
+> executing tests or starting the app, otherwise inserts will fail with unknown
+> column errors.
+
+
 - **Language:** TypeScript
 - **Frontend:** React 18
 - **Backend:** Node.js

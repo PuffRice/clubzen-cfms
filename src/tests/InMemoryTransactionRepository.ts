@@ -26,6 +26,9 @@ export class InMemoryTransactionRepository implements ITransactionRepository {
       date: row.date,
       category: row.category,
       description: row.description,
+      // propagate optional props if provided (tests rely on them later)
+      incomeType: (row as any).incomeType,
+      paymentMethod: (row as any).paymentMethod,
       created_at: new Date().toISOString(),
     };
     this.rows.push(saved);

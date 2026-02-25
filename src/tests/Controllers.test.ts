@@ -95,12 +95,34 @@ describe("TransactionController", () => {
     expect(await txService.getAll()).toHaveLength(1);
   });
 
+  it("should forward optional incomeType through to the service", async () => {
+    const tx = await controller.addIncome(
+      800,
+      new Date(),
+      "Grant",
+      "Research grant",
+      "one-time",
+    );
+    expect(tx.incomeType).toBe("one-time");
+  });
+
   it("should delegate addExpense to TransactionService", async () => {
     const tx = await controller.addExpense(120, new Date(), "Food", "Team lunch");
 
     expect(tx.type).toBe("expense");
     expect(tx.amount).toBe(120);
     expect(await txService.getAll()).toHaveLength(1);
+  });
+
+  it("should forward optional paymentMethod through to the service", async () => {
+    const tx = await controller.addExpense(
+      250,
+      new Date(),
+      "Travel",
+      "Taxi fare",
+      "card",
+    );
+    expect(tx.paymentMethod).toBe("card");
   });
 
   it("should propagate validation errors from the service", async () => {
