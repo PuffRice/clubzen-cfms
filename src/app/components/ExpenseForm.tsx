@@ -1,8 +1,8 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { Receipt, Upload } from "lucide-react";
-import { transactionController } from "../services";
+import { transactionController, categoryController } from "../services";
 
 interface ExpenseFormProps {
   onSuccess?: () => void; // called after a successful save
@@ -19,16 +19,24 @@ export function ExpenseForm({ onSuccess }: ExpenseFormProps) {
     paymentMethod: "",
   });
 
-  const categories = [
-    "Groceries",
-    "Transportation",
-    "Utilities",
-    "Entertainment",
-    "Healthcare",
-    "Dining",
-    "Shopping",
-    "Other",
-  ];
+  const [categories, setCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const res = await categoryController.getCategories();
+        if (res.statusCode === 200 && Array.isArray(res.body)) {
+          const cats = (res.body as any[])
+            .filter((c) => c.type === "Expense")
+            .map((c) => c.name as string);
+          setCategories(cats);
+        }
+      } catch (err) {
+        console.error("Failed to load categories", err);
+      }
+    }
+    loadCategories();
+  }, []);
 
   const paymentMethods = [
     "Cash",
