@@ -310,9 +310,9 @@ export function ManageCategories() {
             <div className="space-y-6">
               {/* Category Name */}
               <div>
-                <Label htmlFor="categoryName">Category Name</Label>
+                <Label htmlFor="editCategoryName">Category Name</Label>
                 <input
-                  id="categoryName"
+                  id="editCategoryName"
                   type="text"
                   className="w-full mt-1 px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
                   value={editForm.name}
@@ -391,9 +391,9 @@ export function ManageCategories() {
             <div className="space-y-6">
               {/* Category Name */}
               <div>
-                <Label htmlFor="categoryName">Category Name</Label>
+                <Label htmlFor="addCategoryName">Category Name</Label>
                 <input
-                  id="categoryName"
+                  id="addCategoryName"
                   type="text"
                   className="w-full mt-1 px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
                   value={addForm.name}
