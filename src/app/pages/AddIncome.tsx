@@ -1,13 +1,13 @@
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
-import { Button } from "../components/ui/button";
-import { Label } from "../components/ui/label";
-import { TrendingUp } from "lucide-react";
-import { useState, type FormEvent } from "react";
+﻿import { useEffect } from "react";
 import { useNavigate } from "react-router";
-import { transactionController } from "../services";
 
+/**
+ * Legacy add-income route. Redirects to income listing where dialog is
+ * shown instead of separate page.
+ */
 export function AddIncome() {
   const navigate = useNavigate();
+<<<<<<< HEAD
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState(false);
   const [formData, setFormData] = useState({
@@ -229,4 +229,10 @@ export function AddIncome() {
       </div>
     </div>
   );
+=======
+  useEffect(() => {
+    navigate('/income?add=true', { replace: true });
+  }, [navigate]);
+  return null;
+>>>>>>> 9dd7fad52837847522d3d7bab880c4f512e06c4d
 }
