@@ -85,10 +85,10 @@ export function Dashboard() {
     <div className="p-8 max-w-7xl mx-auto">
       {/* Welcome Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
+        <h1 className="text-3xl font-bold text-foreground">
           Welcome back, {userName}!
         </h1>
-        <p className="text-gray-600 mt-1">
+        <p className="text-muted-foreground mt-1">
           Here's your financial overview
         </p>
       </div>
@@ -127,8 +127,8 @@ export function Dashboard() {
                     <TrendingUp className="h-5 w-5 text-green-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Total Income</p>
-                    <p className="font-bold text-gray-900">
+                    <p className="text-sm text-muted-foreground">Total Income</p>
+                    <p className="font-bold text-foreground">
                       ${summary.totalIncome.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                     </p>
                   </div>
@@ -141,8 +141,8 @@ export function Dashboard() {
                     <TrendingDown className="h-5 w-5 text-red-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Total Expenses</p>
-                    <p className="font-bold text-gray-900">
+                    <p className="text-sm text-muted-foreground">Total Expenses</p>
+                    <p className="font-bold text-foreground">
                       ${summary.totalExpense.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                     </p>
                   </div>
@@ -155,8 +155,8 @@ export function Dashboard() {
                     <Sparkles className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Net Savings</p>
-                    <p className="font-bold text-gray-900">
+                    <p className="text-sm text-muted-foreground">Net Savings</p>
+                    <p className="font-bold text-foreground">
                       ${summary.netProfitLoss.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                     </p>
                   </div>
@@ -169,7 +169,7 @@ export function Dashboard() {
 
       {/* Quick Actions */}
       <div className="mb-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+        <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Button
             className="h-14 bg-blue-600 hover:bg-blue-700 text-white justify-center"
@@ -204,7 +204,7 @@ export function Dashboard() {
           <CardContent>
             <div className="space-y-4">
               {transactions.length === 0 ? (
-                <p className="text-gray-400 text-center py-8">No transactions yet. Add an income or expense to get started.</p>
+                <p className="text-muted-foreground text-center py-8">No transactions yet. Add an income or expense to get started.</p>
               ) : (
                 transactions.map((transaction) => (
                   <div
@@ -224,10 +224,10 @@ export function Dashboard() {
                         )}
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900">
+                        <p className="font-semibold text-foreground">
                           {transaction.name}
                         </p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                           {transaction.category} &bull; {transaction.date}
                         </p>
                       </div>
@@ -289,7 +289,7 @@ export function Dashboard() {
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center">
-                    <p className="text-sm text-gray-500">Total</p>
+                    <p className="text-sm text-muted-foreground">Total</p>
                     <p className="text-2xl font-bold">100%</p>
                   </div>
                 </div>
@@ -304,9 +304,9 @@ export function Dashboard() {
                       className="h-3 w-3 rounded-full"
                       style={{ backgroundColor: item.color }}
                     />
-                    <span className="text-sm text-gray-700">{item.name}</span>
+                    <span className="text-sm text-muted-foreground">{item.name}</span>
                   </div>
-                  <span className="text-sm font-semibold text-gray-900">
+                  <span className="text-sm font-semibold text-foreground">
                     {item.value}%
                   </span>
                 </div>

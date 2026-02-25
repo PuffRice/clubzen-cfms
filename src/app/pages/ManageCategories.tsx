@@ -1,10 +1,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { Plus, Pencil, Trash2, FolderTree } from "lucide-react";
+import { Label } from "../components/ui/label";
+import { Plus, Pencil, Trash2, FolderTree, X } from "lucide-react";
 import { useState } from "react";
 
+interface Category {
+  id: number;
+  name: string;
+  count: number;
+  color: string;
+}
+
 export function ManageCategories() {
-  const [expenseCategories, setExpenseCategories] = useState([
+  const [expenseCategories, setExpenseCategories] = useState<Category[]>([
     { id: 1, name: "Groceries", count: 24, color: "#3B82F6" },
     { id: 2, name: "Transportation", count: 18, color: "#10B981" },
     { id: 3, name: "Utilities", count: 12, color: "#F59E0B" },
@@ -13,19 +21,113 @@ export function ManageCategories() {
     { id: 6, name: "Dining", count: 22, color: "#EC4899" },
   ]);
 
-  const [incomeCategories, setIncomeCategories] = useState([
+  const [incomeCategories, setIncomeCategories] = useState<Category[]>([
     { id: 1, name: "Salary", count: 12, color: "#059669" },
     { id: 2, name: "Freelance", count: 8, color: "#0EA5E9" },
     { id: 3, name: "Investment", count: 5, color: "#8B5CF6" },
     { id: 4, name: "Business", count: 3, color: "#F59E0B" },
   ]);
 
+  const [editingCategory, setEditingCategory] = useState<{
+    category: Category;
+    type: "expense" | "income";
+  } | null>(null);
+
+  const [editForm, setEditForm] = useState({
+    name: "",
+    color: "",
+  });
+
+  const [addingCategory, setAddingCategory] = useState<"expense" | "income" | null>(
+    null
+  );
+
+  const [addForm, setAddForm] = useState({
+    name: "",
+    color: "#3B82F6",
+  });
+
+  const colorOptions = [
+    "#3B82F6",
+    "#10B981",
+    "#F59E0B",
+    "#EF4444",
+    "#8B5CF6",
+    "#EC4899",
+    "#059669",
+    "#0EA5E9",
+    "#F97316",
+    "#14B8A6",
+  ];
+
+  const handleEdit = (category: Category, type: "expense" | "income") => {
+    setEditingCategory({ category, type });
+    setEditForm({
+      name: category.name,
+      color: category.color,
+    });
+  };
+
+  const handleSave = () => {
+    if (!editingCategory) return;
+
+    if (editingCategory.type === "expense") {
+      setExpenseCategories(
+        expenseCategories.map((cat) =>
+          cat.id === editingCategory.category.id
+            ? { ...cat, name: editForm.name, color: editForm.color }
+            : cat
+        )
+      );
+    } else {
+      setIncomeCategories(
+        incomeCategories.map((cat) =>
+          cat.id === editingCategory.category.id
+            ? { ...cat, name: editForm.name, color: editForm.color }
+            : cat
+        )
+      );
+    }
+
+    setEditingCategory(null);
+  };
+
+  const handleAdd = () => {
+    if (!addingCategory || !addForm.name.trim()) return;
+
+    const newCategory: Category = {
+      id: Date.now(),
+      name: addForm.name,
+      color: addForm.color,
+      count: 0,
+    };
+
+    if (addingCategory === "expense") {
+      setExpenseCategories([...expenseCategories, newCategory]);
+    } else {
+      setIncomeCategories([...incomeCategories, newCategory]);
+    }
+
+    setAddingCategory(null);
+    setAddForm({ name: "", color: "#3B82F6" });
+  };
+
+  const handleDelete = (id: number, type: "expense" | "income") => {
+    if (type === "expense") {
+      setExpenseCategories(expenseCategories.filter((cat) => cat.id !== id));
+    } else {
+      setIncomeCategories(incomeCategories.filter((cat) => cat.id !== id));
+    }
+  };
+
   return (
-    <div className="p-8">
+    <div className="p-8 bg-background text-foreground">
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Manage Categories</h1>
-        <p className="text-gray-500 mt-1">Organize and customize your transaction categories</p>
+        <h1 className="text-3xl font-bold">Manage Categories</h1>
+        <p className="text-muted-foreground mt-1">
+          Organize and customize your transaction categories
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -35,10 +137,14 @@ export function ManageCategories() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
-                  <FolderTree className="h-5 w-5 text-red-600" />
+                  <FolderTree className="h-5 w-5 text-secondary-foreground" />
                   Expense Categories
                 </CardTitle>
-                <Button size="sm" className="bg-red-600 hover:bg-red-700">
+                <Button
+                  size="sm"
+                  className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
+                  onClick={() => setAddingCategory("expense")}
+                >
                   <Plus className="h-4 w-4 mr-1" />
                   Add Category
                 </Button>
@@ -53,28 +159,32 @@ export function ManageCategories() {
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className="h-10 w-10 rounded-lg flex items-center justify-center"
-                        style={{ backgroundColor: category.color + "20" }}
-                      >
-                        <div
-                          className="h-4 w-4 rounded-full"
-                          style={{ backgroundColor: category.color }}
-                        />
-                      </div>
+                        className="h-10 w-10 rounded-full"
+                        style={{ backgroundColor: category.color }}
+                      />
                       <div>
-                        <h4 className="font-semibold text-gray-900">
+                        <h4 className="font-semibold text-foreground">
                           {category.name}
                         </h4>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                           {category.count} transactions
                         </p>
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(category, "expense")}
+                      >
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                          className="text-destructive hover:text-destructive-foreground hover:bg-destructive/20"
+                        onClick={() => handleDelete(category.id, "expense")}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -91,10 +201,14 @@ export function ManageCategories() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
-                  <FolderTree className="h-5 w-5 text-green-600" />
+                  <FolderTree className="h-5 w-5 text-secondary-foreground" />
                   Income Categories
                 </CardTitle>
-                <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                <Button
+                  size="sm"
+                  className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
+                  onClick={() => setAddingCategory("income")}
+                >
                   <Plus className="h-4 w-4 mr-1" />
                   Add Category
                 </Button>
@@ -109,28 +223,32 @@ export function ManageCategories() {
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className="h-10 w-10 rounded-lg flex items-center justify-center"
-                        style={{ backgroundColor: category.color + "20" }}
-                      >
-                        <div
-                          className="h-4 w-4 rounded-full"
-                          style={{ backgroundColor: category.color }}
-                        />
-                      </div>
+                        className="h-10 w-10 rounded-full"
+                        style={{ backgroundColor: category.color }}
+                      />
                       <div>
-                        <h4 className="font-semibold text-gray-900">
+                        <h4 className="font-semibold text-foreground">
                           {category.name}
                         </h4>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                           {category.count} transactions
                         </p>
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(category, "income")}
+                      >
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => handleDelete(category.id, "income")}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -170,6 +288,160 @@ export function ManageCategories() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Edit Modal */}
+      {editingCategory && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-foreground">
+                Edit Category
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setEditingCategory(null)}
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+
+            <div className="space-y-6">
+              {/* Category Name */}
+              <div>
+                <Label htmlFor="categoryName">Category Name</Label>
+                <input
+                  id="categoryName"
+                  type="text"
+                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={editForm.name}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, name: e.target.value })
+                  }
+                />
+              </div>
+
+              {/* Color Selection */}
+              <div>
+                <Label>Category Color</Label>
+                <div className="grid grid-cols-5 gap-3 mt-2">
+                  {colorOptions.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      className={`h-12 w-12 rounded-lg transition-all ${
+                        editForm.color === color
+                        ? "ring-2 ring-offset-2 ring-primary scale-110"
+                          : "hover:scale-105"
+                      }`}
+                      style={{ backgroundColor: color }}
+                      onClick={() => setEditForm({ ...editForm, color })}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Transaction Count (Read-only) */}
+              <div>
+                <Label>Transactions</Label>
+                <div className="mt-1 px-3 py-2 bg-card border border-border rounded-md text-muted-foreground">
+                  {editingCategory.category.count} transactions
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4">
+                <Button
+                  onClick={handleSave}
+                  className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  Save Changes
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setEditingCategory(null)}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Modal */}
+      {addingCategory && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-card rounded-lg shadow-xl w-full max-w-md p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold">
+                Add Category
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setAddingCategory(null)}
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+
+            <div className="space-y-6">
+              {/* Category Name */}
+              <div>
+                <Label htmlFor="categoryName">Category Name</Label>
+                <input
+                  id="categoryName"
+                  type="text"
+                  className="w-full mt-1 px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
+                  value={addForm.name}
+                  onChange={(e) =>
+                    setAddForm({ ...addForm, name: e.target.value })
+                  }
+                />
+              </div>
+
+              {/* Color Selection */}
+              <div>
+                <Label>Category Color</Label>
+                <div className="grid grid-cols-5 gap-3 mt-2">
+                  {colorOptions.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      className={`h-12 w-12 rounded-lg transition-all ${
+                        addForm.color === color
+                          ? "ring-2 ring-offset-2 ring-blue-500 scale-110"
+                          : "hover:scale-105"
+                      }`}
+                      style={{ backgroundColor: color }}
+                      onClick={() => setAddForm({ ...addForm, color })}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4">
+                <Button
+                  onClick={handleAdd}
+                  className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  Add Category
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setAddingCategory(null)}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

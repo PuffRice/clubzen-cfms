@@ -14,8 +14,8 @@ export function Support() {
     <div className="p-8">
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Support</h1>
-        <p className="text-gray-500 mt-1">Get help with your account</p>
+        <h1 className="text-3xl font-bold text-foreground">Support</h1>
+        <p className="text-muted-foreground mt-1">Get help with your account</p>
       </div>
 
       {/* Contact Options */}
@@ -23,8 +23,8 @@ export function Support() {
         <Card className="hover:shadow-lg transition-shadow cursor-pointer">
           <CardContent className="p-6 text-center">
             <MessageCircle className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-            <h3 className="font-semibold text-gray-900 mb-2">Live Chat</h3>
-            <p className="text-sm text-gray-500 mb-4">Chat with our support team</p>
+            <h3 className="font-semibold text-foreground mb-2">Live Chat</h3>
+            <p className="text-sm text-muted-foreground mb-4">Chat with our support team</p>
             <Button variant="outline" className="w-full">Start Chat</Button>
           </CardContent>
         </Card>
@@ -32,8 +32,8 @@ export function Support() {
         <Card className="hover:shadow-lg transition-shadow cursor-pointer">
           <CardContent className="p-6 text-center">
             <Mail className="h-12 w-12 text-green-600 mx-auto mb-4" />
-            <h3 className="font-semibold text-gray-900 mb-2">Email Support</h3>
-            <p className="text-sm text-gray-500 mb-4">support@financeflow.com</p>
+            <h3 className="font-semibold text-foreground mb-2">Email Support</h3>
+            <p className="text-sm text-muted-foreground mb-4">support@financeflow.com</p>
             <Button variant="outline" className="w-full">Send Email</Button>
           </CardContent>
         </Card>
@@ -41,8 +41,8 @@ export function Support() {
         <Card className="hover:shadow-lg transition-shadow cursor-pointer">
           <CardContent className="p-6 text-center">
             <Phone className="h-12 w-12 text-purple-600 mx-auto mb-4" />
-            <h3 className="font-semibold text-gray-900 mb-2">Phone Support</h3>
-            <p className="text-sm text-gray-500 mb-4">1-800-FINANCE</p>
+            <h3 className="font-semibold text-foreground mb-2">Phone Support</h3>
+            <p className="text-sm text-muted-foreground mb-4">1-800-FINANCE</p>
             <Button variant="outline" className="w-full">Call Now</Button>
           </CardContent>
         </Card>
@@ -60,8 +60,8 @@ export function Support() {
           <div className="space-y-4">
             {faqs.map((faq, index) => (
               <div key={index} className="border-b pb-4 last:border-0">
-                <h3 className="font-semibold text-gray-900 mb-2">{faq.question}</h3>
-                <p className="text-gray-600">{faq.answer}</p>
+                <h3 className="font-semibold text-foreground mb-2">{faq.question}</h3>
+                <p className="text-muted-foreground">{faq.answer}</p>
               </div>
             ))}
           </div>

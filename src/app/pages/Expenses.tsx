@@ -16,8 +16,8 @@ export function Expenses() {
       {/* Page Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Expenses</h1>
-          <p className="text-gray-500 mt-1">Track and manage your expenses</p>
+          <h1 className="text-3xl font-bold text-foreground">Expenses</h1>
+          <p className="text-muted-foreground mt-1">Track and manage your expenses</p>
         </div>
         <Button className="bg-blue-600 hover:bg-blue-700">
           <Plus className="h-4 w-4 mr-2" />
@@ -43,10 +43,10 @@ export function Expenses() {
             <table className="w-full">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left py-3 px-4 font-medium text-gray-700">Category</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-700">Amount</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-700">Date</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-700">Status</th>
+                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Category</th>
+                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Amount</th>
+                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Date</th>
+                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -56,7 +56,7 @@ export function Expenses() {
                     <td className="py-3 px-4 font-semibold text-red-600">
                       ${expense.amount.toFixed(2)}
                     </td>
-                    <td className="py-3 px-4 text-gray-600">{expense.date}</td>
+                    <td className="py-3 px-4 text-muted-foreground">{expense.date}</td>
                     <td className="py-3 px-4">
                       <span
                         className={`px-3 py-1 rounded-full text-sm ${

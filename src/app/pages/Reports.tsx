@@ -15,8 +15,8 @@ export function Reports() {
       {/* Page Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Reports</h1>
-          <p className="text-gray-500 mt-1">View and generate financial reports</p>
+          <h1 className="text-3xl font-bold text-foreground">Reports</h1>
+          <p className="text-muted-foreground mt-1">View and generate financial reports</p>
         </div>
         <Button className="bg-purple-600 hover:bg-purple-700">
           <Plus className="h-4 w-4 mr-2" />
@@ -36,10 +36,10 @@ export function Reports() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2 mb-4">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Period:</span> {report.period}
                 </p>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   <span className="font-medium">Generated:</span> {report.generated}
                 </p>
               </div>
