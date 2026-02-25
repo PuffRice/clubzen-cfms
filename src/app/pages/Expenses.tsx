@@ -82,6 +82,8 @@ export function Expenses() {
               <thead>
                 <tr className="border-b">
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Category</th>
+                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Description</th>
+                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Payment Method</th>
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Amount</th>
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Date</th>
                 </tr>
@@ -90,6 +92,12 @@ export function Expenses() {
                 {expenses.map((expense) => (
                   <tr key={expense.id} className="border-b hover:bg-gray-50">
                     <td className="py-3 px-4">{expense.category}</td>
+                    <td className="py-3 px-4 text-muted-foreground">
+                      {expense.description || "-"}
+                    </td>
+                    <td className="py-3 px-4 text-muted-foreground">
+                      {expense.paymentMethod || "-"}
+                    </td>
                     <td className="py-3 px-4 font-semibold text-red-600">
                       ${expense.amount.toFixed(2)}
                     </td>

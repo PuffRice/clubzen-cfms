@@ -16,14 +16,21 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
     row: Omit<TransactionRow, "id" | "created_at">
   ): Promise<TransactionRow> {
     if (row.type === "income") {
+      // build insert payload, only including incomeType if provided
+      const payload: any = {
+        amount: row.amount,
+        date: row.date,
+        source: row.category,
+        description: row.description,
+      };
+      if ((row as any).incomeType) {
+        // the corresponding column will be named `income_type` in the DB
+        payload.income_type = (row as any).incomeType;
+      }
+
       const { data, error } = await supabase
         .from("income")
-        .insert({
-          amount: row.amount,
-          date: row.date,
-          source: row.category,
-          description: row.description,
-        })
+        .insert(payload)
         .select()
         .single();
 
@@ -45,14 +52,19 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
         created_at: (data as any).created_at ?? undefined,
       };
     } else {
+      const payload: any = {
+        amount: row.amount,
+        date: row.date,
+        category: row.category,
+        description: row.description,
+      };
+      if ((row as any).paymentMethod) {
+        // expense column is `payment_method`
+        payload.payment_method = (row as any).paymentMethod;
+      }
       const { data, error } = await supabase
         .from("expense")
-        .insert({
-          amount: row.amount,
-          date: row.date,
-          category: row.category,
-          description: row.description,
-        })
+        .insert(payload)
         .select()
         .single();
 
@@ -98,6 +110,7 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
         date: i.date,
         category: i.source ?? "",
         description: i.description ?? "",
+        incomeType: i.income_type ?? undefined,
         created_at: i.created_at ?? undefined,
       }));
 
@@ -108,6 +121,7 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
         date: e.date,
         category: e.category ?? "",
         description: e.description ?? "",
+        paymentMethod: e.payment_method ?? undefined,
         created_at: e.created_at ?? undefined,
       }));
 
@@ -130,6 +144,7 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
           date: i.date,
           category: i.source ?? "",
           description: i.description ?? "",
+          incomeType: i.income_type ?? undefined,
           created_at: i.created_at ?? undefined,
         }));
       } else {
@@ -142,6 +157,7 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
           date: e.date,
           category: e.category ?? "",
           description: e.description ?? "",
+          paymentMethod: e.payment_method ?? undefined,
           created_at: e.created_at ?? undefined,
         }));
       }
@@ -175,6 +191,7 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
           date: incData.date,
           category: incData.source ?? "",
           description: incData.description ?? "",
+          incomeType: incData.income_type ?? undefined,
           created_at: incData.created_at ?? undefined,
         };
       }
@@ -197,6 +214,7 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
           date: expData.date,
           category: expData.category ?? "",
           description: expData.description ?? "",
+          paymentMethod: expData.payment_method ?? undefined,
           created_at: expData.created_at ?? undefined,
         };
       }

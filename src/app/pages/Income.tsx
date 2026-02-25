@@ -82,6 +82,7 @@ export function Income() {
               <thead>
                 <tr className="border-b">
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Source</th>
+                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Description</th>
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Amount</th>
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Date</th>
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Type</th>
@@ -91,6 +92,9 @@ export function Income() {
                 {incomeItems.map((income) => (
                   <tr key={income.id} className="border-b hover:bg-gray-50">
                     <td className="py-3 px-4">{income.source}</td>
+                    <td className="py-3 px-4 text-muted-foreground">
+                      {income.description || "-"}
+                    </td>
                     <td className="py-3 px-4 font-semibold text-green-600">
                       +${income.amount.toFixed(2)}
                     </td>

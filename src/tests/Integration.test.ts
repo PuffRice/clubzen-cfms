@@ -253,7 +253,7 @@ describe("Integration — Income & Expense flows", () => {
     11. Optional fields pass through the full stack
      ================================================================ */
 
-  it("should carry incomeType through controller → service → domain", async () => {
+  it("should carry incomeType through controller → service → domain and survive retrieval", async () => {
     const income = await txController.addIncome(
       2500,
       new Date("2026-02-15"),
@@ -263,9 +263,15 @@ describe("Integration — Income & Expense flows", () => {
     );
 
     expect(income.incomeType).toBe("one-time");
-  });
 
-  it("should carry paymentMethod through controller → service → domain", async () => {
+    // fetch from service later to ensure repository returned the field as well
+    const incomes = await txService.getIncomes();
+    expect(incomes[0].incomeType).toBe("one-time");
+    // repository row should also carry the field
+    const rows = await repo.findAll();
+    expect(rows[0].incomeType).toBe("one-time");  });
+
+  it("should carry paymentMethod through controller → service → domain and survive retrieval", async () => {
     const expense = await txController.addExpense(
       750,
       new Date("2026-02-20"),
@@ -275,6 +281,12 @@ describe("Integration — Income & Expense flows", () => {
     );
 
     expect(expense.paymentMethod).toBe("bank-transfer");
+
+    const rows = await repo.findAll();
+    expect(rows[0].paymentMethod).toBe("bank-transfer");
+
+    const expenses = await txService.getExpenses();
+    expect(expenses[0].paymentMethod).toBe("bank-transfer");
   });
 
   /* ================================================================
