@@ -1,6 +1,7 @@
 ﻿import { useEffect } from "react";
 import { useNavigate } from "react-router";
 
+
 /**
  * Legacy add-expense route. The actual form is now rendered inside a
  * dialog on the Expenses listing page. Users who navigate here should
@@ -10,7 +11,7 @@ import { useNavigate } from "react-router";
 export function AddExpense() {
   const navigate = useNavigate();
   useEffect(() => {
-    navigate('/expenses?add=true', { replace: true });
+    navigate('/expenses', { replace: true });
   }, [navigate]);
   return null;
 }

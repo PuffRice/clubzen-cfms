@@ -13,8 +13,19 @@ import {
 } from "lucide-react";
 import { reportController, transactionController } from "../services";
 import type { DashboardSummary } from "@core/service";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "../components/ui/dialog";
+import { ExpenseForm } from "../components/ExpenseForm";
+import { IncomeForm } from "../components/IncomeForm";
 
 export function Dashboard() {
+  // not navigating here any more; modals used instead
   const navigate = useNavigate();
   const [summary, setSummary] = useState<DashboardSummary>({
     totalIncome: 0,
@@ -28,6 +39,8 @@ export function Dashboard() {
     { name: string; value: number; color: string }[]
   >([]);
   const [loading, setLoading] = useState(true);
+  const [expenseModalOpen, setExpenseModalOpen] = useState(false);
+  const [incomeModalOpen, setIncomeModalOpen] = useState(false);
 
   const colors = ["#3B82F6", "#10B981", "#F59E0B", "#A855F7", "#EF4444", "#6B7280"];
 
@@ -173,14 +186,14 @@ export function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Button
             className="h-14 bg-blue-600 hover:bg-blue-700 text-white justify-center"
-            onClick={() => navigate("/expenses?add=true")}
+            onClick={() => setExpenseModalOpen(true)}
           >
             <Plus className="h-5 w-5 mr-2" />
             Add New Expense
           </Button>
           <Button
             className="h-14 bg-green-600 hover:bg-green-700 text-white justify-center"
-            onClick={() => navigate("/income?add=true")}
+            onClick={() => setIncomeModalOpen(true)}
           >
             <Receipt className="h-5 w-5 mr-2" />
             Add Income
@@ -194,6 +207,42 @@ export function Dashboard() {
           </Button>
         </div>
       </div>
+
+      {/* Add‑expense modal */}
+      <Dialog open={expenseModalOpen} onOpenChange={setExpenseModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>New Expense</DialogTitle>
+          </DialogHeader>
+          <ExpenseForm
+            onSuccess={() => {
+              setExpenseModalOpen(false);
+              loadData();
+            }}
+          />
+          <DialogClose className="absolute top-2 right-2">
+            <span className="sr-only">Close</span>
+          </DialogClose>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add‑income modal */}
+      <Dialog open={incomeModalOpen} onOpenChange={setIncomeModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>New Income</DialogTitle>
+          </DialogHeader>
+          <IncomeForm
+            onSuccess={() => {
+              setIncomeModalOpen(false);
+              loadData();
+            }}
+          />
+          <DialogClose className="absolute top-2 right-2">
+            <span className="sr-only">Close</span>
+          </DialogClose>
+        </DialogContent>
+      </Dialog>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Transactions */}

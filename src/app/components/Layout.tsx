@@ -24,8 +24,8 @@ const navigation = [
   { name: "Home", href: "/", icon: Home },
   { name: "Update Settings", href: "/settings", icon: Settings },
   // entries changed to open the list pages where the add dialog can be triggered
-  { name: "Add Expense", href: "/expenses?add=true", icon: Plus },
-  { name: "Add Income", href: "/income?add=true", icon: TrendingUp },
+  { name: "Add Expense", href: "/expenses", icon: Plus },
+  { name: "Add Income", href: "/income", icon: TrendingUp },
   { name: "Add Due", href: "/add-due", icon: Calendar },
   { name: "Manage Categories", href: "/manage-categories", icon: FolderTree },
 ];
