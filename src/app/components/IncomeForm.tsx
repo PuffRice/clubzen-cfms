@@ -1,8 +1,8 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { TrendingUp } from "lucide-react";
-import { transactionController } from "../services";
+import { transactionController, categoryController } from "../services";
 
 interface IncomeFormProps {
   onSuccess?: () => void;
@@ -19,16 +19,24 @@ export function IncomeForm({ onSuccess }: IncomeFormProps) {
     type: "",
   });
 
-  const sources = [
-    "Salary",
-    "Freelance",
-    "Business",
-    "Investment",
-    "Rental",
-    "Bonus",
-    "Gift",
-    "Other",
-  ];
+  const [sources, setSources] = useState<string[]>([]);
+
+  useEffect(() => {
+    async function loadSources() {
+      try {
+        const res = await categoryController.getCategories();
+        if (res.statusCode === 200 && Array.isArray(res.body)) {
+          const cats = (res.body as any[])
+            .filter((c) => c.type === "Income")
+            .map((c) => c.name as string);
+          setSources(cats);
+        }
+      } catch (err) {
+        console.error("Failed to load income sources", err);
+      }
+    }
+    loadSources();
+  }, []);
 
   const incomeTypes = ["Recurring", "One-time", "Passive"];
 
