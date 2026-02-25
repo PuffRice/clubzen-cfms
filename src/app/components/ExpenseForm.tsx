@@ -29,7 +29,13 @@ export function ExpenseForm({ onSuccess }: ExpenseFormProps) {
           const cats = (res.body as any[])
             .filter((c) => c.type === "Expense")
             .map((c) => c.name as string);
-          setCategories(cats);
+
+          // Always include loan-related categories in the expense dropdown
+          const withLoanCategories = Array.from(
+            new Set([...cats, "Loan Taken", "Loan Given"]),
+          );
+
+          setCategories(withLoanCategories);
         }
       } catch (err) {
         console.error("Failed to load categories", err);
