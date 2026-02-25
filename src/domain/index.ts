@@ -9,3 +9,5 @@ export { Transaction } from "./Transaction";
 export type { TransactionType } from "./Transaction";
 export { IncomeTransaction } from "./IncomeTransaction";
 export { ExpenseTransaction } from "./ExpenseTransaction";
+export { Loan } from "./Loan";
+export type { LoanDirection } from "./Loan";

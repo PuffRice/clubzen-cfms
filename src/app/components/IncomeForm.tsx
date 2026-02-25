@@ -29,7 +29,13 @@ export function IncomeForm({ onSuccess }: IncomeFormProps) {
           const cats = (res.body as any[])
             .filter((c) => c.type === "Income")
             .map((c) => c.name as string);
-          setSources(cats);
+
+          // Always include loan-related options in income sources as well
+          const withLoanSources = Array.from(
+            new Set([...cats, "Loan Taken", "Loan Given"]),
+          );
+
+          setSources(withLoanSources);
         }
       } catch (err) {
         console.error("Failed to load income sources", err);

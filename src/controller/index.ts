@@ -7,4 +7,5 @@ export { ReportController } from "./ReportController";
 export { CategoryController } from "./CategoryController";
 export { UserController } from "./UserController";
 export { SettingsController } from "./SettingsController";
+export { LoanController } from "./LoanController";
 export type { HttpRequest, HttpResponse } from "./CommonTypes";
