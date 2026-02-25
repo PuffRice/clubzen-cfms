@@ -1,13 +1,15 @@
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
-import { Button } from "../components/ui/button";
-import { Label } from "../components/ui/label";
-import { Receipt, Upload } from "lucide-react";
-import { useState, type FormEvent } from "react";
+﻿import { useEffect } from "react";
 import { useNavigate } from "react-router";
-import { transactionController } from "../services";
 
+/**
+ * Legacy add-expense route. The actual form is now rendered inside a
+ * dialog on the Expenses listing page. Users who navigate here should
+ * be redirected to /expenses so the dialog can be opened from that
+ * page instead.
+ */
 export function AddExpense() {
   const navigate = useNavigate();
+<<<<<<< HEAD
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState(false);
   const [formData, setFormData] = useState({
@@ -245,4 +247,10 @@ export function AddExpense() {
       </div>
     </div>
   );
+=======
+  useEffect(() => {
+    navigate('/expenses?add=true', { replace: true });
+  }, [navigate]);
+  return null;
+>>>>>>> 9dd7fad52837847522d3d7bab880c4f512e06c4d
 }
