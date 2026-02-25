@@ -1,9 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Plus, Filter } from "lucide-react";
-import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router";
 import {
   Dialog,
   DialogTrigger,
@@ -13,34 +11,25 @@ import {
   DialogClose,
 } from "../components/ui/dialog";
 import { ExpenseForm } from "../components/ExpenseForm";
+import { transactionController } from "../services";
+import { ExpenseTransaction } from "../../domain";
 
 export function Expenses() {
-  const navigate = useNavigate();
-  const location = useLocation();
   const [open, setOpen] = useState(false);
+  const [expenses, setExpenses] = useState<ExpenseTransaction[]>([]);
 
-  const handleOpenChange = (val: boolean) => {
-    setOpen(val);
-    if (!val) {
-      // remove add query param when dialog closes
-      navigate("/expenses");
+  const loadExpenses = async () => {
+    try {
+      const all = await transactionController.getAllTransactions();
+      setExpenses(all.filter((tx) => tx.type === "expense") as ExpenseTransaction[]);
+    } catch (err) {
+      console.error("Failed to load expenses", err);
     }
   };
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (params.get("add") === "true") {
-      setOpen(true);
-    }
-  }, [location.search]);
-
-  const expenses = [
-    { id: 1, category: "Groceries", amount: 125.50, date: "Feb 7, 2026", status: "Approved" },
-    { id: 2, category: "Utilities", amount: 89.99, date: "Feb 3, 2026", status: "Approved" },
-    { id: 3, category: "Transportation", amount: 45.00, date: "Feb 2, 2026", status: "Pending" },
-    { id: 4, category: "Entertainment", amount: 75.25, date: "Jan 30, 2026", status: "Approved" },
-    { id: 5, category: "Healthcare", amount: 200.00, date: "Jan 28, 2026", status: "Approved" },
-  ];
+    loadExpenses();
+  }, []);
 
   return (
     <div className="p-8">
@@ -50,7 +39,7 @@ export function Expenses() {
           <h1 className="text-3xl font-bold text-foreground">Expenses</h1>
           <p className="text-muted-foreground mt-1">Track and manage your expenses</p>
         </div>
-        <Dialog open={open} onOpenChange={handleOpenChange}>
+        <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button className="bg-blue-600 hover:bg-blue-700">
               <Plus className="h-4 w-4 mr-2" />
@@ -61,7 +50,12 @@ export function Expenses() {
             <DialogHeader>
               <DialogTitle>New Expense</DialogTitle>
             </DialogHeader>
-            <ExpenseForm onSuccess={() => setOpen(false)} />
+            <ExpenseForm
+              onSuccess={() => {
+                setOpen(false);
+                loadExpenses();
+              }}
+            />
             <DialogClose className="absolute top-2 right-2">
               <span className="sr-only">Close</span>
             </DialogClose>
@@ -90,7 +84,6 @@ export function Expenses() {
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Category</th>
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Amount</th>
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Date</th>
-                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -100,17 +93,8 @@ export function Expenses() {
                     <td className="py-3 px-4 font-semibold text-red-600">
                       ${expense.amount.toFixed(2)}
                     </td>
-                    <td className="py-3 px-4 text-muted-foreground">{expense.date}</td>
-                    <td className="py-3 px-4">
-                      <span
-                        className={`px-3 py-1 rounded-full text-sm ${
-                          expense.status === "Approved"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-yellow-100 text-yellow-700"
-                        }`}
-                      >
-                        {expense.status}
-                      </span>
+                    <td className="py-3 px-4 text-muted-foreground">
+                      {expense.date.toISOString().split("T")[0]}
                     </td>
                   </tr>
                 ))}

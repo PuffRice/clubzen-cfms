@@ -1,9 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Plus, Filter } from "lucide-react";
-import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router";
 import {
   Dialog,
   DialogTrigger,
@@ -13,33 +11,25 @@ import {
   DialogClose,
 } from "../components/ui/dialog";
 import { IncomeForm } from "../components/IncomeForm";
+import { transactionController } from "../services";
+import { IncomeTransaction } from "../../domain";
 
 export function Income() {
-  const navigate = useNavigate();
-  const location = useLocation();
   const [open, setOpen] = useState(false);
+  const [incomeItems, setIncomeItems] = useState<IncomeTransaction[]>([]);
 
-  const handleOpenChange = (val: boolean) => {
-    setOpen(val);
-    if (!val) {
-      navigate("/income");
+  const loadIncomes = async () => {
+    try {
+      const all = await transactionController.getAllTransactions();
+      setIncomeItems(all.filter((tx) => tx.type === "income") as IncomeTransaction[]);
+    } catch (err) {
+      console.error("Failed to load incomes", err);
     }
   };
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (params.get("add") === "true") {
-      setOpen(true);
-    }
-  }, [location.search]);
-
-  const incomeItems = [
-    { id: 1, source: "Salary", amount: 5000.00, date: "Feb 5, 2026", type: "Recurring" },
-    { id: 2, source: "Freelance Project", amount: 1500.00, date: "Feb 1, 2026", type: "One-time" },
-    { id: 3, source: "Dividends", amount: 250.00, date: "Jan 25, 2026", type: "Investment" },
-    { id: 4, source: "Bonus", amount: 2000.00, date: "Jan 20, 2026", type: "One-time" },
-    { id: 5, source: "Rental Income", amount: 1200.00, date: "Jan 15, 2026", type: "Recurring" },
-  ];
+    loadIncomes();
+  }, []);
 
   return (
     <div className="p-8">
@@ -49,7 +39,7 @@ export function Income() {
           <h1 className="text-3xl font-bold text-foreground">Income</h1>
           <p className="text-muted-foreground mt-1">Track your income sources</p>
         </div>
-        <Dialog open={open} onOpenChange={handleOpenChange}>
+        <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button className="bg-green-600 hover:bg-green-700">
               <Plus className="h-4 w-4 mr-2" />
@@ -60,7 +50,12 @@ export function Income() {
             <DialogHeader>
               <DialogTitle>New Income</DialogTitle>
             </DialogHeader>
-            <IncomeForm onSuccess={() => setOpen(false)} />
+            <IncomeForm
+              onSuccess={() => {
+                setOpen(false);
+                loadIncomes();
+              }}
+            />
             <DialogClose className="absolute top-2 right-2">
               <span className="sr-only">Close</span>
             </DialogClose>
@@ -99,18 +94,20 @@ export function Income() {
                     <td className="py-3 px-4 font-semibold text-green-600">
                       +${income.amount.toFixed(2)}
                     </td>
-                    <td className="py-3 px-4 text-muted-foreground">{income.date}</td>
+                    <td className="py-3 px-4 text-muted-foreground">
+                      {income.date.toISOString().split("T")[0]}
+                    </td>
                     <td className="py-3 px-4">
                       <span
                         className={`px-3 py-1 rounded-full text-sm ${
-                          income.type === "Recurring"
+                          income.incomeType === "Recurring"
                             ? "bg-blue-100 text-blue-700"
-                            : income.type === "Investment"
+                            : income.incomeType === "Investment"
                             ? "bg-purple-100 text-purple-700"
                             : "bg-muted text-muted-foreground"
                         }`}
                       >
-                        {income.type}
+                        {income.incomeType || "-"}
                       </span>
                     </td>
                   </tr>
