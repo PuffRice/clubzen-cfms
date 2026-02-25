@@ -292,7 +292,8 @@ export function ManageCategories() {
       {/* Edit Modal */}
       {editingCategory && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+          {/* match add modal background/card styles for consistency */}
+          <div className="bg-card rounded-lg shadow-xl w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-foreground">
                 Edit Category
@@ -313,7 +314,7 @@ export function ManageCategories() {
                 <input
                   id="categoryName"
                   type="text"
-                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full mt-1 px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
                   value={editForm.name}
                   onChange={(e) =>
                     setEditForm({ ...editForm, name: e.target.value })
@@ -331,7 +332,7 @@ export function ManageCategories() {
                       type="button"
                       className={`h-12 w-12 rounded-lg transition-all ${
                         editForm.color === color
-                        ? "ring-2 ring-offset-2 ring-primary scale-110"
+                          ? "ring-2 ring-offset-2 ring-primary scale-110"
                           : "hover:scale-105"
                       }`}
                       style={{ backgroundColor: color }}
@@ -412,7 +413,7 @@ export function ManageCategories() {
                       type="button"
                       className={`h-12 w-12 rounded-lg transition-all ${
                         addForm.color === color
-                          ? "ring-2 ring-offset-2 ring-blue-500 scale-110"
+                          ? "ring-2 ring-offset-2 ring-primary scale-110"
                           : "hover:scale-105"
                       }`}
                       style={{ backgroundColor: color }}
