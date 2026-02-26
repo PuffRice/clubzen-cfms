@@ -16,7 +16,7 @@ export function IncomeForm({ onSuccess }: IncomeFormProps) {
     source: "",
     date: new Date().toISOString().split("T")[0],
     description: "",
-    type: "",
+    paymentMethod: "",
   });
 
   const [sources, setSources] = useState<string[]>([]);
@@ -44,7 +44,13 @@ export function IncomeForm({ onSuccess }: IncomeFormProps) {
     loadSources();
   }, []);
 
-  const incomeTypes = ["Recurring", "One-time", "Passive"];
+  const paymentMethods = [
+    "Cash",
+    "Credit Card",
+    "Debit Card",
+    "Bank Transfer",
+    "Digital Wallet",
+  ];
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -56,7 +62,7 @@ export function IncomeForm({ onSuccess }: IncomeFormProps) {
         new Date(formData.date),
         formData.source,
         formData.description || formData.source,
-        formData.type || undefined
+        formData.paymentMethod || undefined
       );
       setFormSuccess(true);
       setFormData({
@@ -64,7 +70,7 @@ export function IncomeForm({ onSuccess }: IncomeFormProps) {
         source: "",
         date: new Date().toISOString().split("T")[0],
         description: "",
-        type: "",
+        paymentMethod: "",
       });
       if (onSuccess) {
         onSuccess();
@@ -82,7 +88,7 @@ export function IncomeForm({ onSuccess }: IncomeFormProps) {
           <Label htmlFor="amount">Amount *</Label>
           <div className="relative mt-1">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-              $
+              Tk.
             </span>
             <input
               id="amount"
@@ -103,7 +109,8 @@ export function IncomeForm({ onSuccess }: IncomeFormProps) {
           <Label htmlFor="source">Income Source *</Label>
           <select
             id="source"
-            className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            style={{ background: 'var(--input-background)', color: 'var(--foreground)' }}
+            className="w-full mt-1 px-3 py-2 border border-gray-700 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
             value={formData.source}
             onChange={(e) =>
               setFormData({ ...formData, source: e.target.value })
@@ -132,21 +139,22 @@ export function IncomeForm({ onSuccess }: IncomeFormProps) {
           />
         </div>
 
-        {/* Type */}
+        {/* Payment Method */}
         <div>
-          <Label htmlFor="type">Income Type *</Label>
+          <Label htmlFor="paymentMethod">Payment Method *</Label>
           <select
-            id="type"
-            className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-            value={formData.type}
+            id="paymentMethod"
+            style={{ background: 'var(--input-background)', color: 'var(--foreground)' }}
+            className="w-full mt-1 px-3 py-2 border border-gray-700 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            value={formData.paymentMethod}
             onChange={(e) =>
-              setFormData({ ...formData, type: e.target.value })
+              setFormData({ ...formData, paymentMethod: e.target.value })
             }
           >
-            <option value="">Select type</option>
-            {incomeTypes.map((type) => (
-              <option key={type} value={type}>
-                {type}
+            <option value="">Select payment method</option>
+            {paymentMethods.map((method) => (
+              <option key={method} value={method}>
+                {method}
               </option>
             ))}
           </select>

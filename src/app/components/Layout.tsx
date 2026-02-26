@@ -27,8 +27,8 @@ import { useState } from "react";
 const navigation = [
   { name: "Home", href: "/", icon: Home },
   // entries changed to open the list pages where the add dialog can be triggered
-  { name: "Add Expense", href: "/expenses", icon: Plus },
-  { name: "Add Income", href: "/income", icon: TrendingUp },
+  { name: "Expense", href: "/expenses", icon: Plus },
+  { name: "Inflow", href: "/income", icon: TrendingUp },
   { name: "Loan", href: "/add-due", icon: Calendar },
   { name: "Manage Categories", href: "/manage-categories", icon: FolderTree },
 ];
@@ -92,7 +92,26 @@ export function Layout() {
         {/* Navigation Menu */}
         <nav className="flex-1 p-4 overflow-y-auto">
           <ul className="space-y-1">
-            {/* View Reports with Submenu */}
+            {navigation.map((item) => (
+              <li key={item.name}>
+                <NavLink
+                  to={item.href}
+                  end={item.href === "/"}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 hover:py-4 ${
+                      isActive
+                        ? "bg-primary text-primary-foreground"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent"
+                    }`
+                  }
+                >
+                  <item.icon className="h-5 w-5" />
+                  <span>{item.name}</span>
+                </NavLink>
+              </li>
+            ))}
+
+            {/* View Reports with Submenu - Moved to end */}
             <li>
               <button
                 onClick={() => setReportsOpen(!reportsOpen)}
@@ -141,25 +160,6 @@ export function Layout() {
                 </ul>
               )}
             </li>
-
-            {navigation.map((item) => (
-              <li key={item.name}>
-                <NavLink
-                  to={item.href}
-                  end={item.href === "/"}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 hover:py-4 ${
-                      isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "text-sidebar-foreground hover:bg-sidebar-accent"
-                    }`
-                  }
-                >
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.name}</span>
-                </NavLink>
-              </li>
-            ))}
           </ul>
         </nav>
 

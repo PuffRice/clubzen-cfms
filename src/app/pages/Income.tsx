@@ -90,13 +90,13 @@ export function Income() {
               </thead>
               <tbody>
                 {incomeItems.map((income) => (
-                  <tr key={income.id} className="border-b hover:bg-gray-50">
+                  <tr key={income.id} className="border-b hover:bg-gray-800 transition-colors">
                     <td className="py-3 px-4">{income.source}</td>
                     <td className="py-3 px-4 text-muted-foreground">
                       {income.description || "-"}
                     </td>
                     <td className="py-3 px-4 font-semibold text-green-600">
-                      +${income.amount.toFixed(2)}
+                      +Tk.{income.amount.toFixed(2)}
                     </td>
                     <td className="py-3 px-4 text-muted-foreground">
                       {income.date.toISOString().split("T")[0]}

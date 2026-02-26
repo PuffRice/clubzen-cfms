@@ -43,7 +43,7 @@ export function Approvals() {
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="font-bold text-lg text-foreground">
-                    ${approval.amount.toFixed(2)}
+                    Tk.{approval.amount.toFixed(2)}
                   </span>
                   {approval.status === "pending" ? (
                     <div className="flex gap-2">
