@@ -16,6 +16,8 @@ import {
   Plus,
   FolderTree,
   X,
+  Menu,
+  BarChart3,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Button } from "./ui/button";
@@ -25,12 +27,12 @@ import { Switch } from "./ui/switch";
 import { useState } from "react";
 
 const navigation = [
-  { name: "Home", href: "/", icon: Home },
+  { name: "Home", href: "/dashboard", icon: Home },
   // entries changed to open the list pages where the add dialog can be triggered
-  { name: "Expense", href: "/expenses", icon: Plus },
-  { name: "Inflow", href: "/income", icon: TrendingUp },
-  { name: "Loan", href: "/add-due", icon: Calendar },
-  { name: "Manage Categories", href: "/manage-categories", icon: FolderTree },
+  { name: "Expense", href: "/dashboard/expenses", icon: Plus },
+  { name: "Inflow", href: "/dashboard/income", icon: TrendingUp },
+  { name: "Loan", href: "/dashboard/add-due", icon: Calendar },
+  { name: "Manage Categories", href: "/dashboard/manage-categories", icon: FolderTree },
 ];
 
 export function Layout() {
@@ -51,27 +53,47 @@ export function Layout() {
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* Left Sidebar */}
-      <aside className="w-64 bg-sidebar flex flex-col">
-        {/* User Profile + Settings toggle */}
-        <div className="p-6 border-b border-sidebar-border">
+    <div className="flex h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Animated background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 -top-40 -left-40"></div>
+        <div className="absolute w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 bottom-0 right-0"></div>
+      </div>
+
+      {/* Sidebar */}
+      <aside className="relative z-20 w-64 bg-gradient-to-b from-slate-800/40 to-slate-900/40 backdrop-blur-md border-r border-slate-700/50 flex flex-col">
+        {/* Logo Section */}
+        <div className="p-6 border-b border-slate-700/30">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+              <DollarSign className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="font-bold text-white text-lg">ClubZen</h1>
+              <p className="text-xs text-gray-400">CFMS</p>
+            </div>
+          </div>
+        </div>
+
+        {/* User Profile Section */}
+        <div className="p-4 border-b border-slate-700/30">
           <button
             type="button"
             onClick={() => setProfileOpen((open) => !open)}
-            className="flex items-center gap-3 w-full text-left hover:opacity-90"
+            className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-700/30 transition-colors group"
           >
-            <Avatar className="h-12 w-12">
-              <AvatarFallback className="bg-primary text-primary-foreground">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur opacity-30 group-hover:opacity-50 transition-opacity"></div>
+              <div className="relative h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
                 {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <h3 className="font-semibold text-sidebar-foreground">{userName}</h3>
-              <p className="text-sm text-muted-foreground">{userRole}</p>
+              </div>
+            </div>
+            <div className="flex-1 text-left min-w-0">
+              <h3 className="font-semibold text-white text-sm truncate">{userName}</h3>
+              <p className="text-xs text-gray-400">{userRole}</p>
             </div>
             <ChevronDown
-              className={`h-4 w-4 text-muted-foreground transition-transform ${
+              className={`h-4 w-4 text-gray-400 transition-transform flex-shrink-0 ${
                 profileOpen ? "rotate-180" : ""
               }`}
             />
@@ -80,7 +102,7 @@ export function Layout() {
           {profileOpen && (
             <Button
               type="button"
-              className="mt-4 w-full justify-start px-4 bg-blue-400 text-white hover:bg-sidebar-accent transition-colors"
+              className="mt-3 w-full justify-start px-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-xl transition-all"
               onClick={() => setSettingsOpen(true)}
             >
               <Settings className="h-4 w-4 mr-2" />
@@ -91,170 +113,164 @@ export function Layout() {
 
         {/* Navigation Menu */}
         <nav className="flex-1 p-4 overflow-y-auto">
-          <ul className="space-y-1">
-            {navigation.map((item) => (
-              <li key={item.name}>
-                <NavLink
-                  to={item.href}
-                  end={item.href === "/"}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 hover:py-4 ${
-                      isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "text-sidebar-foreground hover:bg-sidebar-accent"
-                    }`
-                  }
-                >
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.name}</span>
-                </NavLink>
-              </li>
-            ))}
-
-            {/* View Reports with Submenu - Moved to end */}
-            <li>
-              <button
-                onClick={() => setReportsOpen(!reportsOpen)}
-                className="flex items-center justify-between w-full px-4 py-3 rounded-lg transition-all duration-300 text-sidebar-foreground hover:bg-sidebar-accent hover:py-4"
-              >
-                <div className="flex items-center gap-3">
-                  <FileText className="h-5 w-5" />
-                  <span>View Reports</span>
-                </div>
-                {reportsOpen ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </button>
-              {reportsOpen && (
-                <ul className="ml-8 mt-1 space-y-1">
-                  <li>
+          <div className="space-y-1">
+            {/* Main Navigation */}
+            <div className="mb-6">
+              <p className="text-xs uppercase font-semibold text-gray-500 px-4 mb-3">Menu</p>
+              <ul className="space-y-2">
+                {navigation.map((item) => (
+                  <li key={item.name}>
                     <NavLink
-                      to="/monthly-reports"
+                      to={item.href}
+                      end={item.href === "/dashboard"}
                       className={({ isActive }) =>
-                        `flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                        `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
                           isActive
-                            ? "bg-blue-600 text-white"
-                            : "text-slate-300 hover:bg-slate-800"
+                            ? "bg-gradient-to-r from-blue-600/80 to-blue-700/80 text-white shadow-lg shadow-blue-500/20"
+                            : "text-gray-300 hover:bg-slate-700/40"
                         }`
                       }
                     >
-                      Monthly Reports
+                      <item.icon className="h-5 w-5 flex-shrink-0" />
+                      <span className="font-medium">{item.name}</span>
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Reports Section */}
+            <div>
+              <p className="text-xs uppercase font-semibold text-gray-500 px-4 mb-3">Analytics</p>
+              <button
+                onClick={() => setReportsOpen(!reportsOpen)}
+                className="flex items-center justify-between w-full px-4 py-3 rounded-xl transition-all duration-200 text-gray-300 hover:bg-slate-700/40"
+              >
+                <div className="flex items-center gap-3">
+                  <FileText className="h-5 w-5 flex-shrink-0" />
+                  <span className="font-medium">Reports</span>
+                </div>
+                <ChevronRight
+                  className={`h-4 w-4 transition-transform ${reportsOpen ? "rotate-90" : ""}`}
+                />
+              </button>
+
+              {reportsOpen && (
+                <ul className="mt-2 ml-4 space-y-1 border-l border-slate-700/50 pl-4">
+                  <li>
+                    <NavLink
+                      to="/dashboard/monthly-reports"
+                      className={({ isActive }) =>
+                        `block px-4 py-2 rounded-lg text-sm transition-all ${
+                          isActive
+                            ? "bg-blue-600/60 text-white"
+                            : "text-gray-400 hover:text-gray-300 hover:bg-slate-700/40"
+                        }`
+                      }
+                    >
+                      Monthly
                     </NavLink>
                   </li>
                   <li>
                     <NavLink
-                      to="/daily-reports"
+                      to="/dashboard/daily-reports"
                       className={({ isActive }) =>
-                        `flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                        `block px-4 py-2 rounded-lg text-sm transition-all ${
                           isActive
-                            ? "bg-blue-600 text-white"
-                            : "text-slate-300 hover:bg-slate-800"
+                            ? "bg-blue-600/60 text-white"
+                            : "text-gray-400 hover:text-gray-300 hover:bg-slate-700/40"
                         }`
                       }
                     >
-                      Daily Reports
+                      Daily
                     </NavLink>
                   </li>
                 </ul>
               )}
-            </li>
-          </ul>
+            </div>
+          </div>
         </nav>
 
-        {/* Application Logo */}
-        <div className="p-6 border-t border-sidebar-border">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-              <DollarSign className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-lg text-sidebar-foreground">
-              ClubZen CFMS
-            </span>
-          </div>
-        </div>
-
-        {/* Logout Button */}
-        <div className="p-4">
+        {/* Bottom Section - Logo & Logout */}
+        <div className="p-4 border-t border-slate-700/30 space-y-3">
           <Button
             variant="ghost"
-            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent"
+            className="w-full justify-start text-gray-400 hover:text-white hover:bg-slate-700/40 rounded-xl transition-all"
             onClick={handleLogout}
           >
             <LogOut className="h-5 w-5 mr-3" />
-            Logout
+            <span>Logout</span>
           </Button>
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto bg-background">
+      {/* Main Content */}
+      <main className="relative z-10 flex-1 overflow-y-auto">
         <Outlet />
       </main>
 
       {/* Settings Modal */}
       {settingsOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-background rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-y-auto p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-foreground">Settings</h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-white">Settings</h2>
               <button
                 type="button"
-                className="p-1 rounded-full hover:bg-muted text-muted-foreground"
+                className="p-2 rounded-lg hover:bg-slate-700/50 text-gray-400 transition-colors"
                 onClick={() => setSettingsOpen(false)}
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Settings className="h-4 w-4" />
-                    Account
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Account Card */}
+              <div className="bg-slate-700/30 border border-slate-600/50 rounded-xl p-6">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                  <Settings className="h-5 w-5 text-blue-400" />
+                  Account
+                </h3>
+                <div className="space-y-4">
                   <div>
-                    <Label>Full Name</Label>
+                    <Label className="text-gray-300 text-sm font-medium">Full Name</Label>
                     <input
                       type="text"
                       defaultValue="John Doe"
-                      className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md"
+                      className="w-full mt-2 px-4 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all"
                     />
                   </div>
                   <div>
-                    <Label>Email</Label>
+                    <Label className="text-gray-300 text-sm font-medium">Email</Label>
                     <input
                       type="email"
                       defaultValue={sessionStorage.getItem("userEmail") ?? "user@example.com"}
-                      className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md"
+                      className="w-full mt-2 px-4 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all"
                     />
                   </div>
-                  <Button className="w-full mt-1">Save Changes</Button>
-                </CardContent>
-              </Card>
+                  <Button className="w-full mt-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg font-semibold">
+                    Save Changes
+                  </Button>
+                </div>
+              </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    Preferences
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label>Transaction Alerts</Label>
-                    <Switch defaultChecked />
+              {/* Preferences Card */}
+              <div className="bg-slate-700/30 border border-slate-600/50 rounded-xl p-6">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-purple-400" />
+                  Preferences
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-slate-800/30 border border-slate-600/50">
+                    <Label className="text-gray-300 font-medium">Transaction Alerts</Label>
+                    <Switch defaultChecked className="bg-blue-600" />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <Label>Monthly Reports</Label>
-                    <Switch />
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-slate-800/30 border border-slate-600/50">
+                    <Label className="text-gray-300 font-medium">Monthly Reports</Label>
+                    <Switch className="bg-blue-600" />
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </div>
           </div>
         </div>
