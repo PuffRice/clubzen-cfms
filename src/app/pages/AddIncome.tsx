@@ -8,7 +8,7 @@ import { useNavigate } from "react-router";
 export function AddIncome() {
   const navigate = useNavigate();
   useEffect(() => {
-    navigate('/income', { replace: true });
+    navigate('/dashboard/income', { replace: true });
   }, [navigate]);
   return null;
 }

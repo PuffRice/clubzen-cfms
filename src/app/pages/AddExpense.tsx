@@ -11,7 +11,7 @@ import { useNavigate } from "react-router";
 export function AddExpense() {
   const navigate = useNavigate();
   useEffect(() => {
-    navigate('/expenses', { replace: true });
+    navigate('/dashboard/expenses', { replace: true });
   }, [navigate]);
   return null;
 }

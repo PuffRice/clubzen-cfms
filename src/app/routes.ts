@@ -18,6 +18,13 @@ import { Support } from "./pages/Support";
 import { BankDetails } from "./pages/BankDetails";
 
 export const router = createBrowserRouter([
+  // ── Default to Login ─────────────────────────────────────
+  {
+    index: true,
+    path: "/",
+    Component: Login,
+  },
+
   // ── Login (no Layout) ─────────────────────────────────────
   {
     path: "/login",
@@ -26,7 +33,7 @@ export const router = createBrowserRouter([
 
   // ── Main app (with sidebar Layout) ────────────────────────
   {
-    path: "/",
+    path: "/dashboard",
     Component: Layout,
     children: [
       { index: true, Component: Dashboard },
