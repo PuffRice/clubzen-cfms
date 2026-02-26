@@ -95,7 +95,7 @@ export function DailyReports() {
           <CardContent>
             <div className="flex items-center justify-between">
               <p className="text-2xl font-bold text-green-600">
-                +${dailySummary.totalIncome.toFixed(2)}
+                +Tk.{dailySummary.totalIncome.toFixed(2)}
               </p>
               <TrendingUp className="h-6 w-6 text-green-600" />
             </div>
@@ -109,7 +109,7 @@ export function DailyReports() {
           <CardContent>
             <div className="flex items-center justify-between">
               <p className="text-2xl font-bold text-red-600">
-                -${dailySummary.totalExpenses.toFixed(2)}
+                -Tk.{dailySummary.totalExpenses.toFixed(2)}
               </p>
               <TrendingDown className="h-6 w-6 text-red-600" />
             </div>
@@ -123,7 +123,7 @@ export function DailyReports() {
           <CardContent>
             <div className="flex items-center justify-between">
               <p className="text-2xl font-bold text-blue-600">
-                +${dailySummary.netChange.toFixed(2)}
+                +Tk.{dailySummary.netChange.toFixed(2)}
               </p>
             </div>
           </CardContent>
@@ -172,7 +172,7 @@ export function DailyReports() {
                         transaction.type === "income" ? "text-green-600" : "text-red-600"
                       }`}
                     >
-                      {transaction.type === "income" ? "+" : "-"}${transaction.amount.toFixed(2)}
+                      {transaction.type === "income" ? "+" : "-"}Tk.{transaction.amount.toFixed(2)}
                     </span>
                   </div>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">

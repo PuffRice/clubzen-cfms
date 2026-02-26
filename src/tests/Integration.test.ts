@@ -1,29 +1,3 @@
-/**
- * Integration.test.ts — Integration tests for income & expense flows.
- *
- * Unlike unit tests that test a single class in isolation, these
- * integration tests verify the FULL path:
- *
- *   Controller → Service → Repository → Domain objects
- *
- * Each test exercises a realistic user scenario end‑to‑end and
- * asserts the combined behaviour of every layer involved.
- *
- * Covers:
- *   1.  Add income end‑to‑end and verify persistence
- *   2.  Add expense end‑to‑end and verify persistence
- *   3.  Mixed income + expense flow with report generation
- *   4.  Validation errors propagate from service through controller
- *   5.  Filtering incomes / expenses after mixed insertions
- *   6.  Multiple incomes accumulate correctly
- *   7.  Multiple expenses accumulate correctly
- *   8.  Dashboard summary reflects combined transactions
- *   9.  Daily summary groups transactions by date
- *  10.  Monthly summary groups transactions by month
- *  11.  Optional fields (incomeType, paymentMethod) pass through
- *  12.  Empty state returns correct defaults
- */
-
 import { describe, it, expect, beforeEach, afterAll } from "vitest";
 import { TransactionController } from "@core/controller/TransactionController";
 import { ReportController } from "@core/controller/ReportController";
@@ -51,9 +25,7 @@ describe("Integration — Income & Expense flows", () => {
     await clearSupabaseTables();
   });
 
-  /* ================================================================
-     1. Add income — full path
-     ================================================================ */
+  // Add Income Operation
 
   it("should persist an income transaction through Controller → Service → Repository", async () => {
     // ACT — call through the controller (the entry point the UI would use)
@@ -80,9 +52,7 @@ describe("Integration — Income & Expense flows", () => {
     expect(rows[0].category).toBe("Membership Fees");
   });
 
-  /* ================================================================
-     2. Add expense — full path
-     ================================================================ */
+  // Add Expense
 
   it("should persist an expense transaction through Controller → Service → Repository", async () => {
     const expense = await txController.addExpense(
@@ -104,9 +74,7 @@ describe("Integration — Income & Expense flows", () => {
     expect(rows[0].amount).toBe(1200);
   });
 
-  /* ================================================================
-     3. Mixed flow — income + expense + report
-     ================================================================ */
+  // Income + Expense + Report
 
   it("should compute correct dashboard summary after mixed transactions", async () => {
     await txController.addIncome(10000, new Date("2026-02-01"), "Dues", "Monthly dues");
@@ -121,10 +89,7 @@ describe("Integration — Income & Expense flows", () => {
     expect(summary.netProfitLoss).toBe(7500);
   });
 
-  /* ================================================================
-     4. Validation errors propagate through the controller
-     ================================================================ */
-
+  // Validation errors must pass through controller
   it("should reject zero‑amount income at the controller level", async () => {
     await expect(
       txController.addIncome(0, new Date(), "Salary", "Zero"),
@@ -149,9 +114,7 @@ describe("Integration — Income & Expense flows", () => {
     ).rejects.toThrow("Description is required.");
   });
 
-  /* ================================================================
-     5. Filtering after mixed insertions
-     ================================================================ */
+  // FIlter after mixed instructions
 
   it("should return only incomes when filtering after mixed data", async () => {
     await txController.addIncome(2000, new Date("2026-03-01"), "Dues", "March dues");
@@ -173,9 +136,7 @@ describe("Integration — Income & Expense flows", () => {
     expenses.forEach((tx) => expect(tx.type).toBe("expense"));
   });
 
-  /* ================================================================
-     6. Multiple incomes accumulate correctly
-     ================================================================ */
+  // Multiple Income accumulates correctly
 
   it("should accumulate multiple incomes in the repository", async () => {
     await txController.addIncome(1000, new Date("2026-01-01"), "Dues", "Jan dues");
@@ -189,9 +150,7 @@ describe("Integration — Income & Expense flows", () => {
     expect(total).toBe(4500);
   });
 
-  /* ================================================================
-     7. Multiple expenses accumulate correctly
-     ================================================================ */
+  // Multiple Expense accumulates correctly
 
   it("should accumulate multiple expenses in the repository", async () => {
     await txController.addExpense(800, new Date("2026-01-10"), "Rent", "Jan rent");
@@ -205,9 +164,7 @@ describe("Integration — Income & Expense flows", () => {
     expect(total).toBe(1800);
   });
 
-  /* ================================================================
-     8. Dashboard summary on empty state
-     ================================================================ */
+  // Dashboard Summary in Empty State
 
   it("should return zeroes for dashboard summary when no transactions exist", async () => {
     const summary = await reportController.getDashboardSummary();
@@ -217,9 +174,7 @@ describe("Integration — Income & Expense flows", () => {
     expect(summary.netProfitLoss).toBe(0);
   });
 
-  /* ================================================================
-     9. Daily summary groups transactions correctly
-     ================================================================ */
+  // Daily summary groups transactions correctly. 
 
   it("should group transactions by day in the daily summary", async () => {
     // Two transactions on the same day, one on a different day
@@ -235,9 +190,7 @@ describe("Integration — Income & Expense flows", () => {
     expect(dates).toContain("2026-04-02");
   });
 
-  /* ================================================================
-    10. Monthly summary groups transactions correctly
-     ================================================================ */
+  // Monthly summary groups transactions correctly.
 
   it("should group transactions by month in the monthly summary", async () => {
     await txController.addIncome(3000, new Date("2026-01-15"), "Dues", "Jan income");
@@ -249,9 +202,7 @@ describe("Integration — Income & Expense flows", () => {
     expect(monthly.length).toBeGreaterThanOrEqual(2);
   });
 
-  /* ================================================================
-    11. Optional fields pass through the full stack
-     ================================================================ */
+  // Optional fields persist correctly
 
   it("should carry incomeType through controller → service → domain and survive retrieval", async () => {
     const income = await txController.addIncome(
@@ -289,9 +240,7 @@ describe("Integration — Income & Expense flows", () => {
     expect(expenses[0].paymentMethod).toBe("bank-transfer");
   });
 
-  /* ================================================================
-    12. Data consistency — repository state matches service queries
-     ================================================================ */
+  // Repository State matches Service queries
 
   it("should have consistent counts between repository and service layer", async () => {
     await txController.addIncome(1000, new Date("2026-05-01"), "Dues", "May dues");

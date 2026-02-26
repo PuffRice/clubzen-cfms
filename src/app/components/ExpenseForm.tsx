@@ -29,7 +29,13 @@ export function ExpenseForm({ onSuccess }: ExpenseFormProps) {
           const cats = (res.body as any[])
             .filter((c) => c.type === "Expense")
             .map((c) => c.name as string);
-          setCategories(cats);
+
+          // Always include loan-related categories in the expense dropdown
+          const withLoanCategories = Array.from(
+            new Set([...cats, "Loan Taken", "Loan Given"]),
+          );
+
+          setCategories(withLoanCategories);
         }
       } catch (err) {
         console.error("Failed to load categories", err);
@@ -82,7 +88,7 @@ export function ExpenseForm({ onSuccess }: ExpenseFormProps) {
           <Label htmlFor="amount">Amount *</Label>
           <div className="relative mt-1">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-              $
+              Tk.
             </span>
             <input
               id="amount"
@@ -103,7 +109,8 @@ export function ExpenseForm({ onSuccess }: ExpenseFormProps) {
           <Label htmlFor="category">Category *</Label>
           <select
             id="category"
-            className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            style={{ background: 'var(--input-background)', color: 'var(--foreground)' }}
+            className="w-full mt-1 px-3 py-2 border border-gray-700 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             value={formData.category}
             onChange={(e) =>
               setFormData({ ...formData, category: e.target.value })
@@ -137,7 +144,8 @@ export function ExpenseForm({ onSuccess }: ExpenseFormProps) {
           <Label htmlFor="paymentMethod">Payment Method *</Label>
           <select
             id="paymentMethod"
-            className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            style={{ background: 'var(--input-background)', color: 'var(--foreground)' }}
+            className="w-full mt-1 px-3 py-2 border border-gray-700 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             value={formData.paymentMethod}
             onChange={(e) =>
               setFormData({ ...formData, paymentMethod: e.target.value })

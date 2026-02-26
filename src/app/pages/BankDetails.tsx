@@ -44,7 +44,7 @@ export function BankDetails() {
                 </div>
                 <div className="flex justify-between items-center pt-3 border-t">
                   <span className="text-muted-foreground">Balance</span>
-                  <span className="font-bold text-xl">${account.balance.toLocaleString()}</span>
+                  <span className="font-bold text-xl">Tk.{account.balance.toLocaleString()}</span>
                 </div>
                 <div className="flex gap-2 pt-3">
                   <Button variant="outline" size="sm" className="flex-1">
