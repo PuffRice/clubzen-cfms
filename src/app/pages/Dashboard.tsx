@@ -115,7 +115,7 @@ export function Dashboard() {
                 <div>
                   <p className="text-blue-100 mb-2">Current Balance</p>
                   <h2 className="text-5xl font-bold mb-2">
-                    ${summary.netProfitLoss.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    Tk.{summary.netProfitLoss.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                   </h2>
                   <p className="text-blue-100">Available balance</p>
                 </div>
@@ -142,7 +142,7 @@ export function Dashboard() {
                   <div>
                     <p className="text-sm text-muted-foreground">Total Income</p>
                     <p className="font-bold text-foreground">
-                      ${summary.totalIncome.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                      Tk.{summary.totalIncome.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                     </p>
                   </div>
                 </div>
@@ -156,7 +156,7 @@ export function Dashboard() {
                   <div>
                     <p className="text-sm text-muted-foreground">Total Expenses</p>
                     <p className="font-bold text-foreground">
-                      ${summary.totalExpense.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                      Tk.{summary.totalExpense.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                     </p>
                   </div>
                 </div>
@@ -168,9 +168,9 @@ export function Dashboard() {
                     <Sparkles className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Net Savings</p>
+                    <p className="text-sm text-muted-foreground">Net Profit</p>
                     <p className="font-bold text-foreground">
-                      ${summary.netProfitLoss.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                      Tk.{summary.netProfitLoss.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                     </p>
                   </div>
                 </div>

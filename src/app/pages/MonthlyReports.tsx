@@ -14,6 +14,12 @@ export function MonthlyReports() {
   const [categoryBreakdown, setCategoryBreakdown] = useState<
     { category: string; amount: number; percentage: number }[]
   >([]);
+  const [incomeBreakdown, setIncomeBreakdown] = useState<
+    { category: string; amount: number }[]
+  >([]);
+  const [expenseBreakdown, setExpenseBreakdown] = useState<
+    { category: string; amount: number }[]
+  >([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,9 +40,30 @@ export function MonthlyReports() {
 
         setMonthlyData({ totalIncome, totalExpenses, netSavings, savingsRate });
 
-        // Build category breakdown from live expense data
+        // Build income breakdown from live income data
+        const incomes = allTx.filter((t) => t.type === "income");
+        const incomeMap = new Map<string, number>();
+        for (const t of incomes) {
+          incomeMap.set(t.category, (incomeMap.get(t.category) ?? 0) + t.amount);
+        }
+        const incomeBreakdownData = [...incomeMap.entries()]
+          .map(([category, amount]) => ({ category, amount }))
+          .sort((a, b) => b.amount - a.amount);
+        setIncomeBreakdown(incomeBreakdownData);
+
+        // Build expense breakdown from live expense data
         const expenses = allTx.filter((t) => t.type === "expense");
         const totalExp = expenses.reduce((s, t) => s + t.amount, 0);
+        const expenseMap = new Map<string, number>();
+        for (const t of expenses) {
+          expenseMap.set(t.category, (expenseMap.get(t.category) ?? 0) + t.amount);
+        }
+        const expenseBreakdownData = [...expenseMap.entries()]
+          .map(([category, amount]) => ({ category, amount }))
+          .sort((a, b) => b.amount - a.amount);
+        setExpenseBreakdown(expenseBreakdownData);
+
+        // Build category breakdown with percentages (for bar chart)
         const catMap = new Map<string, number>();
         for (const t of expenses) {
           catMap.set(t.category, (catMap.get(t.category) ?? 0) + t.amount);
@@ -97,7 +124,7 @@ export function MonthlyReports() {
           <CardContent>
             <div className="flex items-center justify-between">
               <p className="text-2xl font-bold text-green-600">
-                ${monthlyData.totalIncome.toLocaleString()}
+                Tk.{monthlyData.totalIncome.toLocaleString()}
               </p>
               <TrendingUp className="h-8 w-8 text-green-600" />
             </div>
@@ -111,7 +138,7 @@ export function MonthlyReports() {
           <CardContent>
             <div className="flex items-center justify-between">
               <p className="text-2xl font-bold text-red-600">
-                ${monthlyData.totalExpenses.toLocaleString()}
+                Tk.{monthlyData.totalExpenses.toLocaleString()}
               </p>
               <TrendingDown className="h-8 w-8 text-red-600" />
             </div>
@@ -125,7 +152,7 @@ export function MonthlyReports() {
           <CardContent>
             <div className="flex items-center justify-between">
               <p className="text-2xl font-bold text-blue-600">
-                ${monthlyData.netSavings.toLocaleString()}
+                Tk.{monthlyData.netSavings.toLocaleString()}
               </p>
             </div>
           </CardContent>
@@ -149,28 +176,78 @@ export function MonthlyReports() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Expense Breakdown by Category</CardTitle>
+            <CardTitle>Category Breakdown</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {categoryBreakdown.map((item) => (
-                <div key={item.category}>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-sm font-medium text-muted-foreground">
-                      {item.category}
-                    </span>
-                    <span className="text-sm font-semibold text-foreground">
-                      ${item.amount.toFixed(2)} ({item.percentage}%)
-                    </span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div
-                      className="bg-blue-600 h-2 rounded-full"
-                      style={{ width: `${item.percentage}%` }}
-                    />
-                  </div>
+            <div className="space-y-6">
+              {/* Income Section */}
+              <div>
+                <h3 className="font-semibold text-green-600 mb-3">Income</h3>
+                <div className="space-y-2 ml-2">
+                  {incomeBreakdown.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No income yet</p>
+                  ) : (
+                    <>
+                      {incomeBreakdown.map((item) => (
+                        <div key={item.category} className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">{item.category}</span>
+                          <span className="font-medium text-green-600">
+                            +Tk.{item.amount.toFixed(2)}
+                          </span>
+                        </div>
+                      ))}
+                      <div className="flex justify-between text-sm pt-2 border-t border-border mt-2">
+                        <span className="font-semibold">Total</span>
+                        <span className="font-semibold text-green-600">
+                          +Tk.{incomeBreakdown.reduce((s, i) => s + i.amount, 0).toFixed(2)}
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
-              ))}
+              </div>
+
+              {/* Expense Section */}
+              <div>
+                <h3 className="font-semibold text-red-600 mb-3">Expense</h3>
+                <div className="space-y-2 ml-2">
+                  {expenseBreakdown.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No expenses yet</p>
+                  ) : (
+                    <>
+                      {expenseBreakdown.map((item) => (
+                        <div key={item.category} className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">{item.category}</span>
+                          <span className="font-medium text-red-600">
+                            -Tk.{item.amount.toFixed(2)}
+                          </span>
+                        </div>
+                      ))}
+                      <div className="flex justify-between text-sm pt-2 border-t border-border mt-2">
+                        <span className="font-semibold">Total</span>
+                        <span className="font-semibold text-red-600">
+                          -Tk.{expenseBreakdown.reduce((s, i) => s + i.amount, 0).toFixed(2)}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Net Profit/Loss */}
+              <div className="pt-4 border-t border-border">
+                <div className="flex justify-between">
+                  <span className="font-semibold text-foreground">Net Profit/Loss</span>
+                  <span
+                    className={`font-bold text-lg ${
+                      monthlyData.netSavings >= 0 ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
+                    {monthlyData.netSavings >= 0 ? "+" : ""}
+                    Tk.{monthlyData.netSavings.toFixed(2)}
+                  </span>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
