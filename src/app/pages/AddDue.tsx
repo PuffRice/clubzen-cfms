@@ -3,6 +3,7 @@ import { Button } from "../components/ui/button";
 import { Label } from "../components/ui/label";
 import { Calendar, Bell } from "lucide-react";
 import { useState } from "react";
+import { loanController } from "../services";
 
 export function AddDue() {
   const [formData, setFormData] = useState({
@@ -16,16 +17,7 @@ export function AddDue() {
     notes: "",
   });
 
-  const categories = [
-    "Rent/Mortgage",
-    "Utilities",
-    "Insurance",
-    "Loan Payment",
-    "Credit Card",
-    "Subscription",
-    "Tax",
-    "Other",
-  ];
+  const categories = ["Loan Taken", "Loan Given"];
 
   const frequencies = [
     "Weekly",
@@ -35,12 +27,49 @@ export function AddDue() {
     "Yearly",
   ];
 
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+
+    const { amount, dueDate, category, title, notes } = formData;
+
+    if (!amount || !dueDate || !category) {
+      return;
+    }
+
+    const numericAmount = Number(amount);
+    const date = new Date(dueDate);
+    const description = notes || title;
+
+    try {
+      if (category === "Loan Taken") {
+        await loanController.createLoan("taken", numericAmount, date, description);
+      } else if (category === "Loan Given") {
+        await loanController.createLoan("given", numericAmount, date, description);
+      }
+
+      setFormData({
+        title: "",
+        amount: "",
+        dueDate: "",
+        category: "",
+        recurring: "one-time",
+        frequency: "",
+        reminder: true,
+        notes: "",
+      });
+    } catch (err) {
+      console.error("Failed to save loan", err);
+    }
+  }
+
   return (
     <div className="p-8">
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground">Add Due</h1>
-        <p className="text-muted-foreground mt-1">Set up a payment reminder or recurring bill</p>
+        <h1 className="text-3xl font-bold text-foreground">Loan</h1>
+        <p className="text-muted-foreground mt-1">
+          Configure a loan payment reminder or recurring loan installment
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -54,7 +83,7 @@ export function AddDue() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <form className="space-y-6">
+              <form className="space-y-6" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Title */}
                   <div className="md:col-span-2">
@@ -76,7 +105,7 @@ export function AddDue() {
                     <Label htmlFor="amount">Amount *</Label>
                     <div className="relative mt-1">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                        $
+                        Tk.
                       </span>
                       <input
                         id="amount"

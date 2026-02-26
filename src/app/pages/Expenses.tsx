@@ -90,7 +90,7 @@ export function Expenses() {
               </thead>
               <tbody>
                 {expenses.map((expense) => (
-                  <tr key={expense.id} className="border-b hover:bg-gray-50">
+                  <tr key={expense.id} className="border-b hover:bg-gray-800 transition-colors">
                     <td className="py-3 px-4">{expense.category}</td>
                     <td className="py-3 px-4 text-muted-foreground">
                       {expense.description || "-"}
@@ -99,7 +99,7 @@ export function Expenses() {
                       {expense.paymentMethod || "-"}
                     </td>
                     <td className="py-3 px-4 font-semibold text-red-600">
-                      ${expense.amount.toFixed(2)}
+                      Tk.{expense.amount.toFixed(2)}
                     </td>
                     <td className="py-3 px-4 text-muted-foreground">
                       {expense.date.toISOString().split("T")[0]}

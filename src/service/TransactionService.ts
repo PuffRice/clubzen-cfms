@@ -10,9 +10,13 @@
  *   Business rules live here, NOT in the controller or UI.
  *   The service receives a repository through its constructor so
  *   storage is fully decoupled (Dependency Inversion).
+ *
+ *   Transaction creation is delegated to TransactionFactory (Factory Pattern),
+ *   which encapsulates the logic of instantiating concrete transaction types.
+ *   This keeps the service focused on business logic, not object creation.
  */
 
-import { Transaction, IncomeTransaction, ExpenseTransaction } from "../domain";
+import { Transaction, IncomeTransaction, ExpenseTransaction, TransactionFactory } from "../domain";
 import type { ITransactionRepository, TransactionRow } from "../repository";
 
 export class TransactionService {
@@ -118,31 +122,45 @@ export class TransactionService {
     return d.toISOString().slice(0, 10);
   }
 
-  /** Convert a raw row into the correct domain subclass. */
+  /** Convert a raw row into the correct domain subclass using the factory. */
   private toDomain(row: TransactionRow): Transaction {
-    if (row.type === "income") return this.toDomainIncome(row);
-    return this.toDomainExpense(row);
+    return TransactionFactory.create(row.type, {
+      id: row.id,
+      amount: Number(row.amount),
+      date: new Date(row.date),
+      ...(row.type === "income"
+        ? {
+            source: row.category,
+            description: row.description,
+            incomeType: row.incomeType,
+          }
+        : {
+            category: row.category,
+            description: row.description,
+            paymentMethod: row.paymentMethod,
+          }),
+    });
   }
 
   private toDomainIncome(row: TransactionRow): IncomeTransaction {
-    return new IncomeTransaction(
-      row.id,
-      Number(row.amount),
-      new Date(row.date),
-      row.category,
-      row.description,
-      row.incomeType, // may be undefined
-    );
+    return TransactionFactory.create("income", {
+      id: row.id,
+      amount: Number(row.amount),
+      date: new Date(row.date),
+      source: row.category,
+      description: row.description,
+      incomeType: row.incomeType,
+    }) as IncomeTransaction;
   }
 
   private toDomainExpense(row: TransactionRow): ExpenseTransaction {
-    return new ExpenseTransaction(
-      row.id,
-      Number(row.amount),
-      new Date(row.date),
-      row.category,
-      row.description,
-      row.paymentMethod, // may be undefined
-    );
+    return TransactionFactory.create("expense", {
+      id: row.id,
+      amount: Number(row.amount),
+      date: new Date(row.date),
+      category: row.category,
+      description: row.description,
+      paymentMethod: row.paymentMethod,
+    }) as ExpenseTransaction;
   }
 }

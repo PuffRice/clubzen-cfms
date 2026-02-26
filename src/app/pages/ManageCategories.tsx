@@ -2,7 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Button } from "../components/ui/button";
 import { Label } from "../components/ui/label";
 import { Plus, Pencil, Trash2, FolderTree, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { categoryController } from "../services";
 
 interface Category {
   id: number;
@@ -12,21 +13,9 @@ interface Category {
 }
 
 export function ManageCategories() {
-  const [expenseCategories, setExpenseCategories] = useState<Category[]>([
-    { id: 1, name: "Groceries", count: 24, color: "#3B82F6" },
-    { id: 2, name: "Transportation", count: 18, color: "#10B981" },
-    { id: 3, name: "Utilities", count: 12, color: "#F59E0B" },
-    { id: 4, name: "Entertainment", count: 15, color: "#EF4444" },
-    { id: 5, name: "Healthcare", count: 8, color: "#8B5CF6" },
-    { id: 6, name: "Dining", count: 22, color: "#EC4899" },
-  ]);
+  const [expenseCategories, setExpenseCategories] = useState<Category[]>([]);
 
-  const [incomeCategories, setIncomeCategories] = useState<Category[]>([
-    { id: 1, name: "Salary", count: 12, color: "#059669" },
-    { id: 2, name: "Freelance", count: 8, color: "#0EA5E9" },
-    { id: 3, name: "Investment", count: 5, color: "#8B5CF6" },
-    { id: 4, name: "Business", count: 3, color: "#F59E0B" },
-  ]);
+  const [incomeCategories, setIncomeCategories] = useState<Category[]>([]);
 
   const [editingCategory, setEditingCategory] = useState<{
     category: Category;
@@ -60,6 +49,40 @@ export function ManageCategories() {
     "#14B8A6",
   ];
 
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const res = await categoryController.getCategories();
+        if (res.statusCode === 200 && Array.isArray(res.body)) {
+          const expenses = (res.body as any[]).filter((c) => c.type === "Expense");
+          const incomes = (res.body as any[]).filter((c) => c.type === "Income");
+
+          setExpenseCategories(
+            expenses.map((c) => ({
+              id: Number(c.id),
+              name: c.name as string,
+              color: (c.color as string) || "#3B82F6",
+              count: 0,
+            }))
+          );
+
+          setIncomeCategories(
+            incomes.map((c) => ({
+              id: Number(c.id),
+              name: c.name as string,
+              color: (c.color as string) || "#059669",
+              count: 0,
+            }))
+          );
+        }
+      } catch (err) {
+        console.error("Failed to load categories", err);
+      }
+    }
+
+    loadCategories();
+  }, []);
+
   const handleEdit = (category: Category, type: "expense" | "income") => {
     setEditingCategory({ category, type });
     setEditForm({
@@ -68,55 +91,95 @@ export function ManageCategories() {
     });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editingCategory) return;
 
-    if (editingCategory.type === "expense") {
-      setExpenseCategories(
-        expenseCategories.map((cat) =>
-          cat.id === editingCategory.category.id
-            ? { ...cat, name: editForm.name, color: editForm.color }
-            : cat
-        )
-      );
-    } else {
-      setIncomeCategories(
-        incomeCategories.map((cat) =>
-          cat.id === editingCategory.category.id
-            ? { ...cat, name: editForm.name, color: editForm.color }
-            : cat
-        )
-      );
-    }
+    try {
+      const res = await categoryController.updateCategory({
+        params: { id: String(editingCategory.category.id) },
+        body: {
+          name: editForm.name,
+          color: editForm.color,
+        },
+      });
 
-    setEditingCategory(null);
+      if (res.statusCode === 200) {
+        if (editingCategory.type === "expense") {
+          setExpenseCategories(
+            expenseCategories.map((cat) =>
+              cat.id === editingCategory.category.id
+                ? { ...cat, name: editForm.name, color: editForm.color }
+                : cat
+            )
+          );
+        } else {
+          setIncomeCategories(
+            incomeCategories.map((cat) =>
+              cat.id === editingCategory.category.id
+                ? { ...cat, name: editForm.name, color: editForm.color }
+                : cat
+            )
+          );
+        }
+
+        setEditingCategory(null);
+      }
+    } catch (err) {
+      console.error("Failed to update category", err);
+    }
   };
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!addingCategory || !addForm.name.trim()) return;
 
-    const newCategory: Category = {
-      id: Date.now(),
-      name: addForm.name,
-      color: addForm.color,
-      count: 0,
-    };
+    try {
+      const type = addingCategory === "expense" ? "Expense" : "Income";
+      const res = await categoryController.createCategory({
+        body: {
+          name: addForm.name.trim(),
+          type,
+          color: addForm.color,
+        },
+      });
 
-    if (addingCategory === "expense") {
-      setExpenseCategories([...expenseCategories, newCategory]);
-    } else {
-      setIncomeCategories([...incomeCategories, newCategory]);
+      if (res.statusCode === 201 && res.body) {
+        const created = res.body as any;
+        const newCategory: Category = {
+          id: Number(created.id),
+          name: created.name as string,
+          color: (created.color as string) || addForm.color,
+          count: 0,
+        };
+
+        if (addingCategory === "expense") {
+          setExpenseCategories([...expenseCategories, newCategory]);
+        } else {
+          setIncomeCategories([...incomeCategories, newCategory]);
+        }
+
+        setAddingCategory(null);
+        setAddForm({ name: "", color: "#3B82F6" });
+      }
+    } catch (err) {
+      console.error("Failed to create category", err);
     }
-
-    setAddingCategory(null);
-    setAddForm({ name: "", color: "#3B82F6" });
   };
 
-  const handleDelete = (id: number, type: "expense" | "income") => {
-    if (type === "expense") {
-      setExpenseCategories(expenseCategories.filter((cat) => cat.id !== id));
-    } else {
-      setIncomeCategories(incomeCategories.filter((cat) => cat.id !== id));
+  const handleDelete = async (id: number, type: "expense" | "income") => {
+    try {
+      const res = await categoryController.deleteCategory({
+        params: { id: String(id) },
+      });
+
+      if (res.statusCode === 200) {
+        if (type === "expense") {
+          setExpenseCategories(expenseCategories.filter((cat) => cat.id !== id));
+        } else {
+          setIncomeCategories(incomeCategories.filter((cat) => cat.id !== id));
+        }
+      }
+    } catch (err) {
+      console.error("Failed to delete category", err);
     }
   };
 
