@@ -1,7 +1,8 @@
 /**
  * LoginPage — Modern, interactive login UI.
  *
- * Accepts any credentials and navigates to / (dashboard).
+ * Integrates with AuthController to authenticate against Supabase.
+ * Stores auth token and user info in sessionStorage.
  */
 
 import { useState, type FormEvent } from "react";
@@ -9,24 +10,43 @@ import { useNavigate } from "react-router";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import { DollarSign, Mail, Lock, ArrowRight } from "lucide-react";
+import { DollarSign, Mail, Lock, ArrowRight, AlertCircle } from "lucide-react";
+import { AuthController } from "@core/controller/AuthController";
 
 export function Login() {
   const navigate = useNavigate();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    setError("");
     setIsLoading(true);
 
-    // Simulate loading delay for interactive feel
-    setTimeout(() => {
-      sessionStorage.setItem("userEmail", email);
-      navigate("/dashboard");
-    }, 500);
+    try {
+      const controller = new AuthController();
+      const result = await controller.login(email, password);
+
+      if (result.success && result.token && result.userId) {
+        // Store auth data in session
+        sessionStorage.setItem("authToken", result.token);
+        sessionStorage.setItem("userId", result.userId);
+        sessionStorage.setItem("userEmail", result.email || email);
+        sessionStorage.setItem("userRole", result.role || "Staff");
+
+        // Navigate to dashboard
+        navigate("/dashboard");
+      } else {
+        setError(result.error || "Authentication failed. Please try again.");
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "An unexpected error occurred";
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -70,6 +90,14 @@ export function Login() {
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 sm:p-10">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h2>
             <p className="text-gray-600 mb-8">Sign in to your account to continue</p>
+
+            {/* Error Message */}
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-gap-3 gap-3">
+                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <p className="text-red-700 text-sm">{error}</p>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Email Field */}

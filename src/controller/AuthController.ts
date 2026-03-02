@@ -1,58 +1,81 @@
 /**
- * AuthController — Handles authentication requests from the UI.
+ * AuthController — Thin controller handling authentication requests from the UI.
+ *
+ * Responsibilities:
+ *   • Accept credentials from UI
+ *   • Delegate to AuthService for business logic
+ *   • Return formatted results to UI
+ *   • Handle service errors and convert to user-friendly messages
  *
  * Design Decision:
- *   No real authentication library is used.  The controller delegates
- *   to a simple mock check and returns a role.
- *   Compatible with the original AuthService.ts pattern but restructured
- *   so that the controller is a thin layer — auth logic is kept minimal
- *   and could be moved to a dedicated AuthService in the service layer.
- *
- *   • admin@clubzen.com → Admin role
- *   • any other valid email → Staff role
+ *   Controller is a thin layer — all auth logic delegated to AuthService.
+ *   Service receives IAuthRepository via DI, so authentication storage
+ *   is fully decoupled and can be switched (Supabase, Firebase, etc.).
  */
 
-export type UserRole = "Admin" | "Staff";
+import { AuthService } from "@core/service/AuthService";
+import { SupabaseAuthRepository } from "@core/repository/SupabaseAuthRepository";
+import type { UserRole } from "@core/domain/Auth";
 
 export interface AuthResult {
   success: boolean;
   role?: UserRole;
   token?: string;
   userId?: string;
+  email?: string;
   error?: string;
 }
 
 export class AuthController {
-  /**
-   * Mock login — accepts any well‑formed email and non‑empty password.
-   */
-  login(email: string, password: string): AuthResult {
-    if (!email || email.trim().length === 0) {
-      return { success: false, error: "Email is required." };
-    }
+  private readonly authService: AuthService;
 
-    if (!this.isValidEmail(email)) {
-      return { success: false, error: "Invalid email format." };
-    }
-
-    if (!password || password.trim().length === 0) {
-      return { success: false, error: "Password is required." };
-    }
-
-    const isAdmin = email.toLowerCase() === "admin@clubzen.com";
-    const role: UserRole = isAdmin ? "Admin" : "Staff";
-
-    return {
-      success: true,
-      role,
-      token: "mock-jwt-token",           // matches original AuthService
-      userId: isAdmin ? "user-001" : "user-002",
-    };
+  constructor() {
+    const authRepository = new SupabaseAuthRepository();
+    this.authService = new AuthService(authRepository);
   }
 
-  /* ── Private helpers ──────────────────────────────────────── */
+  /**
+   * Login with Supabase Auth.
+   * @throws Error if async operation fails (caller should handle).
+   */
+  async login(email: string, password: string): Promise<AuthResult> {
+    try {
+      const auth = await this.authService.login(email, password);
 
-  private isValidEmail(email: string): boolean {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      return {
+        success: true,
+        role: auth.role,
+        token: auth.token,
+        userId: auth.userId,
+        email: auth.email,
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Authentication failed";
+
+      return {
+        success: false,
+        error: message,
+      };
+    }
+  }
+
+  /**
+   * Logout user.
+   */
+  async logout(): Promise<AuthResult> {
+    try {
+      await this.authService.logout();
+
+      return {
+        success: true,
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Logout failed";
+
+      return {
+        success: false,
+        error: message,
+      };
+    }
   }
 }

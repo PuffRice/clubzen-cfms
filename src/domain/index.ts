@@ -13,3 +13,5 @@ export { TransactionFactory } from "./TransactionFactory";
 export type { CreateIncomeParams, CreateExpenseParams, CreateTransactionParams } from "./TransactionFactory";
 export { Loan } from "./Loan";
 export type { LoanDirection } from "./Loan";
+export { Auth } from "./Auth";
+export type { UserRole } from "./Auth";
