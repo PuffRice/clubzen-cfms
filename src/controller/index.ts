@@ -1,7 +1,7 @@
 // Controller layer — barrel export
 
 export { AuthController } from "./AuthController";
-export type { AuthResult, UserRole } from "./AuthController";
+export type { AuthResult } from "./AuthController";
 export { TransactionController } from "./TransactionController";
 export { ReportController } from "./ReportController";
 export { CategoryController } from "./CategoryController";
