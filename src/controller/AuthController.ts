@@ -60,6 +60,56 @@ export class AuthController {
   }
 
   /**
+   * Get user profile (name, role, email, currency).
+   */
+  async getProfile(userId: string): Promise<{
+    success: boolean;
+    profile?: { userId: string; email: string; role: UserRole; fullName?: string; currency?: string };
+    error?: string;
+  }> {
+    try {
+      const auth = await this.authService.getUserProfile(userId);
+      if (!auth) return { success: false, error: "Profile not found" };
+      return {
+        success: true,
+        profile: {
+          userId: auth.userId,
+          email: auth.email,
+          role: auth.role,
+          fullName: auth.fullName ?? undefined,
+          currency: auth.currency ?? "USD",
+        },
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to load profile";
+      return { success: false, error: message };
+    }
+  }
+
+  /**
+   * Update user profile (fullName, currency).
+   */
+  async updateProfile(
+    userId: string,
+    params: { fullName?: string; currency?: string }
+  ): Promise<AuthResult & { profile?: { fullName?: string; currency?: string } }> {
+    try {
+      const auth = await this.authService.updateProfile(userId, params);
+      if (!auth) return { success: false, error: "Failed to update profile" };
+      return {
+        success: true,
+        profile: {
+          fullName: auth.fullName ?? undefined,
+          currency: auth.currency ?? "USD",
+        },
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to update profile";
+      return { success: false, error: message };
+    }
+  }
+
+  /**
    * Logout user.
    */
   async logout(): Promise<AuthResult> {

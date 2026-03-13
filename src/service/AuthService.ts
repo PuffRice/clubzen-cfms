@@ -13,7 +13,7 @@
  */
 
 import { Auth, type UserRole } from "../domain/Auth";
-import type { IAuthRepository } from "../repository/IAuthRepository";
+import type { IAuthRepository, UpdateProfileParams } from "../repository/IAuthRepository";
 
 export class AuthService {
   constructor(private readonly repo: IAuthRepository) {}
@@ -48,7 +48,9 @@ export class AuthService {
       authRow.email,
       authRow.role,
       authRow.token,
-      new Date(authRow.createdAt)
+      new Date(authRow.createdAt),
+      authRow.fullName,
+      authRow.currency
     );
   }
 
@@ -67,7 +69,26 @@ export class AuthService {
       authRow.email,
       authRow.role,
       authRow.token,
-      new Date(authRow.createdAt)
+      new Date(authRow.createdAt),
+      authRow.fullName,
+      authRow.currency
+    );
+  }
+
+  /**
+   * Update user profile (full name, currency).
+   */
+  async updateProfile(userId: string, params: UpdateProfileParams): Promise<Auth | null> {
+    const authRow = await this.repo.updateUserProfile(userId, params);
+    if (!authRow) return null;
+    return new Auth(
+      authRow.userId,
+      authRow.email,
+      authRow.role,
+      authRow.token,
+      new Date(authRow.createdAt),
+      authRow.fullName,
+      authRow.currency
     );
   }
 

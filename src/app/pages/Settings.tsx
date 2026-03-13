@@ -1,20 +1,85 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Bell, Lock, Globe, User } from "lucide-react";
 import { Switch } from "../components/ui/switch";
 import { Label } from "../components/ui/label";
+import { authController } from "../services";
+
+const CURRENCIES = [
+  { value: "USD", label: "USD ($)" },
+  { value: "BDT", label: "BDT (৳)" },
+];
 
 export function Settings() {
+  const userId = sessionStorage.getItem("userId") ?? "";
+  const [profileName, setProfileName] = useState("");
+  const [profileEmail, setProfileEmail] = useState("");
+  const [profileRole, setProfileRole] = useState("");
+  const [profileCurrency, setProfileCurrency] = useState("USD");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  useEffect(() => {
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+    authController.getProfile(userId).then((res) => {
+      if (res.success && res.profile) {
+        setProfileName(res.profile.fullName ?? "");
+        setProfileEmail(res.profile.email ?? "");
+        setProfileRole(res.profile.role ?? "Staff");
+        setProfileCurrency(res.profile.currency ?? "USD");
+      }
+      setLoading(false);
+    });
+  }, [userId]);
+
+  async function handleSaveProfile() {
+    if (!userId) return;
+    setSaving(true);
+    setMessage(null);
+    const res = await authController.updateProfile(userId, {
+      fullName: profileName.trim() || undefined,
+      currency: profileCurrency,
+    });
+    setSaving(false);
+    if (res.success) {
+      if (profileName.trim()) sessionStorage.setItem("userName", profileName.trim());
+      setMessage({ type: "success", text: "Settings updated successfully." });
+    } else {
+      setMessage({ type: "error", text: res.error ?? "Failed to update settings." });
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="p-8">
+        <p className="text-muted-foreground">Loading settings…</p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8">
-      {/* Page Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground">Settings</h1>
         <p className="text-muted-foreground mt-1">Manage your account preferences</p>
       </div>
 
+      {message && (
+        <div
+          className={`mb-6 rounded-lg px-4 py-2 text-sm ${
+            message.type === "success" ? "bg-green-500/10 text-green-600" : "bg-destructive/10 text-destructive"
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Account Settings */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -27,23 +92,30 @@ export function Settings() {
               <Label>Full Name</Label>
               <input
                 type="text"
-                defaultValue="John Doe"
-                className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md"
+                value={profileName}
+                onChange={(e) => setProfileName(e.target.value)}
+                className="w-full mt-1 px-3 py-2 border border-input rounded-md bg-background"
+                placeholder="Your name"
               />
             </div>
             <div>
               <Label>Email</Label>
-              <input
-                type="email"
-                defaultValue="john.doe@email.com"
-                className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md"
-              />
+              <p className="mt-1 px-3 py-2 border border-input rounded-md bg-muted/50 text-muted-foreground">
+                {profileEmail}
+              </p>
             </div>
-            <Button className="w-full">Save Changes</Button>
+            <div>
+              <Label>Role</Label>
+              <p className="mt-1 px-3 py-2 border border-input rounded-md bg-muted/50 text-muted-foreground">
+                {profileRole}
+              </p>
+            </div>
+            <Button className="w-full" onClick={handleSaveProfile} disabled={saving}>
+              {saving ? "Saving…" : "Save Changes"}
+            </Button>
           </CardContent>
         </Card>
 
-        {/* Security Settings */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -65,7 +137,6 @@ export function Settings() {
           </CardContent>
         </Card>
 
-        {/* Notification Settings */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -89,7 +160,6 @@ export function Settings() {
           </CardContent>
         </Card>
 
-        {/* Preferences */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -100,20 +170,29 @@ export function Settings() {
           <CardContent className="space-y-4">
             <div>
               <Label>Currency</Label>
-              <select className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md">
-                <option>USD ($)</option>
-                <option>EUR (€)</option>
-                <option>GBP (£)</option>
+              <select
+                value={profileCurrency}
+                onChange={(e) => setProfileCurrency(e.target.value)}
+                className="w-full mt-1 px-3 py-2 border border-input rounded-md bg-background"
+              >
+                {CURRENCIES.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
               <Label>Language</Label>
-              <select className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md">
+              <select className="w-full mt-1 px-3 py-2 border border-input rounded-md bg-background">
                 <option>English</option>
                 <option>Spanish</option>
                 <option>French</option>
               </select>
             </div>
+            <Button className="w-full" onClick={handleSaveProfile} disabled={saving}>
+              {saving ? "Saving…" : "Save Changes"}
+            </Button>
           </CardContent>
         </Card>
       </div>

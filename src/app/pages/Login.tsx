@@ -11,7 +11,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { DollarSign, Mail, Lock, ArrowRight, AlertCircle } from "lucide-react";
-import { AuthController } from "@core/controller/AuthController";
+import { authController } from "../services";
 
 export function Login() {
   const navigate = useNavigate();
@@ -26,17 +26,17 @@ export function Login() {
     setIsLoading(true);
 
     try {
-      const controller = new AuthController();
-      const result = await controller.login(email, password);
+      const result = await authController.login(email, password);
 
       if (result.success && result.token && result.userId) {
-        // Store auth data in session
         sessionStorage.setItem("authToken", result.token);
         sessionStorage.setItem("userId", result.userId);
         sessionStorage.setItem("userEmail", result.email || email);
         sessionStorage.setItem("userRole", result.role || "Staff");
-
-        // Navigate to dashboard
+        const profileRes = await authController.getProfile(result.userId);
+        if (profileRes.success && profileRes.profile?.fullName) {
+          sessionStorage.setItem("userName", profileRes.profile.fullName);
+        }
         navigate("/dashboard");
       } else {
         setError(result.error || "Authentication failed. Please try again.");

@@ -12,7 +12,21 @@
  */
 
 import { supabase } from "@core/supabase/client";
-import type { IAuthRepository, AuthCredentials, AuthRow } from "./IAuthRepository";
+import type { IAuthRepository, AuthCredentials, AuthRow, UpdateProfileParams } from "./IAuthRepository";
+
+const USER_COLS = "id, email, full_name, role, currency, created_at";
+
+function toAuthRow(data: Record<string, unknown>, token: string): AuthRow {
+  return {
+    userId: data.id as string,
+    email: data.email as string,
+    role: data.role as "Admin" | "Staff" | "User",
+    token,
+    createdAt: (data.created_at as string) ?? "",
+    fullName: data.full_name != null ? String(data.full_name) : undefined,
+    currency: data.currency != null ? String(data.currency) : "USD",
+  };
+}
 
 export class SupabaseAuthRepository implements IAuthRepository {
   async login(credentials: AuthCredentials): Promise<AuthRow> {
@@ -34,7 +48,7 @@ export class SupabaseAuthRepository implements IAuthRepository {
     // Step 2: Fetch user profile from users table to get role
     const { data: userData, error: userError } = await supabase
       .from("users")
-      .select("id, email, role, created_at")
+      .select(USER_COLS)
       .eq("id", userId)
       .single();
 
@@ -45,38 +59,26 @@ export class SupabaseAuthRepository implements IAuthRepository {
         .insert({
           id: userId,
           email,
-          role: email.toLowerCase() === "admin@clubzen.com" ? "Admin" : "Staff",
+          role: email.toLowerCase() === "admin@gmail.com" ? "Admin" : "Staff",
           created_at: new Date().toISOString(),
         })
-        .select("id, email, role, created_at")
+        .select(USER_COLS)
         .single();
 
       if (!newUser) {
         throw new Error("Failed to create user profile");
       }
 
-      return {
-        userId: newUser.id,
-        email: newUser.email,
-        role: newUser.role as "Admin" | "Staff",
-        token: accessToken,
-        createdAt: newUser.created_at,
-      };
+      return toAuthRow(newUser as Record<string, unknown>, accessToken);
     }
 
-    return {
-      userId: userData.id,
-      email: userData.email,
-      role: userData.role as "Admin" | "Staff",
-      token: accessToken,
-      createdAt: userData.created_at,
-    };
+    return toAuthRow(userData as Record<string, unknown>, accessToken);
   }
 
   async getUserProfile(userId: string): Promise<AuthRow | null> {
     const { data, error } = await supabase
       .from("users")
-      .select("id, email, role, created_at")
+      .select(USER_COLS)
       .eq("id", userId)
       .single();
 
@@ -84,17 +86,29 @@ export class SupabaseAuthRepository implements IAuthRepository {
       return null;
     }
 
-    // Fetch current session to get token
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData?.session?.access_token || "";
 
-    return {
-      userId: data.id,
-      email: data.email,
-      role: data.role as "Admin" | "Staff",
-      token,
-      createdAt: data.created_at,
-    };
+    return toAuthRow(data as Record<string, unknown>, token);
+  }
+
+  async updateUserProfile(userId: string, params: UpdateProfileParams): Promise<AuthRow | null> {
+    const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (params.fullName !== undefined) updates.full_name = params.fullName;
+    if (params.currency !== undefined) updates.currency = params.currency;
+
+    const { data, error } = await supabase
+      .from("users")
+      .update(updates)
+      .eq("id", userId)
+      .select(USER_COLS)
+      .single();
+
+    if (error || !data) return null;
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token || "";
+    return toAuthRow(data as Record<string, unknown>, token);
   }
 
   async logout(): Promise<void> {

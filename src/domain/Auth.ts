@@ -6,7 +6,7 @@
  *   • Separates auth domain logic from implementation details
  */
 
-export type UserRole = "Admin" | "Staff";
+export type UserRole = "Admin" | "Staff" | "User";
 
 export class Auth {
   constructor(
@@ -14,7 +14,9 @@ export class Auth {
     readonly email: string,
     readonly role: UserRole,
     readonly token: string,
-    readonly createdAt: Date
+    readonly createdAt: Date,
+    readonly fullName?: string,
+    readonly currency?: string
   ) {}
 
   /**
