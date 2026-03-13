@@ -8,4 +8,5 @@ export { CategoryController } from "./CategoryController";
 export { UserController } from "./UserController";
 export { SettingsController } from "./SettingsController";
 export { LoanController } from "./LoanController";
+export { SupportTicketController } from "./SupportTicketController";
 export type { HttpRequest, HttpResponse } from "./CommonTypes";

@@ -15,3 +15,5 @@ export { Loan } from "./Loan";
 export type { LoanDirection } from "./Loan";
 export { Auth } from "./Auth";
 export type { UserRole } from "./Auth";
+export { SupportTicket, SupportTicketReply } from "./SupportTicket";
+export type { TicketStatus } from "./SupportTicket";

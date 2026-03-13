@@ -24,7 +24,13 @@ import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Label } from "./ui/label";
 import { Switch } from "./ui/switch";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { authController } from "../services";
+
+const CURRENCIES = [
+  { value: "USD", label: "USD ($)" },
+  { value: "BDT", label: "BDT (৳)" },
+];
 
 const navigation = [
   { name: "Home", href: "/dashboard", icon: Home },
@@ -33,6 +39,7 @@ const navigation = [
   { name: "Inflow", href: "/dashboard/income", icon: TrendingUp },
   { name: "Loan", href: "/dashboard/add-due", icon: Calendar },
   { name: "Manage Categories", href: "/dashboard/manage-categories", icon: FolderTree },
+  { name: "Support", href: "/dashboard/support", icon: HelpCircle },
 ];
 
 export function Layout() {
@@ -43,8 +50,34 @@ export function Layout() {
 
   const userEmail = sessionStorage.getItem("userEmail") ?? "user@example.com";
   const userRole = sessionStorage.getItem("userRole") ?? "Staff";
-  const userName = userEmail.split("@")[0];
+  const storedName = sessionStorage.getItem("userName");
+  const userName = storedName || userEmail.split("@")[0];
   const initials = userName.slice(0, 2).toUpperCase();
+
+  const [profileName, setProfileName] = useState(userName);
+  const [profileCurrency, setProfileCurrency] = useState("USD");
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileError, setProfileError] = useState("");
+
+  useEffect(() => {
+    if (settingsOpen) {
+      const uid = sessionStorage.getItem("userId");
+      if (!uid) return;
+      setProfileLoading(true);
+      setProfileError("");
+      authController
+        .getProfile(uid)
+        .then((res) => {
+          if (res.success && res.profile) {
+            setProfileName(res.profile.fullName ?? userEmail.split("@")[0]);
+            setProfileCurrency(res.profile.currency ?? "USD");
+          }
+        })
+        .catch(() => setProfileError("Failed to load profile"))
+        .finally(() => setProfileLoading(false));
+    }
+  }, [settingsOpen, userEmail]);
 
   function handleLogout() {
     sessionStorage.removeItem("userRole");
@@ -209,69 +242,96 @@ export function Layout() {
         <Outlet />
       </main>
 
-      {/* Settings Modal */}
+      {/* Profile / Settings Modal */}
       {settingsOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto p-8">
+          <div className="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md overflow-y-auto p-8">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">Settings</h2>
+              <h2 className="text-2xl font-bold text-white">Profile &amp; Settings</h2>
               <button
                 type="button"
                 className="p-2 rounded-lg hover:bg-slate-700/50 text-gray-400 transition-colors"
                 onClick={() => setSettingsOpen(false)}
+                title="Close"
+                aria-label="Close settings"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Account Card */}
-              <div className="bg-slate-700/30 border border-slate-600/50 rounded-xl p-6">
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                  <Settings className="h-5 w-5 text-blue-400" />
-                  Account
-                </h3>
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-gray-300 text-sm font-medium">Full Name</Label>
-                    <input
-                      type="text"
-                      defaultValue="John Doe"
-                      className="w-full mt-2 px-4 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-gray-300 text-sm font-medium">Email</Label>
-                    <input
-                      type="email"
-                      defaultValue={sessionStorage.getItem("userEmail") ?? "user@example.com"}
-                      className="w-full mt-2 px-4 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all"
-                    />
-                  </div>
-                  <Button className="w-full mt-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg font-semibold">
-                    Save Changes
-                  </Button>
-                </div>
-              </div>
+            {profileError && (
+              <p className="text-red-400 text-sm mb-4">{profileError}</p>
+            )}
 
-              {/* Preferences Card */}
-              <div className="bg-slate-700/30 border border-slate-600/50 rounded-xl p-6">
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-purple-400" />
-                  Preferences
-                </h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-slate-800/30 border border-slate-600/50">
-                    <Label className="text-gray-300 font-medium">Transaction Alerts</Label>
-                    <Switch defaultChecked className="bg-blue-600" />
-                  </div>
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-slate-800/30 border border-slate-600/50">
-                    <Label className="text-gray-300 font-medium">Monthly Reports</Label>
-                    <Switch className="bg-blue-600" />
-                  </div>
+            {profileLoading ? (
+              <p className="text-gray-400">Loading profile…</p>
+            ) : (
+              <div className="space-y-6">
+                <div>
+                  <Label className="text-gray-300 text-sm font-medium">Name</Label>
+                  <input
+                    type="text"
+                    value={profileName}
+                    onChange={(e) => setProfileName(e.target.value)}
+                    className="w-full mt-2 px-4 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all"
+                    placeholder="Your name"
+                  />
                 </div>
+                <div>
+                  <Label className="text-gray-300 text-sm font-medium">Role</Label>
+                  <p className="mt-2 px-4 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-gray-300">
+                    {userRole}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-gray-300 text-sm font-medium">Email</Label>
+                  <p className="mt-2 px-4 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-gray-300">
+                    {userEmail}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-gray-300 text-sm font-medium">Currency</Label>
+                  <select
+                    value={profileCurrency}
+                    onChange={(e) => setProfileCurrency(e.target.value)}
+                    className="w-full mt-2 px-4 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all"
+                    title="Currency"
+                    aria-label="Preferred currency"
+                  >
+                    {CURRENCIES.map((c) => (
+                      <option key={c.value} value={c.value}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <Button
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg font-semibold"
+                  disabled={profileSaving}
+                  onClick={async () => {
+                    const uid = sessionStorage.getItem("userId");
+                    if (!uid) return;
+                    setProfileSaving(true);
+                    setProfileError("");
+                    const res = await authController.updateProfile(uid, {
+                      fullName: profileName.trim() || undefined,
+                      currency: profileCurrency,
+                    });
+                    setProfileSaving(false);
+                    if (res.success) {
+                      if (profileName.trim()) {
+                        sessionStorage.setItem("userName", profileName.trim());
+                      }
+                      setSettingsOpen(false);
+                    } else {
+                      setProfileError(res.error ?? "Failed to save");
+                    }
+                  }}
+                >
+                  {profileSaving ? "Saving…" : "Save Changes"}
+                </Button>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}

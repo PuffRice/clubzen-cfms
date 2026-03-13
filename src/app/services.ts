@@ -9,8 +9,14 @@
  * constructor parameters (Dependency Inversion).
  */
 
-import { SupabaseTransactionRepository, SupabaseLoanRepository } from "@core/repository";
+import {
+  SupabaseTransactionRepository,
+  SupabaseLoanRepository,
+  SupabaseAuthRepository,
+} from "@core/repository";
+import { SupabaseSupportTicketRepository } from "@core/repository/SupabaseSupportTicketRepository";
 import { TransactionService, ReportService, LoanService } from "@core/service";
+import { SupportTicketService } from "../service/SupportTicketService";
 import {
   AuthController,
   TransactionController,
@@ -19,6 +25,7 @@ import {
   SettingsController,
   UserController,
   LoanController,
+  SupportTicketController,
 } from "@core/controller";
 
 import { SupabaseCategoryRepository } from "../repository/SupabaseCategoryRepository";
@@ -28,12 +35,15 @@ import { CategoryService } from "../service/CategoryService";
 export const transactionRepository = new SupabaseTransactionRepository();
 export const categoryRepository = new SupabaseCategoryRepository();
 export const loanRepository = new SupabaseLoanRepository(transactionRepository);
+export const supportTicketRepository = new SupabaseSupportTicketRepository();
+export const authRepository = new SupabaseAuthRepository();
 
 // ── Service layer singletons ────────────────────────────────
 export const transactionService = new TransactionService(transactionRepository);
 export const reportService = new ReportService(transactionService);
 export const categoryService = new CategoryService(categoryRepository);
 export const loanService = new LoanService(loanRepository);
+export const supportTicketService = new SupportTicketService(supportTicketRepository);
 
 // ── Controller layer singletons ─────────────────────────────
 export const authController = new AuthController();
@@ -43,3 +53,7 @@ export const categoryController = new CategoryController(categoryService);
 export const settingsController = new SettingsController();
 export const userController = new UserController();
 export const loanController = new LoanController(loanService);
+export const supportTicketController = new SupportTicketController(
+  supportTicketService,
+  authRepository
+);

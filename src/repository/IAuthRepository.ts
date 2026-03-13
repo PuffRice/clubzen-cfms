@@ -14,9 +14,16 @@ export interface AuthCredentials {
 export interface AuthRow {
   userId: string;
   email: string;
-  role: "Admin" | "Staff";
+  role: "Admin" | "Staff" | "User";
   token: string;
   createdAt: string;
+  fullName?: string;
+  currency?: string;
+}
+
+export interface UpdateProfileParams {
+  fullName?: string;
+  currency?: string;
 }
 
 export interface IAuthRepository {
@@ -30,6 +37,11 @@ export interface IAuthRepository {
    * Retrieve user profile from Supabase.
    */
   getUserProfile(userId: string): Promise<AuthRow | null>;
+
+  /**
+   * Update user profile (full_name, currency).
+   */
+  updateUserProfile(userId: string, params: UpdateProfileParams): Promise<AuthRow | null>;
 
   /**
    * Logout user (invalidate session).

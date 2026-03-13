@@ -31,8 +31,8 @@ describe("AuthController", () => {
     auth = new AuthController();
   });
 
-  it("should return Admin role for admin@clubzen.com", () => {
-    const result = auth.login("admin@clubzen.com", "password123");
+  it("should return Admin role for admin@gmail.com", () => {
+    const result = auth.login("admin@gmail.com", "password123");
     expect(result.success).toBe(true);
     expect(result.role).toBe("Admin");
   });
@@ -44,7 +44,7 @@ describe("AuthController", () => {
   });
 
   it("should return a mock token on success", () => {
-    const result = auth.login("admin@clubzen.com", "pass");
+    const result = auth.login("admin@gmail.com", "pass");
     expect(result.token).toBe("mock-jwt-token");
     expect(result.userId).toBeDefined();
   });
