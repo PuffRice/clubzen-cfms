@@ -31,38 +31,38 @@ describe("AuthController", () => {
     auth = new AuthController();
   });
 
-  it("should return Admin role for admin@gmail.com", () => {
-    const result = auth.login("admin@gmail.com", "password123");
+  it("should return Admin role for admin@gmail.com", async () => {
+    const result = await auth.login("admin@gmail.com", "password123");
     expect(result.success).toBe(true);
     expect(result.role).toBe("Admin");
   });
 
-  it("should return Staff role for any other valid email", () => {
-    const result = auth.login("staff@example.com", "secret");
+  it("should return Staff role for any other valid email", async () => {
+    const result = await auth.login("staff@example.com", "secret");
     expect(result.success).toBe(true);
     expect(result.role).toBe("Staff");
   });
 
-  it("should return a mock token on success", () => {
-    const result = auth.login("admin@gmail.com", "pass");
+  it("should return a mock token on success", async () => {
+    const result = await auth.login("admin@gmail.com", "pass");
     expect(result.token).toBe("mock-jwt-token");
     expect(result.userId).toBeDefined();
   });
 
-  it("should fail when email is empty", () => {
-    const result = auth.login("", "secret");
+  it("should fail when email is empty", async () => {
+    const result = await auth.login("", "secret");
     expect(result.success).toBe(false);
     expect(result.error).toBe("Email is required.");
   });
 
-  it("should fail when email format is invalid", () => {
-    const result = auth.login("not-an-email", "secret");
+  it("should fail when email format is invalid", async () => {
+    const result = await auth.login("not-an-email", "secret");
     expect(result.success).toBe(false);
     expect(result.error).toBe("Invalid email format.");
   });
 
-  it("should fail when password is empty", () => {
-    const result = auth.login("user@example.com", "");
+  it("should fail when password is empty", async () => {
+    const result = await auth.login("user@example.com", "");
     expect(result.success).toBe(false);
     expect(result.error).toBe("Password is required.");
   });
