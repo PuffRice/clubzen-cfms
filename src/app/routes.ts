@@ -51,6 +51,8 @@ export const router = createBrowserRouter([
       { path: "events", Component: Events },
       { path: "support", Component: Support },
       { path: "bank-details", Component: BankDetails },
+      { path: "help", Component: require("./pages/HelpPage").default },
+      { path: "faq", Component: require("./pages/FAQPage").default },
     ],
   },
 ]);

@@ -34,12 +34,13 @@ const CURRENCIES = [
 
 const navigation = [
   { name: "Home", href: "/dashboard", icon: Home },
-  // entries changed to open the list pages where the add dialog can be triggered
   { name: "Expense", href: "/dashboard/expenses", icon: Plus },
   { name: "Inflow", href: "/dashboard/income", icon: TrendingUp },
   { name: "Loan", href: "/dashboard/add-due", icon: Calendar },
   { name: "Manage Categories", href: "/dashboard/manage-categories", icon: FolderTree },
   { name: "Support", href: "/dashboard/support", icon: HelpCircle },
+  { name: "Help", href: "/dashboard/help", icon: HelpCircle },
+  { name: "FAQ", href: "/dashboard/faq", icon: HelpCircle },
 ];
 
 export function Layout() {
@@ -151,7 +152,7 @@ export function Layout() {
             <div className="mb-6">
               <p className="text-xs uppercase font-semibold text-gray-500 px-4 mb-3">Menu</p>
               <ul className="space-y-2">
-                {navigation.map((item) => (
+                {navigation.filter(item => !["Help", "FAQ"].includes(item.name)).map((item) => (
                   <li key={item.name}>
                     <NavLink
                       to={item.href}
@@ -161,6 +162,30 @@ export function Layout() {
                           isActive
                             ? "bg-gradient-to-r from-blue-600/80 to-blue-700/80 text-white shadow-lg shadow-blue-500/20"
                             : "text-gray-300 hover:bg-slate-700/40"
+                        }`
+                      }
+                    >
+                      <item.icon className="h-5 w-5 flex-shrink-0" />
+                      <span className="font-medium">{item.name}</span>
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* US8 Section: Help & FAQ */}
+            <div className="mb-6">
+              <p className="text-xs uppercase font-semibold text-blue-400 px-4 mb-3">Help & Support</p>
+              <ul className="space-y-2">
+                {navigation.filter(item => ["Help", "FAQ"].includes(item.name)).map((item) => (
+                  <li key={item.name}>
+                    <NavLink
+                      to={item.href}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+                          isActive
+                            ? "bg-gradient-to-r from-blue-500/80 to-blue-700/80 text-white shadow-lg shadow-blue-500/20"
+                            : "text-blue-300 hover:bg-blue-700/40"
                         }`
                       }
                     >
