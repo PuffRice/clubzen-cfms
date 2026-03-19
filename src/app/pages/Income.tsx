@@ -72,7 +72,7 @@ export function Income() {
       </div>
 
       {/* Income List */}
-      <Card>
+      <Card className="bg-card-navy/25 border-card-navy/40 border">
         <CardHeader>
           <CardTitle>All Income</CardTitle>
         </CardHeader>

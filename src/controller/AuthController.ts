@@ -128,4 +128,26 @@ export class AuthController {
       };
     }
   }
+
+  /**
+   * Change user password.
+   */
+  async changePassword(
+    currentPassword: string,
+    newPassword: string,
+    confirmPassword: string
+  ): Promise<AuthResult> {
+    try {
+      await this.authService.changePassword(currentPassword, newPassword, confirmPassword);
+      return {
+        success: true,
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to change password";
+      return {
+        success: false,
+        error: message,
+      };
+    }
+  }
 }

@@ -163,7 +163,7 @@ export function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  const userName = sessionStorage.getItem("userEmail")?.split("@")[0] ?? "User";
+  const userName = sessionStorage.getItem("userName") ?? sessionStorage.getItem("userEmail")?.split("@")[0] ?? "User";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 md:p-8">

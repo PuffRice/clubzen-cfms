@@ -16,6 +16,8 @@ import { Approvals } from "./pages/Approvals";
 import { Events } from "./pages/Events";
 import { Support } from "./pages/Support";
 import { BankDetails } from "./pages/BankDetails";
+import HelpPage from "./pages/HelpPage";
+import FAQPage from "./pages/FAQPage";
 
 export const router = createBrowserRouter([
   // ── Default to Login ─────────────────────────────────────
@@ -51,8 +53,8 @@ export const router = createBrowserRouter([
       { path: "events", Component: Events },
       { path: "support", Component: Support },
       { path: "bank-details", Component: BankDetails },
-      { path: "help", Component: require("./pages/HelpPage").default },
-      { path: "faq", Component: require("./pages/FAQPage").default },
+      { path: "help", Component: HelpPage },
+      { path: "faq", Component: FAQPage },
     ],
   },
 ]);
