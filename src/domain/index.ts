@@ -13,6 +13,7 @@ export { TransactionFactory } from "./TransactionFactory";
 export type { CreateIncomeParams, CreateExpenseParams, CreateTransactionParams } from "./TransactionFactory";
 export { Loan } from "./Loan";
 export type { LoanDirection } from "./Loan";
+export { LoanRepayment } from "./LoanRepayment";
 export { Auth } from "./Auth";
 export type { UserRole } from "./Auth";
 export { SupportTicket, SupportTicketReply } from "./SupportTicket";

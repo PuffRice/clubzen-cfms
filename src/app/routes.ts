@@ -3,7 +3,7 @@ import { Layout } from "./components/Layout";
 import { Dashboard } from "./pages/Dashboard";
 import { Settings } from "./pages/Settings";
 import { AddExpense } from "./pages/AddExpense";
-import { AddIncome } from "./pages/AddIncome";
+import { PaymentMethod } from "./pages/AddPaymentMethod ";
 import { MonthlyReports } from "./pages/MonthlyReports";
 import { DailyReports } from "./pages/DailyReports";
 import { AddDue } from "./pages/AddDue";
@@ -16,6 +16,7 @@ import { Approvals } from "./pages/Approvals";
 import { Events } from "./pages/Events";
 import { Support } from "./pages/Support";
 import { BankDetails } from "./pages/BankDetails";
+import { Loans } from "./pages/Loans";
 
 export const router = createBrowserRouter([
   // ── Default to Login ─────────────────────────────────────
@@ -39,8 +40,9 @@ export const router = createBrowserRouter([
       { index: true, Component: Dashboard },
       { path: "settings", Component: Settings },
       { path: "add-expense", Component: AddExpense },
-      { path: "add-income", Component: AddIncome },
+      { path: "add-payment-method", Component: PaymentMethod },
       { path: "add-due", Component: AddDue },
+      { path: "loans", Component: Loans },
       { path: "manage-categories", Component: ManageCategories },
       { path: "monthly-reports", Component: MonthlyReports },
       { path: "daily-reports", Component: DailyReports },
