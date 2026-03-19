@@ -20,61 +20,107 @@ export function MonthlyReports() {
   const [expenseBreakdown, setExpenseBreakdown] = useState<
     { category: string; amount: number }[]
   >([]);
+  const [availableMonths, setAvailableMonths] = useState<string[]>([]);
+  const [allTransactions, setAllTransactions] = useState<any[]>([]);
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
+  // Get unique months from transactions, sorted descending
+  const getAvailableMonths = (transactions: any[]) => {
+    const monthSet = new Set<string>();
+    transactions.forEach((tx) => {
+      const date = new Date(tx.date);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+      monthSet.add(monthKey);
+    });
+    
+    const sorted = Array.from(monthSet).sort().reverse();
+    return sorted;
+  };
+
+  // Filter transactions by selected month
+  const filterByMonth = (transactions: any[], monthKey: string) => {
+    return transactions.filter((tx) => {
+      const date = new Date(tx.date);
+      const txMonthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+      return txMonthKey === monthKey;
+    });
+  };
+
+  // Format month key to readable format
+  const formatMonth = (monthKey: string) => {
+    const [year, month] = monthKey.split("-");
+    const date = new Date(parseInt(year), parseInt(month) - 1);
+    return date.toLocaleDateString("en-US", { year: "numeric", month: "long" });
+  };
+
+  // Calculate summary for a set of transactions
+  const calculateSummary = (txList: any[]) => {
+    const totalIncome = txList
+      .filter((t) => t.type === "income")
+      .reduce((s, t) => s + t.amount, 0);
+    const totalExpenses = txList
+      .filter((t) => t.type === "expense")
+      .reduce((s, t) => s + t.amount, 0);
+    const netSavings = totalIncome - totalExpenses;
+    const savingsRate =
+      totalIncome > 0
+        ? Math.round((netSavings / totalIncome) * 100 * 10) / 10
+        : 0;
+    
+    return { totalIncome, totalExpenses, netSavings, savingsRate };
+  };
+
+  // Calculate breakdowns
+  const calculateBreakdowns = (txList: any[]) => {
+    // Income breakdown
+    const incomes = txList.filter((t) => t.type === "income");
+    const incomeMap = new Map<string, number>();
+    for (const t of incomes) {
+      incomeMap.set(t.category, (incomeMap.get(t.category) ?? 0) + t.amount);
+    }
+    const incomeBreakdownData = [...incomeMap.entries()]
+      .map(([category, amount]) => ({ category, amount }))
+      .sort((a, b) => b.amount - a.amount);
+
+    // Expense breakdown
+    const expenses = txList.filter((t) => t.type === "expense");
+    const totalExp = expenses.reduce((s, t) => s + t.amount, 0);
+    const expenseMap = new Map<string, number>();
+    for (const t of expenses) {
+      expenseMap.set(t.category, (expenseMap.get(t.category) ?? 0) + t.amount);
+    }
+    const expenseBreakdownData = [...expenseMap.entries()]
+      .map(([category, amount]) => ({ category, amount }))
+      .sort((a, b) => b.amount - a.amount);
+
+    // Category breakdown with percentages
+    const catMap = new Map<string, number>();
+    for (const t of expenses) {
+      catMap.set(t.category, (catMap.get(t.category) ?? 0) + t.amount);
+    }
+    const categoryBreakdownData = [...catMap.entries()].map(([category, amount]) => ({
+      category,
+      amount,
+      percentage: totalExp > 0 ? Math.round((amount / totalExp) * 100) : 0,
+    }));
+
+    return { incomeBreakdownData, expenseBreakdownData, categoryBreakdownData };
+  };
+
+  // Load initial data
   useEffect(() => {
     async function load() {
       try {
-        const [summary, allTx] = await Promise.all([
-          reportController.getDashboardSummary(),
-          transactionController.getAllTransactions(),
-        ]);
+        const txList = await transactionController.getAllTransactions();
+        setAllTransactions(txList);
 
-        const totalIncome = summary.totalIncome;
-        const totalExpenses = summary.totalExpense;
-        const netSavings = summary.netProfitLoss;
-        const savingsRate =
-          totalIncome > 0
-            ? Math.round((netSavings / totalIncome) * 100 * 10) / 10
-            : 0;
+        const months = getAvailableMonths(txList);
+        setAvailableMonths(months);
 
-        setMonthlyData({ totalIncome, totalExpenses, netSavings, savingsRate });
-
-        // Build income breakdown from live income data
-        const incomes = allTx.filter((t) => t.type === "income");
-        const incomeMap = new Map<string, number>();
-        for (const t of incomes) {
-          incomeMap.set(t.category, (incomeMap.get(t.category) ?? 0) + t.amount);
+        if (months.length > 0) {
+          setSelectedMonth(months[0]);
         }
-        const incomeBreakdownData = [...incomeMap.entries()]
-          .map(([category, amount]) => ({ category, amount }))
-          .sort((a, b) => b.amount - a.amount);
-        setIncomeBreakdown(incomeBreakdownData);
-
-        // Build expense breakdown from live expense data
-        const expenses = allTx.filter((t) => t.type === "expense");
-        const totalExp = expenses.reduce((s, t) => s + t.amount, 0);
-        const expenseMap = new Map<string, number>();
-        for (const t of expenses) {
-          expenseMap.set(t.category, (expenseMap.get(t.category) ?? 0) + t.amount);
-        }
-        const expenseBreakdownData = [...expenseMap.entries()]
-          .map(([category, amount]) => ({ category, amount }))
-          .sort((a, b) => b.amount - a.amount);
-        setExpenseBreakdown(expenseBreakdownData);
-
-        // Build category breakdown with percentages (for bar chart)
-        const catMap = new Map<string, number>();
-        for (const t of expenses) {
-          catMap.set(t.category, (catMap.get(t.category) ?? 0) + t.amount);
-        }
-        setCategoryBreakdown(
-          [...catMap.entries()].map(([category, amount]) => ({
-            category,
-            amount,
-            percentage: totalExp > 0 ? Math.round((amount / totalExp) * 100) : 0,
-          })),
-        );
       } catch (err) {
         console.error("MonthlyReports load error:", err);
       } finally {
@@ -83,6 +129,20 @@ export function MonthlyReports() {
     }
     load();
   }, []);
+
+  // Update summaries when selected month changes
+  useEffect(() => {
+    if (selectedMonth && allTransactions.length > 0) {
+      const filteredTx = filterByMonth(allTransactions, selectedMonth);
+      const summary = calculateSummary(filteredTx);
+      setMonthlyData(summary);
+
+      const { incomeBreakdownData, expenseBreakdownData, categoryBreakdownData } = calculateBreakdowns(filteredTx);
+      setIncomeBreakdown(incomeBreakdownData);
+      setExpenseBreakdown(expenseBreakdownData);
+      setCategoryBreakdown(categoryBreakdownData);
+    }
+  }, [selectedMonth, allTransactions]);
 
   return (
     <div className="p-8">
@@ -100,15 +160,20 @@ export function MonthlyReports() {
 
       {/* Month Selector */}
       <div className="mb-6">
-        <Card>
+        <Card className="bg-card-navy/25 border-card-navy/40 border">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
               <Calendar className="h-5 w-5 text-muted-foreground" />
-              <select className="px-4 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary">
-                <option>February 2026</option>
-                <option>January 2026</option>
-                <option>December 2025</option>
-                <option>November 2025</option>
+              <select 
+                value={selectedMonth} 
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="px-4 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary bg-input text-foreground"
+              >
+                {availableMonths.map((month) => (
+                  <option key={month} value={month}>
+                    {formatMonth(month)}
+                  </option>
+                ))}
               </select>
             </div>
           </CardContent>
@@ -117,7 +182,7 @@ export function MonthlyReports() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card>
+        <Card className="bg-card-navy/25 border-card-navy/40 border">
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Income</CardTitle>
           </CardHeader>
@@ -131,7 +196,7 @@ export function MonthlyReports() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-card-navy/25 border-card-navy/40 border">
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Expenses</CardTitle>
           </CardHeader>
@@ -145,20 +210,20 @@ export function MonthlyReports() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-card-navy/25 border-card-navy/40 border">
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">Net Savings</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <p className="text-2xl font-bold text-blue-600">
+              <p className="text-2xl font-bold text-cyan-600">
                 Tk.{monthlyData.netSavings.toLocaleString()}
               </p>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-card-navy/25 border-card-navy/40 border">
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">Savings Rate</CardTitle>
           </CardHeader>
@@ -174,13 +239,14 @@ export function MonthlyReports() {
 
       {/* Category Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card className="bg-card-navy/25 border-card-navy/40 border">
           <CardHeader>
             <CardTitle>Category Breakdown</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
               {/* Income Section */}
+
               <div>
                 <h3 className="font-semibold text-green-600 mb-3">Income</h3>
                 <div className="space-y-2 ml-2">
@@ -252,27 +318,27 @@ export function MonthlyReports() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-card-navy/25 border-card-navy/40 border">
           <CardHeader>
             <CardTitle>Monthly Insights</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="p-4 bg-green-800/20 border border-green-600 rounded-lg">
-                <h4 className="font-semibold text-green-300 mb-2">Great Progress! 🎉</h4>
-                <p className="text-sm text-green-300">
+              <div className="p-4 bg-green-600/10 border border-green-600/30 rounded-lg hover:bg-green-600/15 transition-colors">
+                <h4 className="font-semibold text-green-600 mb-2">Great Progress! 🎉</h4>
+                <p className="text-sm text-muted-foreground">
                   You saved 53.7% of your income this month. That's above your target of 50%.
                 </p>
               </div>
-              <div className="p-4 bg-blue-800/20 border border-blue-600 rounded-lg">
-                <h4 className="font-semibold text-blue-300 mb-2">Top Spending Category</h4>
-                <p className="text-sm text-blue-300">
+              <div className="p-4 bg-cyan-600/10 border border-cyan-600/30 rounded-lg hover:bg-cyan-600/15 transition-colors">
+                <h4 className="font-semibold text-cyan-600 mb-2">Top Spending Category</h4>
+                <p className="text-sm text-muted-foreground">
                   Groceries accounted for 28% of your total expenses. Consider meal planning to reduce costs.
                 </p>
               </div>
-              <div className="p-4 bg-purple-800/20 border border-purple-600 rounded-lg">
-                <h4 className="font-semibold text-purple-300 mb-2">Budget Status</h4>
-                <p className="text-sm text-purple-300">
+              <div className="p-4 bg-purple-600/10 border border-purple-600/30 rounded-lg hover:bg-purple-600/15 transition-colors">
+                <h4 className="font-semibold text-purple-600 mb-2">Budget Status</h4>
+                <p className="text-sm text-muted-foreground">
                   You're on track with your monthly budget. Keep up the good work!
                 </p>
               </div>

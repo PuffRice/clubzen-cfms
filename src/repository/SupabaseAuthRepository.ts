@@ -117,4 +117,34 @@ export class SupabaseAuthRepository implements IAuthRepository {
       throw new Error(error.message || "Logout failed");
     }
   }
+
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    // Get current user's email from session
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData?.session?.user;
+    const userEmail = user?.email;
+
+    if (!user || !userEmail) {
+      throw new Error("No active session");
+    }
+
+    // Verify current password by attempting to sign in with current credentials
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: userEmail,
+      password: currentPassword,
+    });
+
+    if (signInError) {
+      throw new Error("Current password is incorrect");
+    }
+
+    // Update password using Supabase Auth
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (updateError) {
+      throw new Error(updateError.message || "Failed to change password");
+    }
+  }
 }

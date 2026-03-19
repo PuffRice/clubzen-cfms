@@ -18,6 +18,7 @@ import {
   X,
   Menu,
   BarChart3,
+  Lock,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Button } from "./ui/button";
@@ -47,6 +48,7 @@ export function Layout() {
   const navigate = useNavigate();
   const [reportsOpen, setReportsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
   const userEmail = sessionStorage.getItem("userEmail") ?? "user@example.com";
@@ -60,6 +62,14 @@ export function Layout() {
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileError, setProfileError] = useState("");
+
+  // Change Password states
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
 
   useEffect(() => {
     if (settingsOpen) {
@@ -134,14 +144,24 @@ export function Layout() {
           </button>
 
           {profileOpen && (
-            <Button
-              type="button"
-              className="mt-3 w-full justify-start px-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-xl transition-all"
-              onClick={() => setSettingsOpen(true)}
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              <span>Settings</span>
-            </Button>
+            <>
+              <Button
+                type="button"
+                className="mt-3 w-full justify-start px-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-xl transition-all"
+                onClick={() => setSettingsOpen(true)}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                <span>Settings</span>
+              </Button>
+              <Button
+                type="button"
+                className="mt-2 w-full justify-start px-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 rounded-xl transition-all"
+                onClick={() => setChangePasswordOpen(true)}
+              >
+                <Lock className="h-4 w-4 mr-2" />
+                <span>Change Password</span>
+              </Button>
+            </>
           )}
         </div>
 
@@ -357,6 +377,127 @@ export function Layout() {
                 </Button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Change Password Modal */}
+      {changePasswordOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md overflow-y-auto p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-white">Change Password</h2>
+              <button
+                type="button"
+                className="p-2 rounded-lg hover:bg-slate-700/50 text-gray-400 transition-colors"
+                onClick={() => {
+                  setChangePasswordOpen(false);
+                  setCurrentPassword("");
+                  setNewPassword("");
+                  setConfirmPassword("");
+                  setPasswordError("");
+                  setPasswordSuccess(false);
+                }}
+                title="Close"
+                aria-label="Close change password"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {passwordSuccess && (
+              <p className="text-green-400 text-sm mb-4 p-3 bg-green-500/10 rounded-lg">
+                Password changed successfully!
+              </p>
+            )}
+
+            {passwordError && (
+              <p className="text-red-400 text-sm mb-4 p-3 bg-red-500/10 rounded-lg">
+                {passwordError}
+              </p>
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <Label className="text-gray-300 text-sm font-medium">Current Password</Label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="w-full mt-2 px-4 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all"
+                  placeholder="Enter current password"
+                  disabled={passwordLoading}
+                />
+              </div>
+              <div>
+                <Label className="text-gray-300 text-sm font-medium">New Password</Label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full mt-2 px-4 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all"
+                  placeholder="Enter new password (min 6 characters)"
+                  disabled={passwordLoading}
+                />
+              </div>
+              <div>
+                <Label className="text-gray-300 text-sm font-medium">Confirm New Password</Label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full mt-2 px-4 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all"
+                  placeholder="Confirm new password"
+                  disabled={passwordLoading}
+                />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <Button
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-lg font-semibold"
+                  disabled={passwordLoading}
+                  onClick={async () => {
+                    setPasswordLoading(true);
+                    setPasswordError("");
+                    setPasswordSuccess(false);
+                    const res = await authController.changePassword(
+                      currentPassword,
+                      newPassword,
+                      confirmPassword
+                    );
+                    setPasswordLoading(false);
+                    if (res.success) {
+                      setPasswordSuccess(true);
+                      setTimeout(() => {
+                        setChangePasswordOpen(false);
+                        setCurrentPassword("");
+                        setNewPassword("");
+                        setConfirmPassword("");
+                        setPasswordSuccess(false);
+                      }, 2000);
+                    } else {
+                      setPasswordError(res.error ?? "Failed to change password");
+                    }
+                  }}
+                >
+                  {passwordLoading ? "Changing…" : "Change Password"}
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="flex-1 text-gray-300 hover:text-white hover:bg-slate-700/30 rounded-lg font-semibold"
+                  disabled={passwordLoading}
+                  onClick={() => {
+                    setChangePasswordOpen(false);
+                    setCurrentPassword("");
+                    setNewPassword("");
+                    setConfirmPassword("");
+                    setPasswordError("");
+                    setPasswordSuccess(false);
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       )}
