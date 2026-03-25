@@ -24,7 +24,7 @@ export function IncomeForm({ onSuccess }: IncomeFormProps) {
   useEffect(() => {
     async function loadSources() {
       try {
-        const res = await categoryController.getCategories();
+        const res = await categoryController.createCategories();
         if (res.statusCode === 200 && Array.isArray(res.body)) {
           const cats = (res.body as any[])
             .filter((c) => c.type === "Income")

@@ -13,11 +13,12 @@ import { HttpRequest, HttpResponse } from "./CommonTypes";
 import { CategoryService } from "../service/CategoryService";
 import { Category } from "../domain/Category";
 
-type CategoryType = "Expense" | "Income";
+type CategoryType = "Expense" | "Payment Method" | "Income";
 
 // Hard-coded group IDs used in the database
 const EXPENSE_GROUP_ID = 1;
 const INCOME_GROUP_ID = 2;
+const PAYMENT_METHOD_GROUP_ID = 3;
 
 interface HttpCategory {
   id: string;
@@ -32,6 +33,7 @@ export class CategoryController {
   private mapToType(groupId: number): CategoryType {
     if (groupId === EXPENSE_GROUP_ID) return "Expense";
     if (groupId === INCOME_GROUP_ID) return "Income";
+     if (groupId === PAYMENT_METHOD_GROUP_ID) return "Payment Method";
     return "Expense";
   }
 
@@ -44,7 +46,7 @@ export class CategoryController {
     };
   }
 
-  async getCategories(): Promise<HttpResponse> {
+  async createCategories(): Promise<HttpResponse> {
     try {
       const categories = await this.categoryService.getAllCategories();
       return {
@@ -69,7 +71,7 @@ export class CategoryController {
       };
     }
 
-    const groupId: number = type === "Income" ? INCOME_GROUP_ID : EXPENSE_GROUP_ID;
+    const groupId: number = type === "Payment Method" ? PAYMENT_METHOD_GROUP_ID : EXPENSE_GROUP_ID;
 
     try {
       const created = await this.categoryService.createCategory(

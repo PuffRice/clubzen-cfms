@@ -121,10 +121,10 @@ describe("SupportTicketService", () => {
     };
     vi.mocked(mockedRepo.updateTicketStatus).mockResolvedValue(mockRow);
 
-    const updated = await service.updateStatus(20, "resolved");
+    const updated = await service.updateStatus(20, "closed");
 
-    expect(mockedRepo.updateTicketStatus).toHaveBeenCalledWith(20, "resolved");
-    expect(updated?.status).toBe("resolved");
+    expect(mockedRepo.updateTicketStatus).toHaveBeenCalledWith(20, "closed");
+    expect(updated?.status).toBe("closed");
   });
 
   it("adds a reply to ticket", async () => {

@@ -32,7 +32,7 @@ describe("Category CRUD Integration", () => {
     expect(res.body.color).toBe("#123456");
 
     // Check DB
-    const all = await controller.getCategories();
+    const all = await controller.createCategories();
     expect(all.body.some((c: any) => c.name === "Test Expense" && c.type === "Expense")).toBe(true);
   });
 
@@ -58,7 +58,7 @@ describe("Category CRUD Integration", () => {
     const del = await controller.deleteCategory({ params: { id: String(id) } });
     expect(del.statusCode).toBe(200);
     // Check DB
-    const all = await controller.getCategories();
+    const all = await controller.createCategories();
     expect(all.body.some((c: any) => c.id === id)).toBe(false);
   });
 });
