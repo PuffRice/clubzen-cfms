@@ -75,7 +75,7 @@ export function AddDue() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Form */}
         <div className="lg:col-span-2">
-          <Card>
+          <Card className="bg-card-navy/25 border-card-navy/40 border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
@@ -245,7 +245,7 @@ export function AddDue() {
 
         {/* Summary Sidebar */}
         <div>
-          <Card className="sticky top-8">
+          <Card className="bg-card-navy/25 border-card-navy/40 border sticky top-8">
             <CardHeader>
               <CardTitle>Payment Summary</CardTitle>
             </CardHeader>

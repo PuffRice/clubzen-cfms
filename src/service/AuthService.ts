@@ -100,6 +100,41 @@ export class AuthService {
   }
 
   /**
+   * Change user password.
+   * Validates inputs before delegating to repository.
+   * @throws Error when validation fails or password change fails.
+   */
+  async changePassword(currentPassword: string, newPassword: string, confirmPassword: string): Promise<void> {
+    // Validate inputs
+    if (!currentPassword || currentPassword.trim().length === 0) {
+      throw new Error("Current password is required.");
+    }
+
+    if (!newPassword || newPassword.trim().length === 0) {
+      throw new Error("New password is required.");
+    }
+
+    if (!confirmPassword || confirmPassword.trim().length === 0) {
+      throw new Error("Password confirmation is required.");
+    }
+
+    if (newPassword !== confirmPassword) {
+      throw new Error("Passwords do not match.");
+    }
+
+    if (newPassword.length < 6) {
+      throw new Error("New password must be at least 6 characters.");
+    }
+
+    if (currentPassword === newPassword) {
+      throw new Error("New password must be different from current password.");
+    }
+
+    // Delegate to repository
+    await this.repo.changePassword(currentPassword, newPassword);
+  }
+
+  /**
    * Simple email validation.
    */
   private isValidEmail(email: string): boolean {
