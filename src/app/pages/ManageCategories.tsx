@@ -196,7 +196,7 @@ export function ManageCategories() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Expense Categories */}
         <div>
-          <Card>
+          <Card className="bg-card-navy/25 border-card-navy/40 border">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
@@ -260,7 +260,7 @@ export function ManageCategories() {
 
         {/* Payment Method Categories */}
         <div>
-          <Card>
+          <Card className="bg-card-navy/25 border-card-navy/40 border">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
@@ -324,7 +324,7 @@ export function ManageCategories() {
       </div>
 
       {/* Category Usage Stats */}
-      <Card className="mt-8">
+      <Card className="bg-card-navy/25 border-card-navy/40 border mt-8">
         <CardHeader>
           <CardTitle>Category Usage Statistics</CardTitle>
         </CardHeader>

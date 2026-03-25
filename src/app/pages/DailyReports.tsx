@@ -70,7 +70,7 @@ export function DailyReports() {
 
       {/* Date Selector */}
       <div className="mb-6">
-        <Card>
+        <Card className="bg-card-navy/25 border-card-navy/40 border">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
               <Calendar className="h-5 w-5 text-muted-foreground" />
@@ -88,7 +88,7 @@ export function DailyReports() {
 
       {/* Daily Summary */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card>
+        <Card className="bg-card-navy/25 border-card-navy/40 border">
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">Income Today</CardTitle>
           </CardHeader>
@@ -102,7 +102,7 @@ export function DailyReports() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-card-navy/25 border-card-navy/40 border">
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">Expenses Today</CardTitle>
           </CardHeader>
@@ -116,20 +116,20 @@ export function DailyReports() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-card-navy/25 border-card-navy/40 border">
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">Net Change</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <p className="text-2xl font-bold text-blue-600">
+              <p className="text-2xl font-bold text-cyan-600">
                 +Tk.{dailySummary.netChange.toFixed(2)}
               </p>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-card-navy/25 border-card-navy/40 border">
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">Transactions</CardTitle>
           </CardHeader>
@@ -144,7 +144,7 @@ export function DailyReports() {
       </div>
 
       {/* Transaction Timeline */}
-      <Card>
+      <Card className="bg-card-navy/25 border-card-navy/40 border">
         <CardHeader>
           <CardTitle>Transaction Timeline</CardTitle>
         </CardHeader>
@@ -153,10 +153,18 @@ export function DailyReports() {
             {dailyTransactions.map((transaction) => (
               <div
                 key={transaction.id}
-                className="flex items-center gap-4 p-4 border rounded-lg hover:shadow-md transition-shadow"
+                className={`flex items-center gap-4 p-4 rounded-lg border transition-all hover:shadow-md ${
+                  transaction.type === "income"
+                    ? "bg-green-600/5 border-green-600/20 hover:bg-green-600/10"
+                    : "bg-red-600/5 border-red-600/20 hover:bg-red-600/10"
+                }`}
               >
                 <div className="flex-shrink-0">
-                  <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                  <div className={`h-12 w-12 rounded-full flex items-center justify-center ${
+                    transaction.type === "income"
+                      ? "bg-green-600/10"
+                      : "bg-red-600/10"
+                  }`}>
                     {transaction.type === "income" ? (
                       <TrendingUp className="h-6 w-6 text-green-600" />
                     ) : (

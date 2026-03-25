@@ -44,6 +44,12 @@ export interface IAuthRepository {
   updateUserProfile(userId: string, params: UpdateProfileParams): Promise<AuthRow | null>;
 
   /**
+   * Change user password.
+   * @throws Error if password change fails.
+   */
+  changePassword(currentPassword: string, newPassword: string): Promise<void>;
+
+  /**
    * Logout user (invalidate session).
    */
   logout(): Promise<void>;
