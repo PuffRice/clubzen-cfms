@@ -15,11 +15,11 @@ interface Category {
 export function ManageCategories() {
   const [expenseCategories, setExpenseCategories] = useState<Category[]>([]);
 
-  const [incomeCategories, setIncomeCategories] = useState<Category[]>([]);
+  const [paymentMethodCategories, setPaymentMethodCategories] = useState<Category[]>([]);
 
   const [editingCategory, setEditingCategory] = useState<{
     category: Category;
-    type: "expense" | "income";
+    type: "expense" | "paymentMethod";
   } | null>(null);
 
   const [editForm, setEditForm] = useState({
@@ -27,7 +27,7 @@ export function ManageCategories() {
     color: "",
   });
 
-  const [addingCategory, setAddingCategory] = useState<"expense" | "income" | null>(
+  const [addingCategory, setAddingCategory] = useState<"expense" | "paymentMethod" | null>(
     null
   );
 
@@ -52,10 +52,10 @@ export function ManageCategories() {
   useEffect(() => {
     async function loadCategories() {
       try {
-        const res = await categoryController.getCategories();
+        const res = await categoryController.createCategories();
         if (res.statusCode === 200 && Array.isArray(res.body)) {
           const expenses = (res.body as any[]).filter((c) => c.type === "Expense");
-          const incomes = (res.body as any[]).filter((c) => c.type === "Income");
+          const paymentMethods = (res.body as any[]).filter((c) => c.type === "Payment Method");
 
           setExpenseCategories(
             expenses.map((c) => ({
@@ -66,8 +66,8 @@ export function ManageCategories() {
             }))
           );
 
-          setIncomeCategories(
-            incomes.map((c) => ({
+          setPaymentMethodCategories(
+            paymentMethods.map((c) => ({
               id: Number(c.id),
               name: c.name as string,
               color: (c.color as string) || "#059669",
@@ -83,7 +83,7 @@ export function ManageCategories() {
     loadCategories();
   }, []);
 
-  const handleEdit = (category: Category, type: "expense" | "income") => {
+  const handleEdit = (category: Category, type: "expense" | "paymentMethod") => {
     setEditingCategory({ category, type });
     setEditForm({
       name: category.name,
@@ -113,8 +113,8 @@ export function ManageCategories() {
             )
           );
         } else {
-          setIncomeCategories(
-            incomeCategories.map((cat) =>
+          setPaymentMethodCategories(
+            paymentMethodCategories.map((cat) =>
               cat.id === editingCategory.category.id
                 ? { ...cat, name: editForm.name, color: editForm.color }
                 : cat
@@ -133,7 +133,7 @@ export function ManageCategories() {
     if (!addingCategory || !addForm.name.trim()) return;
 
     try {
-      const type = addingCategory === "expense" ? "Expense" : "Income";
+      const type = addingCategory === "expense" ? "Expense" : "Payment Method";
       const res = await categoryController.createCategory({
         body: {
           name: addForm.name.trim(),
@@ -154,7 +154,7 @@ export function ManageCategories() {
         if (addingCategory === "expense") {
           setExpenseCategories([...expenseCategories, newCategory]);
         } else {
-          setIncomeCategories([...incomeCategories, newCategory]);
+          setPaymentMethodCategories([...paymentMethodCategories, newCategory]);
         }
 
         setAddingCategory(null);
@@ -165,7 +165,7 @@ export function ManageCategories() {
     }
   };
 
-  const handleDelete = async (id: number, type: "expense" | "income") => {
+  const handleDelete = async (id: number, type: "expense" | "paymentMethod") => {
     try {
       const res = await categoryController.deleteCategory({
         params: { id: String(id) },
@@ -175,7 +175,7 @@ export function ManageCategories() {
         if (type === "expense") {
           setExpenseCategories(expenseCategories.filter((cat) => cat.id !== id));
         } else {
-          setIncomeCategories(incomeCategories.filter((cat) => cat.id !== id));
+          setPaymentMethodCategories(paymentMethodCategories.filter((cat) => cat.id !== id));
         }
       }
     } catch (err) {
@@ -245,7 +245,7 @@ export function ManageCategories() {
                       <Button
                         variant="ghost"
                         size="sm"
-                          className="text-destructive hover:text-destructive-foreground hover:bg-destructive/20"
+                        className="text-destructive hover:text-destructive-foreground hover:bg-destructive/20"
                         onClick={() => handleDelete(category.id, "expense")}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -258,19 +258,19 @@ export function ManageCategories() {
           </Card>
         </div>
 
-        {/* Income Categories */}
+        {/* Payment Method Categories */}
         <div>
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <FolderTree className="h-5 w-5 text-secondary-foreground" />
-                  Income Categories
+                  Payment Method Categories
                 </CardTitle>
                 <Button
                   size="sm"
                   className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
-                  onClick={() => setAddingCategory("income")}
+                  onClick={() => setAddingCategory("paymentMethod")}
                 >
                   <Plus className="h-4 w-4 mr-1" />
                   Add Category
@@ -279,7 +279,7 @@ export function ManageCategories() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {incomeCategories.map((category) => (
+                {paymentMethodCategories.map((category) => (
                   <div
                     key={category.id}
                     className="flex items-center justify-between p-4 border rounded-lg hover:shadow-md transition-shadow"
@@ -302,15 +302,15 @@ export function ManageCategories() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleEdit(category, "income")}
+                        onClick={() => handleEdit(category, "paymentMethod")}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        onClick={() => handleDelete(category.id, "income")}
+                        className="text-destructive hover:text-destructive-foreground hover:bg-destructive/20"
+                        onClick={() => handleDelete(category.id, "paymentMethod")}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -333,7 +333,7 @@ export function ManageCategories() {
             <div className="p-4 bg-blue-50 rounded-lg">
               <p className="text-sm text-blue-700 mb-1">Total Categories</p>
               <p className="text-3xl font-bold text-blue-700">
-                {expenseCategories.length + incomeCategories.length}
+                {expenseCategories.length + paymentMethodCategories.length}
               </p>
             </div>
             <div className="p-4 bg-red-50 rounded-lg">
@@ -343,9 +343,9 @@ export function ManageCategories() {
               </p>
             </div>
             <div className="p-4 bg-green-50 rounded-lg">
-              <p className="text-sm text-green-700 mb-1">Income Categories</p>
+              <p className="text-sm text-green-700 mb-1">Payment Method Categories</p>
               <p className="text-3xl font-bold text-green-700">
-                {incomeCategories.length}
+                {paymentMethodCategories.length}
               </p>
             </div>
           </div>
@@ -355,7 +355,6 @@ export function ManageCategories() {
       {/* Edit Modal */}
       {editingCategory && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          {/* match add modal background/card styles for consistency */}
           <div className="bg-card rounded-lg shadow-xl w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-foreground">
@@ -434,12 +433,12 @@ export function ManageCategories() {
         </div>
       )}
 
-      {/* g Modal */}
+      {/* Add Modal */}
       {addingCategory && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-card rounded-lg shadow-xl w-full max-w-md p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold">
+          <div className="bg-card rounded-lg shadow-xl w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-foreground">
                 Add Category
               </h3>
               <Button
