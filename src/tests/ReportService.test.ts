@@ -1,16 +1,3 @@
-/**
- * ReportService.test.ts — Sprint 3 unit tests
- *
- * Tests:
- *   1. Total income calculation
- *   2. Total expense calculation
- *   3. Net profit / loss calculation
- *   4. Dashboard summary shape
- *   5. Daily summary grouping
- *   6. Monthly summary grouping
- *   7. Empty data edge case
- */
-
 import { describe, it, expect, beforeEach, afterAll } from "vitest";
 import { TransactionService } from "@core/service/TransactionService";
 import { ReportService } from "@core/service/ReportService";
