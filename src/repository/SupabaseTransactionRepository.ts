@@ -16,16 +16,16 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
     row: Omit<TransactionRow, "id" | "created_at">
   ): Promise<TransactionRow> {
     if (row.type === "income") {
-      // build insert payload, only including incomeType if provided
+      // build insert payload, only including payment_method if provided
       const payload: any = {
         amount: row.amount,
         date: row.date,
         source: row.category,
         description: row.description,
       };
-      if ((row as any).incomeType) {
-        // the corresponding column will be named `income_type` in the DB
-        payload.income_type = (row as any).incomeType;
+      if ((row as any).payment_method) {
+        // the corresponding column will be named `payment_method` in the DB
+        payload.payment_method = (row as any).payment_method;
       }
 
       const { data, error } = await supabase
@@ -58,9 +58,9 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
         category: row.category,
         description: row.description,
       };
-      if ((row as any).paymentMethod) {
+      if ((row as any).payment_method) {
         // expense column is `payment_method`
-        payload.payment_method = (row as any).paymentMethod;
+        payload.payment_method = (row as any).payment_method;
       }
       const { data, error } = await supabase
         .from("expense")
@@ -96,6 +96,8 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
         throw errInc;
       }
 
+      console.log(incomes);
+
       const { data: expenses, error: errExp } = await supabase
         .from("expense")
         .select();
@@ -110,9 +112,10 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
         date: i.date,
         category: i.source ?? "",
         description: i.description ?? "",
-        incomeType: i.income_type ?? undefined,
+        payment_method: i.payment_method ?? undefined,
         created_at: i.created_at ?? undefined,
       }));
+      
 
       const mappedExpenses: TransactionRow[] = (expenses ?? []).map((e: any) => ({
         id: String(e.id),
@@ -121,7 +124,7 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
         date: e.date,
         category: e.category ?? "",
         description: e.description ?? "",
-        paymentMethod: e.payment_method ?? undefined,
+        payment_method: e.payment_method ?? undefined,
         created_at: e.created_at ?? undefined,
       }));
 
@@ -144,7 +147,7 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
           date: i.date,
           category: i.source ?? "",
           description: i.description ?? "",
-          incomeType: i.income_type ?? undefined,
+          payment_method: i.payment_method ?? undefined,
           created_at: i.created_at ?? undefined,
         }));
       } else {
@@ -157,7 +160,7 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
           date: e.date,
           category: e.category ?? "",
           description: e.description ?? "",
-          paymentMethod: e.payment_method ?? undefined,
+          payment_method: e.payment_method ?? undefined,
           created_at: e.created_at ?? undefined,
         }));
       }
@@ -191,7 +194,7 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
           date: incData.date,
           category: incData.source ?? "",
           description: incData.description ?? "",
-          incomeType: incData.income_type ?? undefined,
+          payment_method: incData.payment_method ?? undefined,
           created_at: incData.created_at ?? undefined,
         };
       }
@@ -214,7 +217,7 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
           date: expData.date,
           category: expData.category ?? "",
           description: expData.description ?? "",
-          paymentMethod: expData.payment_method ?? undefined,
+          payment_method: expData.payment_method ?? undefined,
           created_at: expData.created_at ?? undefined,
         };
       }
