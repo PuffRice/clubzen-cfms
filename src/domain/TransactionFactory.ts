@@ -19,7 +19,7 @@
  *     date: new Date(),
  *     source: "Salary",
  *     description: "Monthly salary",
- *     incomeType: "Recurring",
+ *     payment_method: "Recurring",
  *   });
  *
  *   const expense = TransactionFactory.create("expense", {
@@ -28,7 +28,7 @@
  *     date: new Date(),
  *     category: "Groceries",
  *     description: "Weekly groceries",
- *     paymentMethod: "Debit Card",
+ *     payment_method: "Debit Card",
  *   });
  */
 
@@ -45,7 +45,7 @@ export interface CreateIncomeParams {
   date: Date;
   source: string;
   description: string;
-  incomeType?: string;
+  payment_method?: string;
 }
 
 /**
@@ -57,7 +57,7 @@ export interface CreateExpenseParams {
   date: Date;
   category: string;
   description: string;
-  paymentMethod?: string;
+  payment_method?: string;
 }
 
 /**
@@ -103,7 +103,7 @@ export class TransactionFactory {
       params.date,
       params.source,
       params.description,
-      params.incomeType,
+      params.payment_method,
     );
   }
 
@@ -120,7 +120,7 @@ export class TransactionFactory {
       params.date,
       params.category,
       params.description,
-      params.paymentMethod,
+      params.payment_method,
     );
   }
 

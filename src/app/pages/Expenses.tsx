@@ -96,7 +96,7 @@ export function Expenses() {
                       {expense.description || "-"}
                     </td>
                     <td className="py-3 px-4 text-muted-foreground">
-                      {expense.paymentMethod || "-"}
+                      {expense.payment_method || "-"}
                     </td>
                     <td className="py-3 px-4 font-semibold text-red-600">
                       Tk.{expense.amount.toFixed(2)}

@@ -10,7 +10,7 @@ export class ExpenseTransaction extends Transaction {
    * persisted by the database in Sprint 3.  Kept here for API symmetry
    * and future work.
    */
-  public readonly paymentMethod?: string;
+  public readonly payment_method?: string;
 
   constructor(
     id: string,
@@ -18,9 +18,9 @@ export class ExpenseTransaction extends Transaction {
     date: Date,
     category: string,
     description: string,
-    paymentMethod?: string,
+    payment_method?: string,
   ) {
     super(id, amount, date, category, description, "expense");
-    this.paymentMethod = paymentMethod;
+    this.payment_method = payment_method;
   }
 }

@@ -33,7 +33,7 @@ export class TransactionService {
     date: Date,
     category: string,
     description: string,
-    incomeType?: string,
+    payment_method?: string,
   ): Promise<IncomeTransaction> {
     this.validate(amount, category, description);
 
@@ -46,7 +46,7 @@ export class TransactionService {
       date: this.toDateString(date),
       category: category.trim(), // treated as "source" by the UI
       description: description.trim(),
-      ...(incomeType ? { incomeType } : {}),
+      ...(payment_method ? { payment_method } : {}),
     });
 
     // when repo returns the saved row it should include any optional fields
@@ -63,7 +63,7 @@ export class TransactionService {
     date: Date,
     category: string,
     description: string,
-    paymentMethod?: string,
+    payment_method?: string,
   ): Promise<ExpenseTransaction> {
     this.validate(amount, category, description);
 
@@ -73,7 +73,7 @@ export class TransactionService {
       date: this.toDateString(date),
       category: category.trim(),
       description: description.trim(),
-      ...(paymentMethod ? { paymentMethod } : {}),
+      ...(payment_method ? { payment_method } : {}),
     });
 
     return this.toDomainExpense(row);
@@ -132,12 +132,12 @@ export class TransactionService {
         ? {
             source: row.category,
             description: row.description,
-            incomeType: row.incomeType,
+            payment_method: row.payment_method,
           }
         : {
             category: row.category,
             description: row.description,
-            paymentMethod: row.paymentMethod,
+            payment_method: row.payment_method,
           }),
     });
   }
@@ -149,7 +149,7 @@ export class TransactionService {
       date: new Date(row.date),
       source: row.category,
       description: row.description,
-      incomeType: row.incomeType,
+      payment_method: row.payment_method,
     }) as IncomeTransaction;
   }
 
@@ -160,7 +160,7 @@ export class TransactionService {
       date: new Date(row.date),
       category: row.category,
       description: row.description,
-      paymentMethod: row.paymentMethod,
+      payment_method: row.payment_method,
     }) as ExpenseTransaction;
   }
 }

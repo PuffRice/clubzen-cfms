@@ -104,14 +104,14 @@ export function Income() {
                     <td className="py-3 px-4">
                       <span
                         className={`px-3 py-1 rounded-full text-sm ${
-                          income.incomeType === "Recurring"
+                          income.payment_method === "Recurring"
                             ? "bg-blue-100 text-blue-700"
-                            : income.incomeType === "Investment"
+                            : income.payment_method === "Investment"
                             ? "bg-purple-100 text-purple-700"
                             : "bg-muted text-muted-foreground"
                         }`}
                       >
-                        {income.incomeType || "-"}
+                        {income.payment_method || "-"}
                       </span>
                     </td>
                   </tr>

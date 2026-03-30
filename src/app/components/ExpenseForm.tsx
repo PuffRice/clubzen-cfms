@@ -45,11 +45,7 @@ export function ExpenseForm({ onSuccess }: ExpenseFormProps) {
   }, []);
 
   const paymentMethods = [
-    "Cash",
-    "Credit Card",
-    "Debit Card",
-    "Bank Transfer",
-    "Digital Wallet",
+c
   ];
 
   async function handleSubmit(e: FormEvent) {

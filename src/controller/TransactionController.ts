@@ -20,10 +20,10 @@ export class TransactionController {
     date: Date,
     source: string,
     description: string,
-    incomeType?: string,
+    payment_method?: string,
   ): Promise<IncomeTransaction> {
     // service still expects category param but we treat it as source
-    return this.transactionService.addIncome(amount, date, source, description, incomeType);
+    return this.transactionService.addIncome(amount, date, source, description, payment_method);
   }
 
   async addExpense(
@@ -31,9 +31,9 @@ export class TransactionController {
     date: Date,
     category: string,
     description: string,
-    paymentMethod?: string,
+    payment_method?: string,
   ): Promise<ExpenseTransaction> {
-    return this.transactionService.addExpense(amount, date, category, description, paymentMethod);
+    return this.transactionService.addExpense(amount, date, category, description, payment_method);
   }
 
   async getAllTransactions(): Promise<Transaction[]> {

@@ -17,7 +17,7 @@ export class IncomeTransaction extends Transaction {
    * captured by the UI.  It isn't persisted in Sprint 3, but the field
    * is kept in the model for future expansion.
    */
-  public readonly incomeType?: string;
+  public readonly payment_method?: string;
 
   constructor(
     id: string,
@@ -25,9 +25,9 @@ export class IncomeTransaction extends Transaction {
     date: Date,
     source: string,
     description: string,
-    incomeType?: string,
+    payment_method?: string,
   ) {
     super(id, amount, date, source, description, "income");
-    this.incomeType = incomeType;
+  this.payment_method = payment_method;
   }
 }
