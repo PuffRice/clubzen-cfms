@@ -115,7 +115,7 @@ describe("SupportTicketService", () => {
       user_id: "user123",
       subject: "Issue",
       body: "Body",
-      status: "resolved" as const,
+      status: "closed" as const,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -170,4 +170,35 @@ describe("SupportTicketService", () => {
     expect(replies).toHaveLength(2);
     expect(replies[0]).toEqual(expect.objectContaining({ body: "Reply 1" }));
   });
+
+it("throws error if subject is empty", async () => {
+  await expect(service.createTicket("user123", "", "body"))
+    .rejects.toThrow("Subject is required.");
+});
+
+it("throws error if body is empty", async () => {
+  await expect(service.createTicket("user123", "subject", ""))
+    .rejects.toThrow("Body is required.");
+});
+
+it("throws error if reply body is empty", async () => {
+  await expect(service.addReply(1, "user123", ""))
+    .rejects.toThrow("Reply body is required.");
+});
+
+it("returns null if ticket not found", async () => {
+  vi.mocked(mockedRepo.findTicketById).mockResolvedValue(null);
+
+  const ticket = await service.getTicketById(999);
+
+  expect(ticket).toBeNull();
+});
+
+it("returns null if update fails", async () => {
+  vi.mocked(mockedRepo.updateTicketStatus).mockResolvedValue(null);
+
+  const updated = await service.updateStatus(999, "closed");
+
+  expect(updated).toBeNull();
+});
 });

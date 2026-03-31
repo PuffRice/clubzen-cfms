@@ -108,3 +108,30 @@ UPDATE users SET role = 'User', updated_at = NOW() WHERE email = 'user@gmail.com
 UPDATE users SET currency = 'USD' WHERE currency IS NULL OR currency NOT IN ('USD', 'BDT');
 ALTER TABLE users DROP CONSTRAINT IF EXISTS users_currency_check;
 ALTER TABLE users ADD CONSTRAINT users_currency_check CHECK (currency IN ('USD', 'BDT'));
+
+
+DROP TABLE IF EXISTS loan_repayments;
+DROP TABLE IF EXISTS loans;
+
+-- Loans table
+CREATE TABLE IF NOT EXISTS loans (
+    id SERIAL PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    direction VARCHAR(10) NOT NULL CHECK (direction IN ('given','taken')), -- given = we lent, taken = we borrowed
+    amount DECIMAL(12,2) NOT NULL,
+    note TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Loan repayments table
+CREATE TABLE IF NOT EXISTS loan_repayments (
+    id SERIAL PRIMARY KEY,
+    loan_id INT NOT NULL REFERENCES loans(id) ON DELETE CASCADE,
+    amount DECIMAL(12,2) NOT NULL CHECK (amount > 0),
+    date TIMESTAMPTZ DEFAULT NOW(),
+    description TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+
