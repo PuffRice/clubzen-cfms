@@ -16,6 +16,9 @@ export interface ITransactionRepository {
   /** Persist a new transaction and return the saved row. */
   save(row: Omit<TransactionRow, "id" | "created_at">): Promise<TransactionRow>;
 
+  /** Update an existing income or expense row by `row.id`. */
+  update(row: TransactionRow): Promise<TransactionRow>;
+
   /** Return every stored transaction. */
   findAll(): Promise<TransactionRow[]>;
 

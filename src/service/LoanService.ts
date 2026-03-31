@@ -30,6 +30,28 @@ export class LoanService {
     return this.loanRepo.create(direction, amount, date, description);
   }
 
+  async updateLoan(
+    id: string,
+    direction: LoanDirection,
+    amount: number,
+    date: Date,
+    note?: string,
+  ): Promise<Loan> {
+    if (amount <= 0) {
+      throw new Error("Amount must be greater than zero.");
+    }
+    const description =
+      (note ?? "").trim() ||
+      (direction === "taken" ? "Loan Taken" : "Loan Given");
+
+    return this.loanRepo.update(id, {
+      direction,
+      amount,
+      date,
+      description,
+    });
+  }
+
   async getAllLoans(): Promise<Loan[]> {
     return this.loanRepo.findAll();
   }

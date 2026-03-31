@@ -1,12 +1,8 @@
 export type LoanDirection = "taken" | "given";
 
 /**
- * Loan — domain model for a loan transaction.
- *
- * We treat loans as a semantic layer on top of income/expense
- * transactions:
- *   • "taken"  → money received  → income with category "Loan Taken"
- *   • "given"  → money lent out → expense with category "Loan Given"
+ * Loan — domain model backed by the `loans` table (`id` is `loans.id`).
+ * New loans are also mirrored to income/expense for reporting.
  */
 export class Loan {
   constructor(

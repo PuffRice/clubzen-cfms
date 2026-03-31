@@ -1,58 +1,110 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Calendar, Download, TrendingUp, TrendingDown } from "lucide-react";
-import { reportController, transactionController } from "../services";
+import { transactionController } from "../services";
+import { useCurrency } from "../CurrencyContext";
+import type { Transaction } from "../../domain/Transaction";
+
+function toDateKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function formatMoney(n: number): string {
+  return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+interface DayTx {
+  id: string;
+  description: string;
+  type: string;
+  category: string;
+  amount: number;
+  date: Date;
+}
 
 export function DailyReports() {
-  const [dailySummary, setDailySummary] = useState({
-    totalIncome: 0,
-    totalExpenses: 0,
-    netChange: 0,
-    transactionCount: 0,
-  });
-  const [dailyTransactions, setDailyTransactions] = useState<
-    { id: string; time: string; type: string; category: string; amount: number; method: string }[]
-  >([]);
+  const { symbol } = useCurrency();
+
+  const todayKey = toDateKey(new Date());
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const yesterdayKey = toDateKey(yesterdayDate);
+
+  const [selectedDate, setSelectedDate] = useState(todayKey);
+  const [allTx, setAllTx] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [exportOpen, setExportOpen] = useState(false);
 
   useEffect(() => {
-    async function load() {
-      try {
-        const allTransactions = await transactionController.getAllTransactions();
-
-        const txList = allTransactions
-          .slice()
-          .reverse()
-          .map((t) => ({
-            id: t.id,
-            time: t.date.toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" }),
-            type: t.type,
-            category: t.category,
-            amount: t.amount,
-            method: "Supabase",
-          }));
-        setDailyTransactions(txList);
-
-        const totalIncome = allTransactions
-          .filter((t) => t.type === "income")
-          .reduce((s, t) => s + t.amount, 0);
-        const totalExpenses = allTransactions
-          .filter((t) => t.type === "expense")
-          .reduce((s, t) => s + t.amount, 0);
-
-        setDailySummary({
-          totalIncome,
-          totalExpenses,
-          netChange: totalIncome - totalExpenses,
-          transactionCount: allTransactions.length,
-        });
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
+    transactionController
+      .getAllTransactions()
+      .then(setAllTx)
+      .finally(() => setLoading(false));
   }, []);
+
+  const filtered = allTx.filter((t) => toDateKey(t.date) === selectedDate);
+
+  const dailyTransactions: DayTx[] = filtered
+    .slice()
+    .reverse()
+    .map((t) => ({
+      id: t.id,
+      description: t.description,
+      type: t.type,
+      category: t.category,
+      amount: t.amount,
+      date: t.date,
+    }));
+
+  const totalIncome = filtered.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
+  const totalExpenses = filtered.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+  const netChange = totalIncome - totalExpenses;
+
+  const dateLabel =
+    selectedDate === todayKey ? "Today" : selectedDate === yesterdayKey ? "Yesterday" : selectedDate;
+
+  const exportReport = useCallback(
+    async (format: "pdf" | "xlsx") => {
+      setExportOpen(false);
+      const rows = dailyTransactions.map((t) => ({
+        Type: t.type === "income" ? "Income" : "Expense",
+        Category: t.category,
+        Description: t.description,
+        Amount: `${t.type === "income" ? "+" : "-"}${symbol}${formatMoney(t.amount)}`,
+        Time: t.date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }),
+      }));
+
+      if (format === "xlsx") {
+        const XLSX = await import("xlsx");
+        const ws = XLSX.utils.json_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Daily Report");
+        XLSX.writeFile(wb, `daily-report-${selectedDate}.xlsx`);
+      } else {
+        const { default: jsPDF } = await import("jspdf");
+        const autoTable = (await import("jspdf-autotable")).default;
+        const doc = new jsPDF();
+        doc.setFontSize(16);
+        doc.text(`Daily Report — ${selectedDate}`, 14, 20);
+        doc.setFontSize(10);
+        doc.text(
+          `Income: ${symbol}${formatMoney(totalIncome)}  |  Expenses: ${symbol}${formatMoney(totalExpenses)}  |  Net: ${symbol}${formatMoney(netChange)}`,
+          14,
+          30,
+        );
+        autoTable(doc, {
+          startY: 38,
+          head: [["Type", "Category", "Description", "Amount", "Time"]],
+          body: rows.map((r) => [r.Type, r.Category, r.Description, r.Amount, r.Time]),
+          styles: { fontSize: 9 },
+          headStyles: { fillColor: [59, 130, 246] },
+        });
+        doc.save(`daily-report-${selectedDate}.pdf`);
+      }
+    },
+    [dailyTransactions, selectedDate, symbol, totalIncome, totalExpenses, netChange],
+  );
 
   return (
     <div className="p-8">
@@ -62,10 +114,30 @@ export function DailyReports() {
           <h1 className="text-3xl font-bold text-foreground">Daily Reports</h1>
           <p className="text-muted-foreground mt-1">Track your daily financial activities</p>
         </div>
-        <Button className="bg-purple-600 hover:bg-purple-700">
-          <Download className="h-4 w-4 mr-2" />
-          Export Daily Report
-        </Button>
+        <div className="relative">
+          <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => setExportOpen(!exportOpen)}>
+            <Download className="h-4 w-4 mr-2" />
+            Export Daily Report
+          </Button>
+          {exportOpen && (
+            <div className="absolute right-0 top-full mt-2 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50 overflow-hidden min-w-[180px]">
+              <button
+                type="button"
+                className="w-full text-left px-4 py-3 text-sm text-white hover:bg-slate-700 transition-colors"
+                onClick={() => exportReport("pdf")}
+              >
+                Export as PDF
+              </button>
+              <button
+                type="button"
+                className="w-full text-left px-4 py-3 text-sm text-white hover:bg-slate-700 transition-colors border-t border-slate-700"
+                onClick={() => exportReport("xlsx")}
+              >
+                Export as XLSX
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Date Selector */}
@@ -76,11 +148,25 @@ export function DailyReports() {
               <Calendar className="h-5 w-5 text-muted-foreground" />
               <input
                 type="date"
-                defaultValue={new Date().toISOString().split('T')[0]}
-                className="px-4 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="px-4 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary bg-background text-foreground"
+                title="Select date"
               />
-              <Button variant="outline" size="sm">Today</Button>
-              <Button variant="outline" size="sm">Yesterday</Button>
+              <Button
+                variant={selectedDate === todayKey ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedDate(todayKey)}
+              >
+                Today
+              </Button>
+              <Button
+                variant={selectedDate === yesterdayKey ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedDate(yesterdayKey)}
+              >
+                Yesterday
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -89,54 +175,58 @@ export function DailyReports() {
       {/* Daily Summary */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <Card className="bg-card-navy/25 border-card-navy/40 border">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Income Today</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Income {dateLabel}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between">
-              <p className="text-2xl font-bold text-green-600">
-                +Tk.{dailySummary.totalIncome.toFixed(2)}
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-2xl font-bold text-green-500 truncate">
+                +{symbol}{formatMoney(totalIncome)}
               </p>
-              <TrendingUp className="h-6 w-6 text-green-600" />
+              <TrendingUp className="h-6 w-6 text-green-500 flex-shrink-0" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-card-navy/25 border-card-navy/40 border">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Expenses Today</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Expenses {dateLabel}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between">
-              <p className="text-2xl font-bold text-red-600">
-                -Tk.{dailySummary.totalExpenses.toFixed(2)}
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-2xl font-bold text-red-500 truncate">
+                -{symbol}{formatMoney(totalExpenses)}
               </p>
-              <TrendingDown className="h-6 w-6 text-red-600" />
+              <TrendingDown className="h-6 w-6 text-red-500 flex-shrink-0" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-card-navy/25 border-card-navy/40 border">
-          <CardHeader>
+          <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Net Change</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between">
-              <p className="text-2xl font-bold text-cyan-600">
-                +Tk.{dailySummary.netChange.toFixed(2)}
+            <div className="flex items-center justify-between gap-2">
+              <p className={`text-2xl font-bold truncate ${netChange >= 0 ? "text-cyan-500" : "text-red-500"}`}>
+                {netChange >= 0 ? "+" : ""}{symbol}{formatMoney(netChange)}
               </p>
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-card-navy/25 border-card-navy/40 border">
-          <CardHeader>
+          <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Transactions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <p className="text-2xl font-bold text-foreground">
-                {dailySummary.transactionCount}
+                {filtered.length}
               </p>
             </div>
           </CardContent>
@@ -149,49 +239,64 @@ export function DailyReports() {
           <CardTitle>Transaction Timeline</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {dailyTransactions.map((transaction) => (
-              <div
-                key={transaction.id}
-                className={`flex items-center gap-4 p-4 rounded-lg border transition-all hover:shadow-md ${
-                  transaction.type === "income"
-                    ? "bg-green-600/5 border-green-600/20 hover:bg-green-600/10"
-                    : "bg-red-600/5 border-red-600/20 hover:bg-red-600/10"
-                }`}
-              >
-                <div className="flex-shrink-0">
-                  <div className={`h-12 w-12 rounded-full flex items-center justify-center ${
+          {loading ? (
+            <p className="text-center py-8 text-muted-foreground">Loading...</p>
+          ) : dailyTransactions.length === 0 ? (
+            <p className="text-center py-8 text-muted-foreground">No transactions for {dateLabel}.</p>
+          ) : (
+            <div className="space-y-4">
+              {dailyTransactions.map((transaction) => (
+                <div
+                  key={transaction.id}
+                  className={`flex items-center gap-4 p-4 rounded-lg border transition-all hover:shadow-md ${
                     transaction.type === "income"
-                      ? "bg-green-600/10"
-                      : "bg-red-600/10"
-                  }`}>
-                    {transaction.type === "income" ? (
-                      <TrendingUp className="h-6 w-6 text-green-600" />
-                    ) : (
-                      <TrendingDown className="h-6 w-6 text-red-600" />
-                    )}
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="font-semibold text-foreground">{transaction.category}</h4>
-                    <span
-                      className={`font-bold text-lg ${
-                        transaction.type === "income" ? "text-green-600" : "text-red-600"
+                      ? "bg-green-600/5 border-green-600/20 hover:bg-green-600/10"
+                      : "bg-red-600/5 border-red-600/20 hover:bg-red-600/10"
+                  }`}
+                >
+                  <div className="flex-shrink-0">
+                    <div
+                      className={`h-12 w-12 rounded-full flex items-center justify-center ${
+                        transaction.type === "income" ? "bg-green-600/10" : "bg-red-600/10"
                       }`}
                     >
-                      {transaction.type === "income" ? "+" : "-"}Tk.{transaction.amount.toFixed(2)}
-                    </span>
+                      {transaction.type === "income" ? (
+                        <TrendingUp className="h-6 w-6 text-green-600" />
+                      ) : (
+                        <TrendingDown className="h-6 w-6 text-red-600" />
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span>{transaction.time}</span>
-                    <span>•</span>
-                    <span>{transaction.method}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1 gap-2">
+                      <h4 className="font-semibold text-foreground truncate">{transaction.category}</h4>
+                      <span
+                        className={`font-bold text-lg whitespace-nowrap ${
+                          transaction.type === "income" ? "text-green-600" : "text-red-600"
+                        }`}
+                      >
+                        {transaction.type === "income" ? "+" : "-"}{symbol}{formatMoney(transaction.amount)}
+                      </span>
+                    </div>
+                    {transaction.description && transaction.description !== transaction.category && (
+                      <p className="text-sm text-muted-foreground truncate mb-1">{transaction.description}</p>
+                    )}
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <span>
+                        {transaction.date.toLocaleTimeString("en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        })}
+                      </span>
+                      <span>•</span>
+                      <span>{transaction.category}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

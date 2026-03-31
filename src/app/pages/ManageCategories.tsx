@@ -133,7 +133,7 @@ export function ManageCategories() {
     if (!addingCategory || !addForm.name.trim()) return;
 
     try {
-      const type = addingCategory === "expense" ? "Expense" : "Payment Method";
+      const type = addingCategory === "expense" ? "Expense" : "Income";
       const res = await categoryController.createCategory({
         body: {
           name: addForm.name.trim(),
@@ -343,7 +343,7 @@ export function ManageCategories() {
               </p>
             </div>
             <div className="p-4 bg-green-50 rounded-lg">
-              <p className="text-sm text-green-700 mb-1">Income Categories</p>
+              <p className="text-sm text-green-700 mb-1">Inflow Categories</p>
               <p className="text-3xl font-bold text-green-700">
                 {incomeCategories.length}
               </p>

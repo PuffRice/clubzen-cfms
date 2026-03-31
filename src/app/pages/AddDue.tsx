@@ -3,19 +3,28 @@ import { Button } from "../components/ui/button";
 import { Label } from "../components/ui/label";
 import { Calendar, Bell } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import { loanController } from "../services";
+import { useCurrency } from "../CurrencyContext";
+
+const EMPTY_FORM = {
+  title: "",
+  amount: "",
+  dueDate: "",
+  category: "",
+  recurring: "one-time",
+  frequency: "",
+  reminder: true,
+  notes: "",
+};
 
 export function AddDue() {
-  const [formData, setFormData] = useState({
-    title: "",
-    amount: "",
-    dueDate: "",
-    category: "",
-    recurring: "one-time",
-    frequency: "",
-    reminder: true,
-    notes: "",
-  });
+  const { symbol } = useCurrency();
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({ ...EMPTY_FORM });
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [formSuccess, setFormSuccess] = useState(false);
 
   const categories = ["Loan Taken", "Loan Given"];
 
@@ -29,17 +38,26 @@ export function AddDue() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setFormError(null);
+    setFormSuccess(false);
 
     const { amount, dueDate, category, title, notes } = formData;
 
     if (!amount || !dueDate || !category) {
+      setFormError("Please fill in all required fields (Amount, Due Date, Category).");
       return;
     }
 
     const numericAmount = Number(amount);
-    const date = new Date(dueDate);
-    const description = notes || title;
+    if (numericAmount <= 0) {
+      setFormError("Amount must be greater than zero.");
+      return;
+    }
 
+    const date = new Date(dueDate);
+    const description = (notes || title || "").trim() || (category === "Loan Taken" ? "Loan Taken" : "Loan Given");
+
+    setSaving(true);
     try {
       if (category === "Loan Taken") {
         await loanController.createLoan("taken", numericAmount, date, description);
@@ -47,19 +65,23 @@ export function AddDue() {
         await loanController.createLoan("given", numericAmount, date, description);
       }
 
-      setFormData({
-        title: "",
-        amount: "",
-        dueDate: "",
-        category: "",
-        recurring: "one-time",
-        frequency: "",
-        reminder: true,
-        notes: "",
-      });
+      setFormSuccess(true);
+      setFormData({ ...EMPTY_FORM });
+
+      setTimeout(() => navigate("/dashboard/loans"), 1500);
     } catch (err) {
       console.error("Failed to save loan", err);
+      setFormError((err as Error).message || "Failed to save loan. Please try again.");
+    } finally {
+      setSaving(false);
     }
+  }
+
+  function handleCancel() {
+    setFormData({ ...EMPTY_FORM });
+    setFormError(null);
+    setFormSuccess(false);
+    navigate("/dashboard/loans");
   }
 
   return (
@@ -105,12 +127,13 @@ export function AddDue() {
                     <Label htmlFor="amount">Amount *</Label>
                     <div className="relative mt-1">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                        Tk.
+                        {symbol}
                       </span>
                       <input
                         id="amount"
                         type="number"
                         step="0.01"
+                        onKeyDown={(e) => ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()}
                         placeholder="0.00"
                         className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         value={formData.amount}
@@ -226,15 +249,28 @@ export function AddDue() {
                   />
                 </div>
 
+                {/* Feedback Messages */}
+                {formError && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/30 text-red-400 rounded-md text-sm">
+                    {formError}
+                  </div>
+                )}
+                {formSuccess && (
+                  <div className="p-3 bg-green-500/10 border border-green-500/30 text-green-400 rounded-md text-sm">
+                    Loan saved successfully! Redirecting to Loans...
+                  </div>
+                )}
+
                 {/* Action Buttons */}
                 <div className="flex gap-3 pt-4">
                   <Button
                     type="submit"
                     className="flex-1 bg-blue-600 hover:bg-blue-700"
+                    disabled={saving}
                   >
-                    Save Due Payment
+                    {saving ? "Saving..." : "Save Due Payment"}
                   </Button>
-                  <Button type="button" variant="outline" className="flex-1">
+                  <Button type="button" variant="outline" className="flex-1" onClick={handleCancel}>
                     Cancel
                   </Button>
                 </div>
@@ -254,7 +290,7 @@ export function AddDue() {
                 <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
                   <p className="text-sm text-orange-700 mb-1">Amount Due</p>
                   <p className="text-3xl font-bold text-orange-700">
-                    ${formData.amount || "0.00"}
+                    {symbol}{formData.amount ? Number(formData.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}
                   </p>
                 </div>
                 <div className="space-y-2">

@@ -3,8 +3,10 @@ import { Button } from "../components/ui/button";
 import { FileText, Download, TrendingUp, TrendingDown, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
 import { reportController, transactionController } from "../services";
+import { useCurrency } from "../CurrencyContext";
 
 export function MonthlyReports() {
+  const { symbol } = useCurrency();
   const [monthlyData, setMonthlyData] = useState({
     totalIncome: 0,
     totalExpenses: 0,
@@ -189,7 +191,7 @@ export function MonthlyReports() {
           <CardContent>
             <div className="flex items-center justify-between">
               <p className="text-2xl font-bold text-green-600">
-                Tk.{monthlyData.totalIncome.toLocaleString()}
+                {symbol}{monthlyData.totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
               <TrendingUp className="h-8 w-8 text-green-600" />
             </div>
@@ -203,7 +205,7 @@ export function MonthlyReports() {
           <CardContent>
             <div className="flex items-center justify-between">
               <p className="text-2xl font-bold text-red-600">
-                Tk.{monthlyData.totalExpenses.toLocaleString()}
+                {symbol}{monthlyData.totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
               <TrendingDown className="h-8 w-8 text-red-600" />
             </div>
@@ -217,7 +219,7 @@ export function MonthlyReports() {
           <CardContent>
             <div className="flex items-center justify-between">
               <p className="text-2xl font-bold text-cyan-600">
-                Tk.{monthlyData.netSavings.toLocaleString()}
+                {symbol}{monthlyData.netSavings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
           </CardContent>
@@ -258,14 +260,14 @@ export function MonthlyReports() {
                         <div key={item.category} className="flex justify-between text-sm">
                           <span className="text-muted-foreground">{item.category}</span>
                           <span className="font-medium text-green-600">
-                            +Tk.{item.amount.toFixed(2)}
+                            +{symbol}{item.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         </div>
                       ))}
                       <div className="flex justify-between text-sm pt-2 border-t border-border mt-2">
                         <span className="font-semibold">Total</span>
                         <span className="font-semibold text-green-600">
-                          +Tk.{incomeBreakdown.reduce((s, i) => s + i.amount, 0).toFixed(2)}
+                          +{symbol}{incomeBreakdown.reduce((s, i) => s + i.amount, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       </div>
                     </>
@@ -285,14 +287,14 @@ export function MonthlyReports() {
                         <div key={item.category} className="flex justify-between text-sm">
                           <span className="text-muted-foreground">{item.category}</span>
                           <span className="font-medium text-red-600">
-                            -Tk.{item.amount.toFixed(2)}
+                            -{symbol}{item.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         </div>
                       ))}
                       <div className="flex justify-between text-sm pt-2 border-t border-border mt-2">
                         <span className="font-semibold">Total</span>
                         <span className="font-semibold text-red-600">
-                          -Tk.{expenseBreakdown.reduce((s, i) => s + i.amount, 0).toFixed(2)}
+                          -{symbol}{expenseBreakdown.reduce((s, i) => s + i.amount, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       </div>
                     </>
@@ -310,7 +312,7 @@ export function MonthlyReports() {
                     }`}
                   >
                     {monthlyData.netSavings >= 0 ? "+" : ""}
-                    Tk.{monthlyData.netSavings.toFixed(2)}
+                    {symbol}{monthlyData.netSavings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
               </div>

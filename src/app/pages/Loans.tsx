@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { Plus, Wallet, DollarSign, Clock } from "lucide-react";
+import { Plus, Wallet, DollarSign, Clock, Check } from "lucide-react";
 import {
   Dialog,
   DialogTrigger,
@@ -12,9 +12,11 @@ import {
 } from "../components/ui/dialog";
 import { RepaymentForm } from "../components/RepaymentForm";
 import { loanController } from "../services";
+import { useCurrency } from "../CurrencyContext";
 import type { Loan, LoanRepayment } from "../../domain";
 
 export function Loans() {
+  const { symbol } = useCurrency();
   const [open, setOpen] = useState(false);
   const [selectedLoanId, setSelectedLoanId] = useState<string | null>(null);
   const [loans, setLoans] = useState<Loan[]>([]);
@@ -129,10 +131,10 @@ export function Loans() {
                     {filter === "taken" ? "Total Taken" : "Total Given"}
                   </p>
                   <p className="text-2xl font-bold text-foreground">
-                    Tk.
+                    {symbol}
                     {filteredLoans
                       .reduce((sum, l) => sum + l.amount, 0)
-                      .toFixed(2)}
+                      .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
                 <DollarSign className="h-8 w-8 text-blue-500" />
@@ -146,10 +148,10 @@ export function Loans() {
                 <div>
                   <p className="text-sm text-muted-foreground">Total Repaid</p>
                   <p className="text-2xl font-bold text-green-600">
-                    Tk.
+                    {symbol}
                     {Object.values(loanBalances)
                       .reduce((sum, b) => sum + b.totalRepaid, 0)
-                      .toFixed(2)}
+                      .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
                 <Wallet className="h-8 w-8 text-green-500" />
@@ -165,10 +167,10 @@ export function Loans() {
                     Remaining Balance
                   </p>
                   <p className="text-2xl font-bold text-orange-600">
-                    Tk.
+                    {symbol}
                     {Object.values(loanBalances)
                       .reduce((sum, b) => sum + b.remaining, 0)
-                      .toFixed(2)}
+                      .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
                 <Clock className="h-8 w-8 text-orange-500" />
@@ -242,7 +244,7 @@ export function Loans() {
                               Total Amount
                             </p>
                             <p className="text-2xl font-bold text-foreground">
-                              Tk.{loan.amount.toFixed(2)}
+                              {symbol}{loan.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </p>
                           </div>
                           {loan.direction === "taken" ? (
@@ -269,12 +271,12 @@ export function Loans() {
                         </div>
 
                         <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>Repaid: Tk.{balance.totalRepaid.toFixed(2)}</span>
+                          <span>Repaid: {symbol}{balance.totalRepaid.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                           <span className="font-medium">
                             {repaymentPercentage}%
                           </span>
                           <span>
-                            Remaining: Tk.{balance.remaining.toFixed(2)}
+                            Remaining: {symbol}{balance.remaining.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         </div>
                       </div>
@@ -297,7 +299,7 @@ export function Loans() {
                                 {rep.description && ` - ${rep.description}`}
                               </span>
                               <span className="font-medium">
-                                Tk.{rep.amount.toFixed(2)}
+                                {symbol}{rep.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </span>
                             </div>
                           ))}
@@ -306,35 +308,42 @@ export function Loans() {
                     )}
 
                     {/* Action Buttons */}
-                    <div className="flex gap-2">
-                      <Dialog open={open && selectedLoanId === loan.id} onOpenChange={setOpen}>
-                        <DialogTrigger asChild>
-                          <Button
-                            className="bg-green-600 hover:bg-green-700"
-                            onClick={() => handleOpenRepaymentDialog(loan.id)}
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add Repayment
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>
-                              Record Repayment for "{loan.description}"
-                            </DialogTitle>
-                          </DialogHeader>
-                          {selectedLoanId && (
-                            <RepaymentForm
-                              loanId={selectedLoanId}
-                              onSuccess={handleRepaymentSuccess}
-                            />
-                          )}
-                          <DialogClose className="absolute top-2 right-2">
-                            <span className="sr-only">Close</span>
-                          </DialogClose>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
+                    {balance.remaining > 0 ? (
+                      <div className="flex gap-2">
+                        <Dialog open={open && selectedLoanId === loan.id} onOpenChange={setOpen}>
+                          <DialogTrigger asChild>
+                            <Button
+                              className="bg-green-600 hover:bg-green-700"
+                              onClick={() => handleOpenRepaymentDialog(loan.id)}
+                            >
+                              <Plus className="h-4 w-4 mr-2" />
+                              Add Repayment
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>
+                                Record Repayment for "{loan.description}"
+                              </DialogTitle>
+                            </DialogHeader>
+                            {selectedLoanId && (
+                              <RepaymentForm
+                                loanId={selectedLoanId}
+                                onSuccess={handleRepaymentSuccess}
+                              />
+                            )}
+                            <DialogClose className="absolute top-2 right-2">
+                              <span className="sr-only">Close</span>
+                            </DialogClose>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500/10 border border-green-500/20 text-green-500 text-sm font-medium">
+                        <Check className="h-4 w-4" />
+                        Repayment Completed
+                      </div>
+                    )}
                   </div>
                 );
               })}

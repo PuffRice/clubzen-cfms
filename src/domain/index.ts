@@ -18,3 +18,5 @@ export { Auth } from "./Auth";
 export type { UserRole } from "./Auth";
 export { SupportTicket, SupportTicketReply } from "./SupportTicket";
 export type { TicketStatus } from "./SupportTicket";
+export { Settings } from "./Settings";
+export type { CurrencyCode } from "./Settings";

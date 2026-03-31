@@ -10,10 +10,15 @@ export class SupabaseLoanRepaymentRepository implements ILoanRepaymentRepository
     description?: string
   ) {
 
+    const loanIdNum = Number(loanId);
+    if (!Number.isFinite(loanIdNum) || loanIdNum <= 0) {
+      throw new Error("Invalid loan id");
+    }
+
     const { data, error } = await supabase
       .from("loan_repayments")
       .insert({
-        loan_id: loanId,
+        loan_id: loanIdNum,
         amount: amount,
         date: date.toISOString().slice(0,10),
         description: description || null
@@ -33,7 +38,7 @@ export class SupabaseLoanRepaymentRepository implements ILoanRepaymentRepository
     const { data, error } = await supabase
       .from("loan_repayments")
       .select("*")
-      .eq("loan_id", loanId);
+      .eq("loan_id", Number(loanId));
 
     if (error) {
       throw new Error(error.message);

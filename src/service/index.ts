@@ -5,3 +5,4 @@ export { LoanService } from "./LoanService";
 export { LoanRepaymentService } from "./LoanRepaymentService";
 export { AuthService } from "./AuthService";
 export { SupportTicketService } from "./SupportTicketService";
+export { SettingsService } from "./SettingsService";

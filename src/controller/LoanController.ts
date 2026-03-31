@@ -20,6 +20,16 @@ export class LoanController {
     return this.loanService.createLoan(direction, amount, date, note);
   }
 
+  async updateLoan(
+    id: string,
+    direction: LoanDirection,
+    amount: number,
+    date: Date,
+    note?: string,
+  ): Promise<Loan> {
+    return this.loanService.updateLoan(id, direction, amount, date, note);
+  }
+
   async getAllLoans(): Promise<Loan[]> {
     return this.loanService.getAllLoans();
   }

@@ -1,8 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
+import { useCurrency } from "../CurrencyContext";
 
 export function Approvals() {
+  const { symbol } = useCurrency();
   const approvals = [
     { id: 1, type: "Expense", description: "Client Dinner", amount: 320.50, date: "Feb 7, 2026", status: "pending" },
     { id: 2, type: "Reimbursement", description: "Office Supplies", amount: 156.00, date: "Feb 6, 2026", status: "pending" },
@@ -43,7 +45,7 @@ export function Approvals() {
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="font-bold text-lg text-foreground">
-                    Tk.{approval.amount.toFixed(2)}
+                    {symbol}{approval.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                   {approval.status === "pending" ? (
                     <div className="flex gap-2">

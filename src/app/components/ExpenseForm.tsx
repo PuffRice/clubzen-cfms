@@ -3,12 +3,14 @@ import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { Receipt, Upload } from "lucide-react";
 import { transactionController, categoryController } from "../services";
+import { useCurrency } from "../CurrencyContext";
 
 interface ExpenseFormProps {
   onSuccess?: () => void; // called after a successful save
 }
 
 export function ExpenseForm({ onSuccess }: ExpenseFormProps) {
+  const { symbol } = useCurrency();
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState(false);
   const [formData, setFormData] = useState({
@@ -45,7 +47,11 @@ export function ExpenseForm({ onSuccess }: ExpenseFormProps) {
   }, []);
 
   const paymentMethods = [
-c
+    "Cash",
+    "Credit Card",
+    "Debit Card",
+    "Bank Transfer",
+    "Digital Wallet",
   ];
 
   async function handleSubmit(e: FormEvent) {
@@ -84,12 +90,13 @@ c
           <Label htmlFor="amount">Amount *</Label>
           <div className="relative mt-1">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-              Tk.
+              {symbol}
             </span>
             <input
               id="amount"
               type="number"
               step="0.01"
+              onKeyDown={(e) => ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()}
               placeholder="0.00"
               className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               value={formData.amount}

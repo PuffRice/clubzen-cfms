@@ -1,8 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Building2, Plus, CreditCard } from "lucide-react";
+import { useCurrency } from "../CurrencyContext";
 
 export function BankDetails() {
+  const { symbol } = useCurrency();
   const accounts = [
     { id: 1, bank: "Chase Bank", accountNumber: "****4521", type: "Checking", balance: 45000 },
     { id: 2, bank: "Wells Fargo", accountNumber: "****7893", type: "Savings", balance: 26000 },
@@ -44,7 +46,7 @@ export function BankDetails() {
                 </div>
                 <div className="flex justify-between items-center pt-3 border-t">
                   <span className="text-muted-foreground">Balance</span>
-                  <span className="font-bold text-xl">Tk.{account.balance.toLocaleString()}</span>
+                  <span className="font-bold text-xl">{symbol}{account.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
                 <div className="flex gap-2 pt-3">
                   <Button variant="outline" size="sm" className="flex-1">

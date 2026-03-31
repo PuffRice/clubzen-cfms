@@ -16,6 +16,7 @@ import {
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip } from "../components/ui/chart";
 import { reportController, transactionController } from "../services";
+import { useCurrency } from "../CurrencyContext";
 import type { DashboardSummary } from "@core/service";
 import {
   Dialog,
@@ -28,8 +29,8 @@ import { ExpenseForm } from "../components/ExpenseForm";
 import { IncomeForm } from "../components/IncomeForm";
 
 export function Dashboard() {
-  // not navigating here any more; modals used instead
   const navigate = useNavigate();
+  const { symbol } = useCurrency();
   const [summary, setSummary] = useState<DashboardSummary>({
     totalIncome: 0,
     totalExpense: 0,
@@ -198,7 +199,7 @@ export function Dashboard() {
                 <div className="relative z-10">
                   <p className="text-blue-100 text-sm font-medium mb-3">Current Balance</p>
                   <h2 className="text-5xl font-bold text-white mb-4">
-                    Tk.{summary.netProfitLoss.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    {symbol}{summary.netProfitLoss.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </h2>
                   <div className="flex items-center gap-2">
                     <div className="h-10 w-10 rounded-lg bg-white/10 flex items-center justify-center border border-white/20">
@@ -223,7 +224,7 @@ export function Dashboard() {
                 </div>
                 <p className="text-gray-400 text-xs font-medium mb-2 uppercase tracking-wide">Total Income</p>
                 <h3 className="text-2xl font-bold text-white">
-                  Tk.{summary.totalIncome.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                  {symbol}{summary.totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h3>
               </div>
             </div>
@@ -241,7 +242,7 @@ export function Dashboard() {
                 </div>
                 <p className="text-gray-400 text-xs font-medium mb-2 uppercase tracking-wide">Total Expenses</p>
                 <h3 className="text-2xl font-bold text-white">
-                  Tk.{summary.totalExpense.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                  {symbol}{summary.totalExpense.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h3>
               </div>
             </div>
@@ -334,7 +335,7 @@ export function Dashboard() {
                           }`}
                         >
                           {transaction.amount > 0 ? "+" : ""}
-                          {Math.abs(transaction.amount).toFixed(2)}
+                          {Math.abs(transaction.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                       </div>
                     ))
@@ -437,19 +438,19 @@ export function Dashboard() {
                       <div>
                         <p className="text-xs text-gray-400">Min</p>
                         <p className="text-sm font-bold text-white">
-                          Tk.{Math.min(...monthlyIncome.map(m => m.total)).toLocaleString()}
+                          {symbol}{Math.min(...monthlyIncome.map(m => m.total)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-400">Avg</p>
                         <p className="text-sm font-bold text-white">
-                          Tk.{Math.round(monthlyIncome.reduce((s, m) => s + m.total, 0) / monthlyIncome.length).toLocaleString()}
+                          {symbol}{(monthlyIncome.reduce((s, m) => s + m.total, 0) / monthlyIncome.length).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-400">Max</p>
                         <p className="text-sm font-bold text-white">
-                          Tk.{Math.max(...monthlyIncome.map(m => m.total)).toLocaleString()}
+                          {symbol}{Math.max(...monthlyIncome.map(m => m.total)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                       </div>
                     </div>

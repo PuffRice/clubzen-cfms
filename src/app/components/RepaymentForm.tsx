@@ -2,6 +2,7 @@ import { useState, useEffect, type FormEvent } from "react";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { loanController } from "../services";
+import { useCurrency } from "../CurrencyContext";
 
 interface RepaymentFormProps {
   loanId: string;
@@ -10,6 +11,7 @@ interface RepaymentFormProps {
 }
 
 export function RepaymentForm({ loanId, onSuccess, onError }: RepaymentFormProps) {
+  const { symbol } = useCurrency();
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -47,7 +49,7 @@ export function RepaymentForm({ loanId, onSuccess, onError }: RepaymentFormProps
 
       if (amount > remainingAmount) {
         throw new Error(
-          `Repayment amount cannot exceed remaining loan (Tk.${remainingAmount.toFixed(2)})`
+          `Repayment amount cannot exceed remaining loan (${symbol}${remainingAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`
         );
       }
 
@@ -84,7 +86,7 @@ export function RepaymentForm({ loanId, onSuccess, onError }: RepaymentFormProps
       {/* Remaining Amount Info */}
       <div className="p-4 bg-blue-100 border border-blue-300 rounded-md">
         <p className="text-sm font-medium text-blue-900">
-          Remaining Amount: <span className="font-bold">Tk.{remainingAmount.toFixed(2)}</span>
+          Remaining Amount: <span className="font-bold">{symbol}{remainingAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
         </p>
       </div>
 
@@ -94,12 +96,13 @@ export function RepaymentForm({ loanId, onSuccess, onError }: RepaymentFormProps
           <Label htmlFor="amount">Repayment Amount *</Label>
           <div className="relative mt-1">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-              Tk.
+              {symbol}
             </span>
             <input
               id="amount"
               type="number"
               step="0.01"
+              onKeyDown={(e) => ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()}
               placeholder="0.00"
               className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               value={formData.amount}

@@ -13,3 +13,5 @@ export type {
   SupportTicketReplyWithAuthor,
 } from "./ISupportTicketRepository";
 export { SupabaseSupportTicketRepository } from "./SupabaseSupportTicketRepository";
+export type { ISettingsRepository, SettingsRow, UpdateSettingsParams } from "./ISettingsRepository";
+export { SupabaseSettingsRepository } from "./SupabaseSettingsRepository";

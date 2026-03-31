@@ -1,11 +1,9 @@
 import { Outlet, NavLink, useNavigate } from "react-router";
 import {
   Home,
-  Receipt,
   TrendingUp,
   FileText,
   Settings,
-  CheckCircle,
   HelpCircle,
   Building2,
   Calendar,
@@ -16,22 +14,12 @@ import {
   Plus,
   FolderTree,
   X,
-  Menu,
-  BarChart3,
   Lock,
 } from "lucide-react";
-import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Button } from "./ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Label } from "./ui/label";
-import { Switch } from "./ui/switch";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { authController } from "../services";
-
-const CURRENCIES = [
-  { value: "USD", label: "USD ($)" },
-  { value: "BDT", label: "BDT (৳)" },
-];
 
 const navigation = [
   { name: "Home", href: "/dashboard", icon: Home },
@@ -48,7 +36,6 @@ const navigation = [
 export function Layout() {
   const navigate = useNavigate();
   const [reportsOpen, setReportsOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
@@ -58,38 +45,12 @@ export function Layout() {
   const userName = storedName || userEmail.split("@")[0];
   const initials = userName.slice(0, 2).toUpperCase();
 
-  const [profileName, setProfileName] = useState(userName);
-  const [profileCurrency, setProfileCurrency] = useState("USD");
-  const [profileLoading, setProfileLoading] = useState(false);
-  const [profileSaving, setProfileSaving] = useState(false);
-  const [profileError, setProfileError] = useState("");
-
-  // Change Password states
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordError, setPasswordError] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState(false);
-
-  useEffect(() => {
-    if (settingsOpen) {
-      const uid = sessionStorage.getItem("userId");
-      if (!uid) return;
-      setProfileLoading(true);
-      setProfileError("");
-      authController
-        .getProfile(uid)
-        .then((res) => {
-          if (res.success && res.profile) {
-            setProfileName(res.profile.fullName ?? userEmail.split("@")[0]);
-            setProfileCurrency(res.profile.currency ?? "USD");
-          }
-        })
-        .catch(() => setProfileError("Failed to load profile"))
-        .finally(() => setProfileLoading(false));
-    }
-  }, [settingsOpen, userEmail]);
 
   function handleLogout() {
     sessionStorage.removeItem("userRole");
@@ -149,7 +110,7 @@ export function Layout() {
               <Button
                 type="button"
                 className="mt-3 w-full justify-start px-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-xl transition-all"
-                onClick={() => setSettingsOpen(true)}
+                onClick={() => { setProfileOpen(false); navigate("/dashboard/settings"); }}
               >
                 <Settings className="h-4 w-4 mr-2" />
                 <span>Settings</span>
@@ -287,100 +248,6 @@ export function Layout() {
       <main className="relative z-10 flex-1 overflow-y-auto">
         <Outlet />
       </main>
-
-      {/* Profile / Settings Modal */}
-      {settingsOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md overflow-y-auto p-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">Profile &amp; Settings</h2>
-              <button
-                type="button"
-                className="p-2 rounded-lg hover:bg-slate-700/50 text-gray-400 transition-colors"
-                onClick={() => setSettingsOpen(false)}
-                title="Close"
-                aria-label="Close settings"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            {profileError && (
-              <p className="text-red-400 text-sm mb-4">{profileError}</p>
-            )}
-
-            {profileLoading ? (
-              <p className="text-gray-400">Loading profile…</p>
-            ) : (
-              <div className="space-y-6">
-                <div>
-                  <Label className="text-gray-300 text-sm font-medium">Name</Label>
-                  <input
-                    type="text"
-                    value={profileName}
-                    onChange={(e) => setProfileName(e.target.value)}
-                    className="w-full mt-2 px-4 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all"
-                    placeholder="Your name"
-                  />
-                </div>
-                <div>
-                  <Label className="text-gray-300 text-sm font-medium">Role</Label>
-                  <p className="mt-2 px-4 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-gray-300">
-                    {userRole}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-gray-300 text-sm font-medium">Email</Label>
-                  <p className="mt-2 px-4 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-gray-300">
-                    {userEmail}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-gray-300 text-sm font-medium">Currency</Label>
-                  <select
-                    value={profileCurrency}
-                    onChange={(e) => setProfileCurrency(e.target.value)}
-                    className="w-full mt-2 px-4 py-2 bg-slate-800/50 border border-slate-600 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all"
-                    title="Currency"
-                    aria-label="Preferred currency"
-                  >
-                    {CURRENCIES.map((c) => (
-                      <option key={c.value} value={c.value}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <Button
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg font-semibold"
-                  disabled={profileSaving}
-                  onClick={async () => {
-                    const uid = sessionStorage.getItem("userId");
-                    if (!uid) return;
-                    setProfileSaving(true);
-                    setProfileError("");
-                    const res = await authController.updateProfile(uid, {
-                      fullName: profileName.trim() || undefined,
-                      currency: profileCurrency,
-                    });
-                    setProfileSaving(false);
-                    if (res.success) {
-                      if (profileName.trim()) {
-                        sessionStorage.setItem("userName", profileName.trim());
-                      }
-                      setSettingsOpen(false);
-                    } else {
-                      setProfileError(res.error ?? "Failed to save");
-                    }
-                  }}
-                >
-                  {profileSaving ? "Saving…" : "Save Changes"}
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Change Password Modal */}
       {changePasswordOpen && (

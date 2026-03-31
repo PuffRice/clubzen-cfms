@@ -14,6 +14,7 @@ import {
   SupabaseLoanRepository,
   SupabaseAuthRepository,
   SupabaseLoanRepaymentRepository,
+  SupabaseSettingsRepository,
 } from "@core/repository";
 import { SupabaseSupportTicketRepository } from "@core/repository/SupabaseSupportTicketRepository";
 import {
@@ -21,6 +22,7 @@ import {
   ReportService,
   LoanService,
   LoanRepaymentService,
+  SettingsService,
 } from "@core/service";
 import { SupportTicketService } from "../service/SupportTicketService";
 import {
@@ -44,6 +46,7 @@ export const loanRepository = new SupabaseLoanRepository(transactionRepository);
 export const loanRepaymentRepository = new SupabaseLoanRepaymentRepository();
 export const supportTicketRepository = new SupabaseSupportTicketRepository();
 export const authRepository = new SupabaseAuthRepository();
+export const settingsRepository = new SupabaseSettingsRepository();
 
 // ── Service layer singletons ────────────────────────────────
 export const transactionService = new TransactionService(transactionRepository);
@@ -56,13 +59,14 @@ export const loanRepaymentService = new LoanRepaymentService(
   transactionRepository,
 );
 export const supportTicketService = new SupportTicketService(supportTicketRepository);
+export const settingsService = new SettingsService(settingsRepository);
 
 // ── Controller layer singletons ─────────────────────────────
 export const authController = new AuthController();
 export const transactionController = new TransactionController(transactionService);
 export const reportController = new ReportController(reportService);
 export const categoryController = new CategoryController(categoryService);
-export const settingsController = new SettingsController();
+export const settingsController = new SettingsController(settingsService);
 export const userController = new UserController();
 export const loanController = new LoanController(loanService, loanRepaymentService);
 export const supportTicketController = new SupportTicketController(

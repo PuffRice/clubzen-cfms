@@ -12,9 +12,11 @@ import {
 } from "../components/ui/dialog";
 import { IncomeForm } from "../components/IncomeForm";
 import { transactionController } from "../services";
+import { useCurrency } from "../CurrencyContext";
 import { IncomeTransaction } from "../../domain";
 
 export function Income() {
+  const { symbol } = useCurrency();
   const [open, setOpen] = useState(false);
   const [incomeItems, setIncomeItems] = useState<IncomeTransaction[]>([]);
 
@@ -96,7 +98,7 @@ export function Income() {
                       {income.description || "-"}
                     </td>
                     <td className="py-3 px-4 font-semibold text-green-600">
-                      +Tk.{income.amount.toFixed(2)}
+                      +{symbol}{income.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                     <td className="py-3 px-4 text-muted-foreground">
                       {income.date.toISOString().split("T")[0]}

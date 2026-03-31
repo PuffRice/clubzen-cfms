@@ -16,7 +16,6 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
     row: Omit<TransactionRow, "id" | "created_at">
   ): Promise<TransactionRow> {
     if (row.type === "income") {
-      // build insert payload, only including payment_method if provided
       const payload: any = {
         amount: row.amount,
         date: row.date,
@@ -24,8 +23,7 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
         description: row.description,
       };
       if ((row as any).payment_method) {
-        // the corresponding column will be named `payment_method` in the DB
-        payload.payment_method = (row as any).payment_method;
+        payload.income_type = (row as any).payment_method;
       }
 
       const { data, error } = await supabase
@@ -41,7 +39,6 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
         throw new Error("insert returned no data");
       }
 
-      // map supabase result back to generic TransactionRow
       return {
         id: String((data as any).id),
         type: "income",
@@ -49,6 +46,7 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
         date: (data as any).date,
         category: (data as any).source,
         description: (data as any).description,
+        payment_method: (data as any).income_type ?? undefined,
         created_at: (data as any).created_at ?? undefined,
       };
     } else {
@@ -82,9 +80,84 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
         date: (data as any).date,
         category: (data as any).category,
         description: (data as any).description,
+        payment_method: (data as any).payment_method ?? undefined,
         created_at: (data as any).created_at ?? undefined,
       };
     }
+  }
+
+  async update(row: TransactionRow): Promise<TransactionRow> {
+    if (!row.id) {
+      throw new Error("Transaction update requires id");
+    }
+    const num = Number(row.id);
+    if (Number.isNaN(num)) {
+      throw new Error("Invalid transaction id");
+    }
+
+    if (row.type === "income") {
+      const payload: Record<string, unknown> = {
+        amount: row.amount,
+        date: row.date,
+        source: row.category,
+        description: row.description,
+      };
+      if (row.payment_method !== undefined) {
+        payload.income_type = row.payment_method;
+      }
+
+      const { data, error } = await supabase
+        .from("income")
+        .update(payload)
+        .eq("id", num)
+        .select()
+        .single();
+
+      if (error) throw error;
+      if (!data) throw new Error("income update returned no row");
+
+      return {
+        id: String((data as any).id),
+        type: "income",
+        amount: Number((data as any).amount),
+        date: (data as any).date,
+        category: (data as any).source,
+        description: (data as any).description,
+        payment_method: (data as any).income_type ?? undefined,
+        created_at: (data as any).created_at ?? undefined,
+      };
+    }
+
+    const payload: Record<string, unknown> = {
+      amount: row.amount,
+      date: row.date,
+      category: row.category,
+      description: row.description,
+    };
+    if (row.payment_method !== undefined) {
+      payload.payment_method = row.payment_method;
+    }
+
+    const { data, error } = await supabase
+      .from("expense")
+      .update(payload)
+      .eq("id", num)
+      .select()
+      .single();
+
+    if (error) throw error;
+    if (!data) throw new Error("expense update returned no row");
+
+    return {
+      id: String((data as any).id),
+      type: "expense",
+      amount: Number((data as any).amount),
+      date: (data as any).date,
+      category: (data as any).category,
+      description: (data as any).description,
+      payment_method: (data as any).payment_method ?? undefined,
+      created_at: (data as any).created_at ?? undefined,
+    };
   }
 
   async findAll(): Promise<TransactionRow[]> {
@@ -112,7 +185,7 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
         date: i.date,
         category: i.source ?? "",
         description: i.description ?? "",
-        payment_method: i.payment_method ?? undefined,
+        payment_method: i.income_type ?? undefined,
         created_at: i.created_at ?? undefined,
       }));
       
@@ -147,7 +220,7 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
           date: i.date,
           category: i.source ?? "",
           description: i.description ?? "",
-          payment_method: i.payment_method ?? undefined,
+          payment_method: i.income_type ?? undefined,
           created_at: i.created_at ?? undefined,
         }));
       } else {
@@ -194,7 +267,7 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
           date: incData.date,
           category: incData.source ?? "",
           description: incData.description ?? "",
-          payment_method: incData.payment_method ?? undefined,
+          payment_method: (incData as any).income_type ?? undefined,
           created_at: incData.created_at ?? undefined,
         };
       }

@@ -12,9 +12,11 @@ import {
 } from "../components/ui/dialog";
 import { ExpenseForm } from "../components/ExpenseForm";
 import { transactionController } from "../services";
+import { useCurrency } from "../CurrencyContext";
 import { ExpenseTransaction } from "../../domain";
 
 export function Expenses() {
+  const { symbol } = useCurrency();
   const [open, setOpen] = useState(false);
   const [expenses, setExpenses] = useState<ExpenseTransaction[]>([]);
 
@@ -99,7 +101,7 @@ export function Expenses() {
                       {expense.payment_method || "-"}
                     </td>
                     <td className="py-3 px-4 font-semibold text-red-600">
-                      Tk.{expense.amount.toFixed(2)}
+                      {symbol}{expense.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                     <td className="py-3 px-4 text-muted-foreground">
                       {expense.date.toISOString().split("T")[0]}
