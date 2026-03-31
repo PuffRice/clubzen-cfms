@@ -1,0 +1,32 @@
+/* Preset category swatch colors — avoids inline styles for a11y / lint rules */
+
+.mc-cat-bg--3b82f6 {
+  background-color: #3b82f6;
+}
+.mc-cat-bg--10b981 {
+  background-color: #10b981;
+}
+.mc-cat-bg--f59e0b {
+  background-color: #f59e0b;
+}
+.mc-cat-bg--ef4444 {
+  background-color: #ef4444;
+}
+.mc-cat-bg--8b5cf6 {
+  background-color: #8b5cf6;
+}
+.mc-cat-bg--ec4899 {
+  background-color: #ec4899;
+}
+.mc-cat-bg--059669 {
+  background-color: #059669;
+}
+.mc-cat-bg--0ea5e9 {
+  background-color: #0ea5e9;
+}
+.mc-cat-bg--f97316 {
+  background-color: #f97316;
+}
+.mc-cat-bg--14b8a6 {
+  background-color: #14b8a6;
+}

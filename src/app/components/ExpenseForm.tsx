@@ -112,8 +112,9 @@ export function ExpenseForm({ onSuccess }: ExpenseFormProps) {
           <Label htmlFor="category">Category *</Label>
           <select
             id="category"
-            style={{ background: 'var(--input-background)', color: 'var(--foreground)' }}
-            className="w-full mt-1 px-3 py-2 border border-gray-700 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            title="Category"
+            aria-label="Category"
+            className="w-full mt-1 px-3 py-2 border border-gray-700 rounded-md bg-input-background text-foreground focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             value={formData.category}
             onChange={(e) =>
               setFormData({ ...formData, category: e.target.value })
@@ -134,6 +135,7 @@ export function ExpenseForm({ onSuccess }: ExpenseFormProps) {
           <input
             id="date"
             type="date"
+            title="Transaction date"
             className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             value={formData.date}
             onChange={(e) =>
@@ -147,8 +149,9 @@ export function ExpenseForm({ onSuccess }: ExpenseFormProps) {
           <Label htmlFor="paymentMethod">Payment Method *</Label>
           <select
             id="paymentMethod"
-            style={{ background: 'var(--input-background)', color: 'var(--foreground)' }}
-            className="w-full mt-1 px-3 py-2 border border-gray-700 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            title="Payment method"
+            aria-label="Payment method"
+            className="w-full mt-1 px-3 py-2 border border-gray-700 rounded-md bg-input-background text-foreground focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             value={formData.paymentMethod}
             onChange={(e) =>
               setFormData({ ...formData, paymentMethod: e.target.value })

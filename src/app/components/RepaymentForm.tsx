@@ -120,6 +120,7 @@ export function RepaymentForm({ loanId, onSuccess, onError }: RepaymentFormProps
           <input
             id="date"
             type="date"
+            title="Repayment date"
             className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             value={formData.date}
             onChange={(e) =>

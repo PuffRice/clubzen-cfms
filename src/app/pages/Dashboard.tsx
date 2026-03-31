@@ -27,6 +27,14 @@ import {
 } from "../components/ui/dialog";
 import { ExpenseForm } from "../components/ExpenseForm";
 import { IncomeForm } from "../components/IncomeForm";
+import "./Dashboard.css";
+
+/** Maps chart hex colors to preset classes in Dashboard.css */
+function chartLegendDotClass(hex: string): string {
+  const key = hex.replace(/^#/, "").toLowerCase();
+  const allowed = new Set(["3b82f6", "10b981", "f59e0b", "a855f7", "ef4444", "6b7280"]);
+  return allowed.has(key) ? `dash-chart-dot--${key}` : "dash-chart-dot--6b7280";
+}
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -509,8 +517,7 @@ export function Dashboard() {
                         <div key={item.name} className="flex items-center justify-between text-sm">
                           <div className="flex items-center gap-2">
                             <div
-                              className="h-2.5 w-2.5 rounded-full"
-                              style={{ backgroundColor: item.color }}
+                              className={`h-2.5 w-2.5 rounded-full ${chartLegendDotClass(item.color)}`}
                             />
                             <span className="text-gray-300">{item.name}</span>
                           </div>

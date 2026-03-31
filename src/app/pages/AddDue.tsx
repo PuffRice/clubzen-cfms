@@ -150,6 +150,7 @@ export function AddDue() {
                     <input
                       id="dueDate"
                       type="date"
+                      title="Due date"
                       className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       value={formData.dueDate}
                       onChange={(e) =>
@@ -163,6 +164,7 @@ export function AddDue() {
                     <Label htmlFor="category">Category *</Label>
                     <select
                       id="category"
+                      title="Category"
                       className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       value={formData.category}
                       onChange={(e) =>
@@ -183,6 +185,7 @@ export function AddDue() {
                     <Label htmlFor="recurring">Payment Type *</Label>
                     <select
                       id="recurring"
+                      title="Payment type"
                       className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       value={formData.recurring}
                       onChange={(e) =>
@@ -201,6 +204,7 @@ export function AddDue() {
                     <Label htmlFor="frequency">Frequency *</Label>
                     <select
                       id="frequency"
+                      title="Payment frequency"
                       className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       value={formData.frequency}
                       onChange={(e) =>
@@ -222,6 +226,7 @@ export function AddDue() {
                   <input
                     type="checkbox"
                     id="reminder"
+                    title="Send reminder before due date"
                     className="h-4 w-4 text-blue-600 border-gray-300 rounded"
                     checked={formData.reminder}
                     onChange={(e) =>

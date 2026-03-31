@@ -166,8 +166,10 @@ export function MonthlyReports() {
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
               <Calendar className="h-5 w-5 text-muted-foreground" />
-              <select 
-                value={selectedMonth} 
+              <select
+                title="Report month"
+                aria-label="Report month"
+                value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
                 className="px-4 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary bg-input text-foreground"
               >

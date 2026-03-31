@@ -1,0 +1,20 @@
+/* Chart legend dots — matches `colors` in Dashboard.tsx (no inline styles) */
+
+.dash-chart-dot--3b82f6 {
+  background-color: #3b82f6;
+}
+.dash-chart-dot--10b981 {
+  background-color: #10b981;
+}
+.dash-chart-dot--f59e0b {
+  background-color: #f59e0b;
+}
+.dash-chart-dot--a855f7 {
+  background-color: #a855f7;
+}
+.dash-chart-dot--ef4444 {
+  background-color: #ef4444;
+}
+.dash-chart-dot--6b7280 {
+  background-color: #6b7280;
+}

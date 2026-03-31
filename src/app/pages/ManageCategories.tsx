@@ -4,6 +4,25 @@ import { Label } from "../components/ui/label";
 import { Plus, Pencil, Trash2, FolderTree, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { categoryController } from "../services";
+import "./ManageCategories.css";
+
+/** Maps preset hex colors to external CSS classes (avoids inline styles). */
+function categoryColorClass(hex: string): string {
+  const key = hex.replace(/^#/, "").toLowerCase();
+  const allowed = new Set([
+    "3b82f6",
+    "10b981",
+    "f59e0b",
+    "ef4444",
+    "8b5cf6",
+    "ec4899",
+    "059669",
+    "0ea5e9",
+    "f97316",
+    "14b8a6",
+  ]);
+  return allowed.has(key) ? `mc-cat-bg--${key}` : "mc-cat-bg--3b82f6";
+}
 
 interface Category {
   id: number;
@@ -222,8 +241,7 @@ export function ManageCategories() {
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className="h-10 w-10 rounded-full"
-                        style={{ backgroundColor: category.color }}
+                        className={`h-10 w-10 rounded-full ${categoryColorClass(category.color)}`}
                       />
                       <div>
                         <h4 className="font-semibold text-foreground">
@@ -286,8 +304,7 @@ export function ManageCategories() {
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className="h-10 w-10 rounded-full"
-                        style={{ backgroundColor: category.color }}
+                        className={`h-10 w-10 rounded-full ${categoryColorClass(category.color)}`}
                       />
                       <div>
                         <h4 className="font-semibold text-foreground">
@@ -376,6 +393,8 @@ export function ManageCategories() {
                 <input
                   id="editCategoryName"
                   type="text"
+                  title="Category name"
+                  placeholder="Category name"
                   className="w-full mt-1 px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
                   value={editForm.name}
                   onChange={(e) =>
@@ -392,12 +411,13 @@ export function ManageCategories() {
                     <button
                       key={color}
                       type="button"
-                      className={`h-12 w-12 rounded-lg transition-all ${
+                      title={`Select color ${color}`}
+                      aria-label={`Select color ${color}`}
+                      className={`h-12 w-12 rounded-lg transition-all ${categoryColorClass(color)} ${
                         editForm.color === color
                           ? "ring-2 ring-offset-2 ring-primary scale-110"
                           : "hover:scale-105"
                       }`}
-                      style={{ backgroundColor: color }}
                       onClick={() => setEditForm({ ...editForm, color })}
                     />
                   ))}
@@ -457,6 +477,8 @@ export function ManageCategories() {
                 <input
                   id="addCategoryName"
                   type="text"
+                  title="Category name"
+                  placeholder="Category name"
                   className="w-full mt-1 px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
                   value={addForm.name}
                   onChange={(e) =>
@@ -473,12 +495,13 @@ export function ManageCategories() {
                     <button
                       key={color}
                       type="button"
-                      className={`h-12 w-12 rounded-lg transition-all ${
+                      title={`Select color ${color}`}
+                      aria-label={`Select color ${color}`}
+                      className={`h-12 w-12 rounded-lg transition-all ${categoryColorClass(color)} ${
                         addForm.color === color
                           ? "ring-2 ring-offset-2 ring-primary scale-110"
                           : "hover:scale-105"
                       }`}
-                      style={{ backgroundColor: color }}
                       onClick={() => setAddForm({ ...addForm, color })}
                     />
                   ))}

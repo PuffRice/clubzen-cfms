@@ -208,10 +208,13 @@ export function Loans() {
                   remaining: 0,
                 };
                 const repayments = loanRepayments[loan.id] || [];
-                const repaymentPercentage = (
-                  (balance.totalRepaid / loan.amount) *
-                  100
-                ).toFixed(1);
+                const pctRaw =
+                  loan.amount > 0 ? (balance.totalRepaid / loan.amount) * 100 : 0;
+                const repaymentPercentage = (Number.isFinite(pctRaw) ? pctRaw : 0).toFixed(1);
+                const progressFillWidth = Math.min(
+                  100,
+                  Math.max(0, Number.isFinite(pctRaw) ? pctRaw : 0),
+                );
 
                 return (
                   <div
@@ -258,16 +261,28 @@ export function Loans() {
                           )}
                         </div>
 
-                        {/* Progress Bar */}
-                        <div className="w-full bg-gray-700 rounded-full h-2">
-                          <div
-                            className={`h-2 rounded-full transition-all ${
-                              loan.direction === "taken"
-                                ? "bg-green-600"
-                                : "bg-blue-600"
-                            }`}
-                            style={{ width: `${repaymentPercentage}%` }}
-                          ></div>
+                        {/* Progress Bar — SVG width avoids inline CSS (lint) */}
+                        <div
+                          className="w-full bg-gray-700 rounded-full h-2 overflow-hidden"
+                          aria-label={`Repayment progress ${repaymentPercentage}%`}
+                        >
+                          <svg
+                            className="block h-2 w-full"
+                            viewBox="0 0 100 2"
+                            preserveAspectRatio="none"
+                            aria-hidden
+                          >
+                            <rect
+                              x={0}
+                              y={0}
+                              height={2}
+                              rx={1}
+                              width={progressFillWidth}
+                              className={
+                                loan.direction === "taken" ? "fill-green-600" : "fill-blue-600"
+                              }
+                            />
+                          </svg>
                         </div>
 
                         <div className="flex justify-between text-xs text-muted-foreground">
