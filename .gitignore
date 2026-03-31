@@ -10,3 +10,7 @@ coverage/
 *.swp
 *.swo
 *~
+
+# Tests & test tooling (keep locally; do not commit)
+src/tests/
+vitest.config.ts
