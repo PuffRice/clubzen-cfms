@@ -3,6 +3,7 @@ import type { ITransactionRepository } from "./ITransactionRepository";
 import type { LoanDirection } from "../domain";
 import { Loan } from "../domain";
 import { supabase } from "@core/supabase/client";
+import { formatLocalDateKey } from "../utils/calendarDate";
 
 type LoanDbRow = {
   id: number;
@@ -99,7 +100,7 @@ export class SupabaseLoanRepository implements ILoanRepository {
       const txRow = await this.txRepo.save({
         type: direction === "taken" ? "income" : "expense",
         amount,
-        date: date.toISOString().slice(0, 10),
+        date: formatLocalDateKey(date),
         category: direction === "taken" ? "Loan Taken" : "Loan Given",
         description: note,
       });
@@ -160,7 +161,7 @@ export class SupabaseLoanRepository implements ILoanRepository {
     const note =
       params.description.trim() ||
       (params.direction === "taken" ? "Loan Taken" : "Loan Given");
-    const dateStr = params.date.toISOString().slice(0, 10);
+    const dateStr = formatLocalDateKey(params.date);
 
     // Update the loans row itself (only core columns that always exist)
     const loanPatch: Record<string, unknown> = {

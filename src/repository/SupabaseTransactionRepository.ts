@@ -164,16 +164,16 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
     try {
       const { data: incomes, error: errInc } = await supabase
         .from("income")
-        .select();
+        .select()
+        .order("created_at", { ascending: true });
       if (errInc) {
         throw errInc;
       }
 
-      console.log(incomes);
-
       const { data: expenses, error: errExp } = await supabase
         .from("expense")
-        .select();
+        .select()
+        .order("created_at", { ascending: true });
       if (errExp) {
         throw errExp;
       }
@@ -188,7 +188,6 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
         payment_method: i.income_type ?? undefined,
         created_at: i.created_at ?? undefined,
       }));
-      
 
       const mappedExpenses: TransactionRow[] = (expenses ?? []).map((e: any) => ({
         id: String(e.id),
@@ -201,7 +200,13 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
         created_at: e.created_at ?? undefined,
       }));
 
-      return [...mappedIncomes, ...mappedExpenses];
+      const all = [...mappedIncomes, ...mappedExpenses];
+      all.sort((a, b) => {
+        const ta = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const tb = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return ta - tb;
+      });
+      return all;
     } catch (err) {
       console.error("SupabaseTransactionRepository.findAll error:", err);
       return [];

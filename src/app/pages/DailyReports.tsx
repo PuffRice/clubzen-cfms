@@ -5,13 +5,18 @@ import { Calendar, Download, TrendingUp, TrendingDown } from "lucide-react";
 import { transactionController } from "../services";
 import { useCurrency } from "../CurrencyContext";
 import type { Transaction } from "../../domain/Transaction";
+import { formatLocalDateKey } from "../../utils/calendarDate";
 
 function toDateKey(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return formatLocalDateKey(d);
 }
 
 function formatMoney(n: number): string {
   return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function formatTxTime(d: Date): string {
+  return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", hour12: true });
 }
 
 interface DayTx {
@@ -21,10 +26,14 @@ interface DayTx {
   category: string;
   amount: number;
   date: Date;
+  /** Clock time for display (DB `created_at` when available; else calendar date at noon). */
+  at: Date;
 }
 
 export function DailyReports() {
   const { symbol } = useCurrency();
+
+  const amountLabel = (n: number) => `${symbol}${formatMoney(n)}`;
 
   const todayKey = toDateKey(new Date());
   const yesterdayDate = new Date();
@@ -55,6 +64,7 @@ export function DailyReports() {
       category: t.category,
       amount: t.amount,
       date: t.date,
+      at: t.recordedAt ?? t.date,
     }));
 
   const totalIncome = filtered.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
@@ -67,17 +77,37 @@ export function DailyReports() {
   const exportReport = useCallback(
     async (format: "pdf" | "xlsx") => {
       setExportOpen(false);
+      const lbl = (n: number) => `${symbol}${formatMoney(n)}`;
+      const cellAmt = (t: DayTx) =>
+        `${t.type === "income" ? "+" : "-"}${symbol}${formatMoney(t.amount)}`;
+
       const rows = dailyTransactions.map((t) => ({
         Type: t.type === "income" ? "Income" : "Expense",
         Category: t.category,
         Description: t.description,
-        Amount: `${t.type === "income" ? "+" : "-"}${symbol}${formatMoney(t.amount)}`,
-        Time: t.date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }),
+        Amount: cellAmt(t),
+        Time: formatTxTime(t.at),
       }));
 
       if (format === "xlsx") {
         const XLSX = await import("xlsx");
-        const ws = XLSX.utils.json_to_sheet(rows);
+        const headerRow = ["Type", "Category", "Description", "Amount", "Time"];
+        const dataRows = dailyTransactions.map((t) => [
+          t.type === "income" ? "Income" : "Expense",
+          t.category,
+          t.description,
+          cellAmt(t),
+          formatTxTime(t.at),
+        ]);
+        const summaryLine = `Income: ${lbl(totalIncome)}  |  Expenses: ${lbl(totalExpenses)}  |  Net: ${lbl(netChange)}`;
+        const aoa = [
+          [`Daily Report — ${selectedDate}`],
+          [summaryLine],
+          [],
+          headerRow,
+          ...(dataRows.length ? dataRows : [["—", "—", "No transactions for this date", "—", "—"]]),
+        ];
+        const ws = XLSX.utils.aoa_to_sheet(aoa);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Daily Report");
         XLSX.writeFile(wb, `daily-report-${selectedDate}.xlsx`);
@@ -89,14 +119,14 @@ export function DailyReports() {
         doc.text(`Daily Report — ${selectedDate}`, 14, 20);
         doc.setFontSize(10);
         doc.text(
-          `Income: ${symbol}${formatMoney(totalIncome)}  |  Expenses: ${symbol}${formatMoney(totalExpenses)}  |  Net: ${symbol}${formatMoney(netChange)}`,
+          `Income: ${lbl(totalIncome)}  |  Expenses: ${lbl(totalExpenses)}  |  Net: ${lbl(netChange)}`,
           14,
           30,
         );
         autoTable(doc, {
           startY: 38,
           head: [["Type", "Category", "Description", "Amount", "Time"]],
-          body: rows.map((r) => [r.Type, r.Category, r.Description, r.Amount, r.Time]),
+          body: rows.length ? rows.map((r) => [r.Type, r.Category, r.Description, r.Amount, r.Time]) : [["—", "—", "No transactions for this date", "—", "—"]],
           styles: { fontSize: 9 },
           headStyles: { fillColor: [59, 130, 246] },
         });
@@ -183,7 +213,7 @@ export function DailyReports() {
           <CardContent>
             <div className="flex items-center justify-between gap-2">
               <p className="text-2xl font-bold text-green-500 truncate">
-                +{symbol}{formatMoney(totalIncome)}
+                +{amountLabel(totalIncome)}
               </p>
               <TrendingUp className="h-6 w-6 text-green-500 flex-shrink-0" />
             </div>
@@ -199,7 +229,7 @@ export function DailyReports() {
           <CardContent>
             <div className="flex items-center justify-between gap-2">
               <p className="text-2xl font-bold text-red-500 truncate">
-                -{symbol}{formatMoney(totalExpenses)}
+                -{amountLabel(totalExpenses)}
               </p>
               <TrendingDown className="h-6 w-6 text-red-500 flex-shrink-0" />
             </div>
@@ -213,7 +243,8 @@ export function DailyReports() {
           <CardContent>
             <div className="flex items-center justify-between gap-2">
               <p className={`text-2xl font-bold truncate ${netChange >= 0 ? "text-cyan-500" : "text-red-500"}`}>
-                {netChange >= 0 ? "+" : ""}{symbol}{formatMoney(netChange)}
+                {netChange >= 0 ? "+" : "-"}
+                {amountLabel(Math.abs(netChange))}
               </p>
             </div>
           </CardContent>
@@ -275,20 +306,15 @@ export function DailyReports() {
                           transaction.type === "income" ? "text-green-600" : "text-red-600"
                         }`}
                       >
-                        {transaction.type === "income" ? "+" : "-"}{symbol}{formatMoney(transaction.amount)}
+                        {transaction.type === "income" ? "+" : "-"}
+                        {amountLabel(transaction.amount)}
                       </span>
                     </div>
                     {transaction.description && transaction.description !== transaction.category && (
                       <p className="text-sm text-muted-foreground truncate mb-1">{transaction.description}</p>
                     )}
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                      <span>
-                        {transaction.date.toLocaleTimeString("en-US", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: true,
-                        })}
-                      </span>
+                      <span>{formatTxTime(transaction.at)}</span>
                       <span>•</span>
                       <span>{transaction.category}</span>
                     </div>

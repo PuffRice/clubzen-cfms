@@ -1,6 +1,7 @@
 import { ILoanRepository } from "../repository/ILoanRepository";
 import { ILoanRepaymentRepository } from "../repository/ILoanRepaymentRepository";
 import { ITransactionRepository } from "../repository/ITransactionRepository";
+import { formatLocalDateKey } from "../utils/calendarDate";
 
 export class LoanRepaymentService {
 
@@ -56,7 +57,7 @@ export class LoanRepaymentService {
       await this.txRepo.save({
         type: "income",
         amount: amount,
-        date: date.toISOString().slice(0,10),
+        date: formatLocalDateKey(date),
         category: "Loan Repayment",
         description: description || "Loan repayment received"
       });
@@ -66,7 +67,7 @@ export class LoanRepaymentService {
       await this.txRepo.save({
         type: "expense",
         amount: amount,
-        date: date.toISOString().slice(0,10),
+        date: formatLocalDateKey(date),
         category: "Loan Repayment",
         description: description || "Loan repayment paid"
       });

@@ -14,6 +14,7 @@
 
 import { Transaction } from "../domain";
 import { TransactionService } from "./TransactionService";
+import { formatLocalDateKey, formatLocalMonthKey } from "../utils/calendarDate";
 
 export interface DailySummary {
   date: string;          // "YYYY-MM-DD"
@@ -109,11 +110,11 @@ export class ReportService {
   /* ── Private helpers ──────────────────────────────────────── */
 
   private formatDate(d: Date): string {
-    return d.toISOString().slice(0, 10); // "YYYY-MM-DD"
+    return formatLocalDateKey(d);
   }
 
   private formatMonth(d: Date): string {
-    return d.toISOString().slice(0, 7); // "YYYY-MM"
+    return formatLocalMonthKey(d);
   }
 
   private groupBy<T>(

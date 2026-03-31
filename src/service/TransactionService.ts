@@ -18,6 +18,7 @@
 
 import { Transaction, IncomeTransaction, ExpenseTransaction, TransactionFactory } from "../domain";
 import type { ITransactionRepository, TransactionRow } from "../repository";
+import { formatLocalDateKey, parseStoredCalendarDate } from "../utils/calendarDate";
 
 export class TransactionService {
   constructor(private readonly repo: ITransactionRepository) {}
@@ -117,17 +118,19 @@ export class TransactionService {
     }
   }
 
-  /** Format a Date as "YYYY-MM-DD" for the database. */
+  /** Format a Date as "YYYY-MM-DD" for the database (local calendar day, not UTC). */
   private toDateString(d: Date): string {
-    return d.toISOString().slice(0, 10);
+    return formatLocalDateKey(d);
   }
 
   /** Convert a raw row into the correct domain subclass using the factory. */
   private toDomain(row: TransactionRow): Transaction {
+    const recordedAt = this.parseRecordedAt(row.created_at);
     return TransactionFactory.create(row.type, {
       id: row.id,
       amount: Number(row.amount),
-      date: new Date(row.date),
+      date: parseStoredCalendarDate(row.date),
+      recordedAt,
       ...(row.type === "income"
         ? {
             source: row.category,
@@ -146,10 +149,11 @@ export class TransactionService {
     return TransactionFactory.create("income", {
       id: row.id,
       amount: Number(row.amount),
-      date: new Date(row.date),
+      date: parseStoredCalendarDate(row.date),
       source: row.category,
       description: row.description,
       payment_method: row.payment_method,
+      recordedAt: this.parseRecordedAt(row.created_at),
     }) as IncomeTransaction;
   }
 
@@ -157,10 +161,17 @@ export class TransactionService {
     return TransactionFactory.create("expense", {
       id: row.id,
       amount: Number(row.amount),
-      date: new Date(row.date),
+      date: parseStoredCalendarDate(row.date),
       category: row.category,
       description: row.description,
       payment_method: row.payment_method,
+      recordedAt: this.parseRecordedAt(row.created_at),
     }) as ExpenseTransaction;
+  }
+
+  private parseRecordedAt(created_at?: string): Date | undefined {
+    if (!created_at) return undefined;
+    const d = new Date(created_at);
+    return Number.isNaN(d.getTime()) ? undefined : d;
   }
 }

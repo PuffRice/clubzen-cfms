@@ -19,8 +19,9 @@ export class ExpenseTransaction extends Transaction {
     category: string,
     description: string,
     payment_method?: string,
+    recordedAt?: Date,
   ) {
-    super(id, amount, date, category, description, "expense");
+    super(id, amount, date, category, description, "expense", recordedAt);
     this.payment_method = payment_method;
   }
 }

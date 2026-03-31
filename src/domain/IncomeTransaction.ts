@@ -26,8 +26,9 @@ export class IncomeTransaction extends Transaction {
     source: string,
     description: string,
     payment_method?: string,
+    recordedAt?: Date,
   ) {
-    super(id, amount, date, source, description, "income");
+    super(id, amount, date, source, description, "income", recordedAt);
     this.payment_method = payment_method;
   }
 }

@@ -28,6 +28,7 @@ import {
 import { ExpenseForm } from "../components/ExpenseForm";
 import { IncomeForm } from "../components/IncomeForm";
 import "./Dashboard.css";
+import { formatLocalDateKey } from "../../utils/calendarDate";
 
 /** Maps chart hex colors to preset classes in Dashboard.css */
 function chartLegendDotClass(hex: string): string {
@@ -76,12 +77,12 @@ export function Dashboard() {
       const recent = allTx
         .slice()
         .reverse()
-        .slice(0, 5)
+        .slice(0, 7)
         .map((t) => ({
           id: t.id,
           name: t.description,
           category: t.category,
-          date: t.date.toISOString().slice(0, 10),
+          date: formatLocalDateKey(t.date),
           amount: t.type === "income" ? t.amount : -t.amount,
         }));
       setTransactions(recent);
@@ -300,7 +301,7 @@ export function Dashboard() {
                   </div>
                   Recent Transactions
                 </h3>
-                <div className="space-y-3 flex-1 overflow-y-auto">
+                <div className="space-y-3 flex-1">
                   {transactions.length === 0 ? (
                     <div className="text-center py-12">
                       <p className="text-gray-400">No transactions yet</p>
@@ -312,7 +313,7 @@ export function Dashboard() {
                         key={transaction.id}
                         className="flex items-center justify-between p-4 rounded-xl bg-slate-800/30 border border-slate-700/50 hover:border-slate-600/50 hover:bg-slate-800/50 transition-all duration-200 group/item"
                       >
-                        <div className="flex items-center gap-4 flex-1">
+                        <div className="flex items-center gap-4 flex-1 min-w-0 overflow-hidden">
                           <div
                             className={`h-12 w-12 rounded-xl flex items-center justify-center border flex-shrink-0 ${
                               transaction.amount > 0
@@ -326,11 +327,11 @@ export function Dashboard() {
                               <ArrowUpRight className="h-6 w-6 text-red-400" />
                             )}
                           </div>
-                          <div className="min-w-0">
+                          <div className="min-w-0 flex-1">
                             <p className="font-semibold text-white truncate">
                               {transaction.name}
                             </p>
-                            <p className="text-xs text-gray-400">
+                            <p className="text-xs text-gray-400 truncate">
                               {transaction.category} • {transaction.date}
                             </p>
                           </div>

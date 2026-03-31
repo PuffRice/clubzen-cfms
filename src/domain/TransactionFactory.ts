@@ -46,6 +46,8 @@ export interface CreateIncomeParams {
   source: string;
   description: string;
   payment_method?: string;
+  /** DB row timestamp for display time (e.g. `created_at`). */
+  recordedAt?: Date;
 }
 
 /**
@@ -58,6 +60,7 @@ export interface CreateExpenseParams {
   category: string;
   description: string;
   payment_method?: string;
+  recordedAt?: Date;
 }
 
 /**
@@ -104,6 +107,7 @@ export class TransactionFactory {
       params.source,
       params.description,
       params.payment_method,
+      params.recordedAt,
     );
   }
 
@@ -121,6 +125,7 @@ export class TransactionFactory {
       params.category,
       params.description,
       params.payment_method,
+      params.recordedAt,
     );
   }
 

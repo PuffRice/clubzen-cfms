@@ -1,4 +1,5 @@
 import { supabase } from "@core/supabase/client";
+import { formatLocalDateKey } from "../utils/calendarDate";
 import { ILoanRepaymentRepository } from "./ILoanRepaymentRepository";
 
 export class SupabaseLoanRepaymentRepository implements ILoanRepaymentRepository {
@@ -20,7 +21,7 @@ export class SupabaseLoanRepaymentRepository implements ILoanRepaymentRepository
       .insert({
         loan_id: loanIdNum,
         amount: amount,
-        date: date.toISOString().slice(0,10),
+        date: formatLocalDateKey(date),
         description: description || null
       })
       .select()
