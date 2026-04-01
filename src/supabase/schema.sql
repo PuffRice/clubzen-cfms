@@ -86,25 +86,44 @@ CREATE TABLE IF NOT EXISTS categories (
         ON DELETE CASCADE
 );
 
--- ─── Loans ──────────────────────────────────────────────────────────────
+-- ─── Loans and repayments ─────────────────────────────────────────────────────
+DROP TABLE IF EXISTS loan_repayments CASCADE;
+DROP TABLE IF EXISTS loans CASCADE;
+
+-- ─────────────────────────────────────────────────────────────
+-- LOANS TABLE
+-- ─────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS loans (
     id SERIAL PRIMARY KEY,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+
+    -- given = you lent money → repayment = income
+    -- taken = you borrowed money → repayment = expense
     direction VARCHAR(10) NOT NULL CHECK (direction IN ('given','taken')),
-    amount DECIMAL(12,2) NOT NULL,
+
+    amount DECIMAL(12,2) NOT NULL CHECK (amount > 0),
     note TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
+
+    -- optional links (future use)
     mirror_income_id INTEGER,
-    mirror_expense_id INTEGER
+    mirror_expense_id INTEGER,
+
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ─── Loan repayments ────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────────────────────
+-- LOAN REPAYMENTS TABLE
+-- ─────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS loan_repayments (
     id SERIAL PRIMARY KEY,
+
     loan_id INT NOT NULL REFERENCES loans(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+
     amount DECIMAL(12,2) NOT NULL CHECK (amount > 0),
     date TIMESTAMPTZ DEFAULT NOW(),
     description TEXT,
+
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
