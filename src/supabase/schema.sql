@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS INCOME (
     description TEXT,
     date DATE NOT NULL,
     source VARCHAR(50),
-    income_type VARCHAR(50),
+    payment_method VARCHAR(50),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
