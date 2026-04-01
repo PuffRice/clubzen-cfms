@@ -44,20 +44,28 @@ export class CategoryController {
     };
   }
 
-  async createCategories(): Promise<HttpResponse> {
-    try {
-      const categories = await this.categoryService.getAllCategories();
-      return {
-        statusCode: 200,
-        body: categories.map((c) => this.mapToHttpCategory(c)),
-      };
-    } catch (err: any) {
-      return {
-        statusCode: 500,
-        body: { message: err?.message || "Failed to load categories" },
-      };
-    }
+async createCategories(): Promise<HttpResponse> {
+  try {
+    const categories = await this.categoryService.getAllCategories();
+
+    // REMOVE loan categories
+    const filtered = categories.filter(
+      (c) =>
+        c.name.toLowerCase() !== "loan given" &&
+        c.name.toLowerCase() !== "loan taken"
+    );
+
+    return {
+      statusCode: 200,
+      body: filtered.map((c) => this.mapToHttpCategory(c)),
+    };
+  } catch (err: any) {
+    return {
+      statusCode: 500,
+      body: { message: err?.message || "Failed to load categories" },
+    };
   }
+}
 
   async createCategory(req: HttpRequest): Promise<HttpResponse> {
     const { name, type, color } = req.body || {};

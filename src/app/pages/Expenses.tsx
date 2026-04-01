@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Plus, Filter } from "lucide-react";
@@ -13,17 +13,21 @@ import {
 import { ExpenseForm } from "../components/ExpenseForm";
 import { transactionController } from "../services";
 import { useCurrency } from "../CurrencyContext";
-import { ExpenseTransaction } from "../../domain";
 
 export function Expenses() {
   const { symbol } = useCurrency();
   const [open, setOpen] = useState(false);
-  const [expenses, setExpenses] = useState<ExpenseTransaction[]>([]);
+  const [expenses, setExpenses] = useState<any[]>([]);
 
   const loadExpenses = async () => {
     try {
       const all = await transactionController.getAllTransactions();
-      setExpenses(all.filter((tx) => tx.type === "expense") as ExpenseTransaction[]);
+
+      const filtered = (all || []).filter(
+        (tx: any) => tx?.type === "expense"
+      );
+
+      setExpenses(filtered);
     } catch (err) {
       console.error("Failed to load expenses", err);
     }
@@ -35,12 +39,15 @@ export function Expenses() {
 
   return (
     <div className="p-8">
-      {/* Page Header */}
+      {/* Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Expenses</h1>
-          <p className="text-muted-foreground mt-1">Track and manage your expenses</p>
+          <p className="text-muted-foreground mt-1">
+            Track and manage your expenses
+          </p>
         </div>
+
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button className="bg-blue-600 hover:bg-blue-700">
@@ -48,16 +55,19 @@ export function Expenses() {
               Add Expense
             </Button>
           </DialogTrigger>
+
           <DialogContent>
             <DialogHeader>
               <DialogTitle>New Expense</DialogTitle>
             </DialogHeader>
+
             <ExpenseForm
               onSuccess={() => {
                 setOpen(false);
                 loadExpenses();
               }}
             />
+
             <DialogClose className="absolute top-2 right-2">
               <span className="sr-only">Close</span>
             </DialogClose>
@@ -65,7 +75,7 @@ export function Expenses() {
         </Dialog>
       </div>
 
-      {/* Filters */}
+      {/* Filter */}
       <div className="mb-6 flex gap-4">
         <Button variant="outline" className="gap-2">
           <Filter className="h-4 w-4" />
@@ -73,41 +83,81 @@ export function Expenses() {
         </Button>
       </div>
 
-      {/* Expenses List */}
+      {/* Table */}
       <Card className="bg-card-navy/25 border-card-navy/40 border">
         <CardHeader>
           <CardTitle>All Expenses</CardTitle>
         </CardHeader>
+
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Category</th>
-                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Description</th>
-                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Payment Method</th>
-                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Amount</th>
-                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Date</th>
+                  <th className="py-3 px-4 text-left">Category</th>
+                  <th className="py-3 px-4 text-left">Description</th>
+                  <th className="py-3 px-4 text-left">Payment Method</th>
+                  <th className="py-3 px-4 text-left">Amount</th>
+                  <th className="py-3 px-4 text-left">Date</th>
                 </tr>
               </thead>
+
               <tbody>
-                {expenses.map((expense) => (
-                  <tr key={expense.id} className="border-b hover:bg-gray-800 transition-colors">
-                    <td className="py-3 px-4">{expense.category}</td>
-                    <td className="py-3 px-4 text-muted-foreground">
-                      {expense.description || "-"}
-                    </td>
-                    <td className="py-3 px-4 text-muted-foreground">
-                      {expense.payment_method || "-"}
-                    </td>
-                    <td className="py-3 px-4 font-semibold text-red-600">
-                      {symbol}{expense.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </td>
-                    <td className="py-3 px-4 text-muted-foreground">
-                      {expense.date.toISOString().split("T")[0]}
+                {expenses.map((expense, index) => {
+                  let formattedDate = "-";
+
+                  try {
+                    if (expense?.date) {
+                      formattedDate = new Date(expense.date)
+                        .toISOString()
+                        .split("T")[0];
+                    }
+                  } catch {
+                    formattedDate = "-";
+                  }
+
+                  return (
+                    <tr
+                      key={expense?.id || index}
+                      className="border-b hover:bg-gray-800 transition-colors"
+                    >
+                      <td className="py-3 px-4">
+                        {expense?.category || "-"}
+                      </td>
+
+                      <td className="py-3 px-4 text-muted-foreground">
+                        {expense?.description || "-"}
+                      </td>
+
+                      <td className="py-3 px-4 text-muted-foreground">
+                        {expense?.payment_method || "-"}
+                      </td>
+
+                      <td className="py-3 px-4 font-semibold text-red-600">
+                        {symbol}
+                        {(expense?.amount ?? 0).toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </td>
+
+                      <td className="py-3 px-4 text-muted-foreground">
+                        {formattedDate}
+                      </td>
+                    </tr>
+                  );
+                })}
+
+                {expenses.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="text-center py-6 text-muted-foreground"
+                    >
+                      No expenses found
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
