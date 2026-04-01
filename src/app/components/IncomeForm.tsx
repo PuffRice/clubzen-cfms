@@ -1,24 +1,44 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
 import { transactionController, categoryController } from "../services";
 import { useCurrency } from "../CurrencyContext";
 
 interface IncomeFormProps {
   onSuccess?: () => void;
+  initialData?: {
+    amount: string;
+    source: string;
+    date: string;
+    description: string;
+    paymentMethod: string;
+  };
+  isEditMode?: boolean;
+  editId?: string;
 }
 
-export function IncomeForm({ onSuccess }: IncomeFormProps) {
+export function IncomeForm({ onSuccess, initialData, isEditMode = false, editId }: IncomeFormProps) {
   const { symbol } = useCurrency();
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [formData, setFormData] = useState({
-    amount: "",
-    source: "",
-    date: new Date().toISOString().split("T")[0],
-    description: "",
-    paymentMethod: "",
+    amount: initialData?.amount || "",
+    source: initialData?.source || "",
+    date: initialData?.date || new Date().toISOString().split("T")[0],
+    description: initialData?.description || "",
+    paymentMethod: initialData?.paymentMethod || "",
   });
 
   const [sources, setSources] = useState<string[]>([]);
@@ -51,7 +71,8 @@ export function IncomeForm({ onSuccess }: IncomeFormProps) {
     "Credit Card",
     "Debit Card",
     "Bank Transfer",
-    "Digital Wallet",
+    "bKash",
+    "Nagad"
   ];
 
   async function handleSubmit(e: FormEvent) {
@@ -59,26 +80,56 @@ export function IncomeForm({ onSuccess }: IncomeFormProps) {
     setFormError(null);
     setFormSuccess(false);
     try {
-      await transactionController.addIncome(
-        Number(formData.amount),
-        new Date(formData.date),
-        formData.source,
-        formData.description || formData.source,
-        formData.paymentMethod || undefined
-      );
+      if (isEditMode && editId) {
+        await transactionController.updateTransaction(
+          editId,
+          Number(formData.amount),
+          new Date(formData.date),
+          formData.source,
+          formData.description || formData.source,
+          "income",
+          formData.paymentMethod || undefined
+        );
+      } else {
+        await transactionController.addIncome(
+          Number(formData.amount),
+          new Date(formData.date),
+          formData.source,
+          formData.description || formData.source,
+          formData.paymentMethod || undefined
+        );
+      }
       setFormSuccess(true);
-      setFormData({
-        amount: "",
-        source: "",
-        date: new Date().toISOString().split("T")[0],
-        description: "",
-        paymentMethod: "",
-      });
+      if (!isEditMode) {
+        setFormData({
+          amount: "",
+          source: "",
+          date: new Date().toISOString().split("T")[0],
+          description: "",
+          paymentMethod: "",
+        });
+      }
       if (onSuccess) {
         onSuccess();
       }
     } catch (err: unknown) {
       setFormError((err as Error).message);
+    }
+  }
+
+  async function handleDelete() {
+    if (!editId) return;
+    setIsDeleting(true);
+    try {
+      await transactionController.deleteTransaction(editId, "income");
+      setShowDeleteConfirm(false);
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (err: unknown) {
+      setFormError((err as Error).message);
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -195,7 +246,41 @@ export function IncomeForm({ onSuccess }: IncomeFormProps) {
         <Button type="submit" className="flex-1 bg-green-600 hover:bg-green-700">
           Save Income
         </Button>
+        {isEditMode && (
+          <Button
+            type="button"
+            onClick={() => setShowDeleteConfirm(true)}
+            variant="destructive"
+            className="bg-red-600 hover:bg-red-700"
+            disabled={isDeleting}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete
+          </Button>
+        )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Income</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this income entry? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-3">
+            <AlertDialogCancel className="flex-1">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </form>
   );
 }
