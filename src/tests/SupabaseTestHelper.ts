@@ -1,3 +1,4 @@
+// #1
 import { supabase } from "@core/supabase/client";
 
 export async function clearSupabaseTables(): Promise<void> {

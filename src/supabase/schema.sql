@@ -1,3 +1,4 @@
+-- #1
 -- ClubZen CFMS — Base schema (CREATE TABLE only)
 -- Run this once on a fresh Supabase project.
 -- For existing deployments, use the migration files in src/supabase/migrations/
