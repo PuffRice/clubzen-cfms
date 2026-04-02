@@ -8,8 +8,9 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 export function MonthlyReports() {
+  
   const { symbol } = useCurrency();
-
+const safeSymbol = typeof symbol === "string" ? symbol : "৳";
   const [monthlyData, setMonthlyData] = useState({
     totalIncome: 0,
     totalExpenses: 0,
