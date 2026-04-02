@@ -19,6 +19,9 @@ export interface ITransactionRepository {
   /** Update an existing income or expense row by `row.id`. */
   update(row: TransactionRow): Promise<TransactionRow>;
 
+  /** Delete a transaction by id. */
+  delete(id: string, type: "income" | "expense"): Promise<void>;
+
   /** Return every stored transaction. */
   findAll(): Promise<TransactionRow[]>;
 

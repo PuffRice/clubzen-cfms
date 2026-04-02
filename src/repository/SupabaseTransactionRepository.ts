@@ -306,4 +306,18 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
       return null;
     }
   }
+
+  async delete(id: string, type: "income" | "expense"): Promise<void> {
+    const num = Number(id);
+    if (Number.isNaN(num)) {
+      throw new Error("Invalid transaction id");
+    }
+
+    const table = type === "income" ? "income" : "expense";
+    const { error } = await supabase.from(table).delete().eq("id", num);
+
+    if (error) {
+      throw error;
+    }
+  }
 }

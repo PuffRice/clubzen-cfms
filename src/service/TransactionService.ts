@@ -80,6 +80,34 @@ export class TransactionService {
     return this.toDomainExpense(row);
   }
 
+  /**
+   * Update an existing transaction.
+   * @throws Error when validation fails or persistence fails.
+   */
+  async updateTransaction(
+    id: string,
+    amount: number,
+    date: Date,
+    category: string,
+    description: string,
+    type: "income" | "expense",
+    payment_method?: string,
+  ): Promise<Transaction> {
+    this.validate(amount, category, description);
+
+    const row = await this.repo.update({
+      id,
+      type,
+      amount,
+      date: this.toDateString(date),
+      category: category.trim(),
+      description: description.trim(),
+      ...(payment_method ? { payment_method } : {}),
+    });
+
+    return this.toDomain(row);
+  }
+
   /* ── Queries ──────────────────────────────────────────────── */
 
   /** Return all stored transactions (domain objects). */
@@ -98,6 +126,14 @@ export class TransactionService {
   async getExpenses(): Promise<ExpenseTransaction[]> {
     const rows = await this.repo.findByType("expense");
     return rows.map((r) => this.toDomainExpense(r));
+  }
+
+  /**
+   * Delete a transaction by id and type.
+   * @throws Error if deletion fails.
+   */
+  async deleteTransaction(id: string, type: "income" | "expense"): Promise<void> {
+    await this.repo.delete(id, type);
   }
 
   /* ── Private helpers ──────────────────────────────────────── */

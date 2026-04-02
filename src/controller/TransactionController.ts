@@ -36,6 +36,22 @@ export class TransactionController {
     return this.transactionService.addExpense(amount, date, category, description, payment_method);
   }
 
+  async updateTransaction(
+    id: string,
+    amount: number,
+    date: Date,
+    category: string,
+    description: string,
+    type: "income" | "expense",
+    payment_method?: string,
+  ): Promise<Transaction> {
+    return this.transactionService.updateTransaction(id, amount, date, category, description, type, payment_method);
+  }
+
+  async deleteTransaction(id: string, type: "income" | "expense"): Promise<void> {
+    return this.transactionService.deleteTransaction(id, type);
+  }
+
   async getAllTransactions(): Promise<Transaction[]> {
     try {
       return await this.transactionService.getAll();
