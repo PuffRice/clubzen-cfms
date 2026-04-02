@@ -23,7 +23,7 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
         description: row.description,
       };
       if ((row as any).payment_method) {
-        payload.income_type = (row as any).payment_method;
+        payload.payment_method = (row as any).payment_method;
       }
 
       const { data, error } = await supabase
@@ -46,7 +46,7 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
         date: (data as any).date,
         category: (data as any).source,
         description: (data as any).description,
-        payment_method: (data as any).income_type ?? undefined,
+        payment_method: (data as any).payment_method ?? undefined,
         created_at: (data as any).created_at ?? undefined,
       };
     } else {
@@ -103,7 +103,7 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
         description: row.description,
       };
       if (row.payment_method !== undefined) {
-        payload.income_type = row.payment_method;
+        payload.payment_method = row.payment_method;
       }
 
       const { data, error } = await supabase
@@ -123,7 +123,7 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
         date: (data as any).date,
         category: (data as any).source,
         description: (data as any).description,
-        payment_method: (data as any).income_type ?? undefined,
+        payment_method: (data as any).payment_method ?? undefined,
         created_at: (data as any).created_at ?? undefined,
       };
     }
@@ -185,7 +185,7 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
         date: i.date,
         category: i.source ?? "",
         description: i.description ?? "",
-        payment_method: i.income_type ?? undefined,
+        payment_method: i.payment_method ?? undefined,
         created_at: i.created_at ?? undefined,
       }));
 
@@ -225,7 +225,7 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
           date: i.date,
           category: i.source ?? "",
           description: i.description ?? "",
-          payment_method: i.income_type ?? undefined,
+          payment_method: i.payment_method ?? undefined,
           created_at: i.created_at ?? undefined,
         }));
       } else {
@@ -272,7 +272,7 @@ export class SupabaseTransactionRepository implements ITransactionRepository {
           date: incData.date,
           category: incData.source ?? "",
           description: incData.description ?? "",
-          payment_method: (incData as any).income_type ?? undefined,
+          payment_method: (incData as any).payment_method ?? undefined,
           created_at: incData.created_at ?? undefined,
         };
       }

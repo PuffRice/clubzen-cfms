@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Label } from "../components/ui/label";
@@ -12,6 +12,7 @@ import {
   DialogClose,
 } from "../components/ui/dialog";
 import { RepaymentForm } from "../components/RepaymentForm";
+import { LoanForm } from "../components/LoanForm";
 import { loanController } from "../services";
 import { useCurrency } from "../CurrencyContext";
 import type { Loan, LoanRepayment } from "../../domain";
@@ -19,6 +20,7 @@ import type { Loan, LoanRepayment } from "../../domain";
 export function Loans() {
   const { symbol } = useCurrency();
   const [open, setOpen] = useState(false);
+  const [addLoanOpen, setAddLoanOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [selectedLoanId, setSelectedLoanId] = useState<string | null>(null);
   const [editingLoan, setEditingLoan] = useState<Loan | null>(null);
@@ -92,6 +94,11 @@ export function Loans() {
     loadLoans();
   };
 
+  const handleAddLoanSuccess = () => {
+    setAddLoanOpen(false);
+    loadLoans();
+  };
+
   const handleOpenRepaymentDialog = (loanId: string) => {
     setSelectedLoanId(loanId);
     setOpen(true);
@@ -109,6 +116,23 @@ export function Loans() {
             Track and manage your loans and repayments
           </p>
         </div>
+        <Dialog open={addLoanOpen} onOpenChange={setAddLoanOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-purple-600 hover:bg-purple-700">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Loan
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Loan</DialogTitle>
+            </DialogHeader>
+            <LoanForm onSuccess={handleAddLoanSuccess} />
+            <DialogClose className="absolute top-2 right-2">
+              <span className="sr-only">Close</span>
+            </DialogClose>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Filters */}

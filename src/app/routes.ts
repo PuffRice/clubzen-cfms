@@ -2,11 +2,9 @@ import { createBrowserRouter, redirect } from "react-router";
 import { Layout } from "./components/Layout";
 import { Dashboard } from "./pages/Dashboard";
 import { Settings } from "./pages/Settings";
-import { AddExpense } from "./pages/AddExpense";
 import { PaymentMethod } from "./pages/AddPaymentMethod ";
 import { MonthlyReports } from "./pages/MonthlyReports";
 import { DailyReports } from "./pages/DailyReports";
-import { AddDue } from "./pages/AddDue";
 import { ManageCategories } from "./pages/ManageCategories";
 import { Login } from "./pages/Login";
 import { Expenses } from "./pages/Expenses";
@@ -41,9 +39,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, Component: Dashboard },
       { path: "settings", Component: Settings },
-      { path: "add-expense", Component: AddExpense },
       { path: "add-payment-method", Component: PaymentMethod },
-      { path: "add-due", Component: AddDue },
       { path: "loans", Component: Loans },
       { path: "manage-categories", Component: ManageCategories },
       { path: "monthly-reports", Component: MonthlyReports },

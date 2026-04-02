@@ -1,3 +1,4 @@
+# #1
 node_modules/
 dist/
 coverage/
@@ -11,11 +12,3 @@ coverage/
 *.swo
 *~
 
-# Tests & test tooling (optional local files; not part of the app)
-src/tests/
-vitest.config.ts
-**/*.test.ts
-**/*.spec.ts
-
-# Schema (local reference only)
-src/supabase/schema.sql

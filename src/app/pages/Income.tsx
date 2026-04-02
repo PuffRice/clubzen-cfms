@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Plus, Filter, Edit2 } from "lucide-react";
@@ -27,7 +27,12 @@ export function Income() {
   const loadIncomes = async () => {
     try {
       const all = await transactionController.getAllTransactions();
-      setIncomeItems(all.filter((tx) => tx.type === "income") as IncomeTransaction[]);
+
+      const filtered = (all || []).filter(
+        (tx: any) => tx?.type === "income"
+      ) as IncomeTransaction[];
+
+      setIncomeItems(filtered);
     } catch (err) {
       console.error("Failed to load incomes", err);
     }
@@ -50,12 +55,15 @@ export function Income() {
 
   return (
     <div className="p-8">
-      {/* Page Header */}
+      {/* Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Income</h1>
-          <p className="text-muted-foreground mt-1">Track your income sources</p>
+          <p className="text-muted-foreground mt-1">
+            Track your income sources
+          </p>
         </div>
+
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button className="bg-green-600 hover:bg-green-700">
@@ -63,16 +71,19 @@ export function Income() {
               Add Income
             </Button>
           </DialogTrigger>
+
           <DialogContent>
             <DialogHeader>
               <DialogTitle>New Income</DialogTitle>
             </DialogHeader>
+
             <IncomeForm
               onSuccess={() => {
                 setOpen(false);
                 loadIncomes();
               }}
             />
+
             <DialogClose className="absolute top-2 right-2">
               <span className="sr-only">Close</span>
             </DialogClose>
@@ -80,7 +91,7 @@ export function Income() {
         </Dialog>
       </div>
 
-      {/* Filters */}
+      {/* Filter */}
       <div className="mb-6 flex gap-4">
         <Button variant="outline" className="gap-2">
           <Filter className="h-4 w-4" />
@@ -88,11 +99,12 @@ export function Income() {
         </Button>
       </div>
 
-      {/* Income List */}
+      {/* Table */}
       <Card className="bg-card-navy/25 border-card-navy/40 border">
         <CardHeader>
           <CardTitle>All Income</CardTitle>
         </CardHeader>
+
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -106,15 +118,21 @@ export function Income() {
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Actions</th>
                 </tr>
               </thead>
+
               <tbody>
-                {incomeItems.map((income) => (
+                {incomeItems.map((income) => {
+                  return (
                   <tr key={income.id} className="border-b hover:bg-gray-800 transition-colors">
                     <td className="py-3 px-4">{income.source}</td>
                     <td className="py-3 px-4 text-muted-foreground">
                       {income.description || "-"}
                     </td>
                     <td className="py-3 px-4 font-semibold text-green-600">
-                      +{symbol}{income.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      +{symbol}
+                      {income.amount.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </td>
                     <td className="py-3 px-4 text-muted-foreground">
                       {income.date.toISOString().split("T")[0]}
@@ -125,8 +143,8 @@ export function Income() {
                           income.payment_method === "Recurring"
                             ? "bg-blue-100 text-blue-700"
                             : income.payment_method === "Investment"
-                            ? "bg-purple-100 text-purple-700"
-                            : "bg-muted text-muted-foreground"
+                              ? "bg-purple-100 text-purple-700"
+                              : "bg-muted text-muted-foreground"
                         }`}
                       >
                         {income.payment_method || "-"}
@@ -148,8 +166,9 @@ export function Income() {
                         Edit
                       </Button>
                     </td>
-                  </tr>
-                ))}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
