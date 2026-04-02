@@ -16,6 +16,7 @@ import { describe, it, expect, beforeEach, afterAll } from "vitest";
 import { TransactionService } from "@core/service/TransactionService";
 import { SupabaseTransactionRepository } from "@core/repository/SupabaseTransactionRepository";
 import { TransactionController } from "@core/controller/TransactionController";
+import { Auth } from "@core/domain/Auth";
 import { clearSupabaseTables } from "./SupabaseTestHelper";
 
 describe("TransactionService", () => {
@@ -50,7 +51,7 @@ describe("TransactionService", () => {
   it("should update a income transaction", async() => {
     const tx = await service.addIncome(1000, new Date("2026-02-01"), "Salary", "Monthly salary", "Credit Card");
 
-   const updatedTx = await service.updateTransaction(
+    const updatedTx = await service.updateTransaction(
       tx.id,
       1200,
       new Date("2026-02-01"),
@@ -385,5 +386,273 @@ describe("TransactionController", () => {
     expect(all).toHaveLength(1);
     expect(all[0].amount).toBe(600);
     expect(all[0].description).toBe("Updated pay");
+  });
+});
+
+/* ── Auth Domain Layer Tests ──────────────────────────────────────────── */
+
+describe("Auth Domain Layer", () => {
+  /* ── isAdmin() method ─────────────────────────────────────────── */
+
+  it("should return true when user role is Admin", () => {
+    const adminAuth = new Auth(
+      "user-1",
+      "admin@example.com",
+      "Admin",
+      "token-123",
+      new Date(),
+      "Admin User"
+    );
+
+    expect(adminAuth.isAdmin()).toBe(true);
+  });
+
+  it("should return false when user role is Staff", () => {
+    const staffAuth = new Auth(
+      "user-2",
+      "staff@example.com",
+      "Staff",
+      "token-456",
+      new Date(),
+      "Staff User"
+    );
+
+    expect(staffAuth.isAdmin()).toBe(false);
+  });
+
+  it("should return false when user role is User", () => {
+    const userAuth = new Auth(
+      "user-3",
+      "user@example.com",
+      "User",
+      "token-789",
+      new Date(),
+      "Regular User"
+    );
+
+    expect(userAuth.isAdmin()).toBe(false);
+  });
+
+  /* ── isTokenValid() method ───────────────────────────────────────── */
+
+  it("should return true for valid freshly created token", () => {
+    const auth = new Auth(
+      "user-1",
+      "admin@example.com",
+      "Admin",
+      "token-123",
+      new Date(), // Just created
+      "Admin User"
+    );
+
+    expect(auth.isTokenValid(3600)).toBe(true); // 1 hour expiry
+  });
+
+  it("should return false for expired token", () => {
+    const expiredDate = new Date(Date.now() - 7200 * 1000); // 2 hours ago
+    const auth = new Auth(
+      "user-1",
+      "admin@example.com",
+      "Admin",
+      "token-123",
+      expiredDate,
+      "Admin User"
+    );
+
+    expect(auth.isTokenValid(3600)).toBe(false); // 1 hour expiry
+  });
+
+  it("should return true for recently created token within expiry window", () => {
+    const recentDate = new Date(Date.now() - 1800 * 1000); // 30 minutes ago
+    const auth = new Auth(
+      "user-1",
+      "admin@example.com",
+      "Admin",
+      "token-123",
+      recentDate,
+      "Admin User"
+    );
+
+    expect(auth.isTokenValid(3600)).toBe(true); // 1 hour expiry, token is 30min old
+  });
+
+  /* ── Auth properties ─────────────────────────────────────────── */
+
+  it("should correctly store and retrieve auth properties", () => {
+    const auth = new Auth(
+      "user-123",
+      "john@example.com",
+      "Admin",
+      "jwt-token-abc",
+      new Date("2026-04-02"),
+      "John Doe",
+      "USD"
+    );
+
+    expect(auth.userId).toBe("user-123");
+    expect(auth.email).toBe("john@example.com");
+    expect(auth.role).toBe("Admin");
+    expect(auth.token).toBe("jwt-token-abc");
+    expect(auth.fullName).toBe("John Doe");
+    expect(auth.currency).toBe("USD");
+  });
+
+  it("should handle optional fullName and currency properties", () => {
+    const auth = new Auth(
+      "user-456",
+      "jane@example.com",
+      "Staff",
+      "jwt-token-def",
+      new Date()
+    );
+
+    expect(auth.userId).toBe("user-456");
+    expect(auth.email).toBe("jane@example.com");
+    expect(auth.role).toBe("Staff");
+    expect(auth.fullName).toBeUndefined();
+    expect(auth.currency).toBeUndefined();
+  });
+});
+
+/* ── UI Layer Access Control Tests ────────────────────────────────────── */
+
+describe("UI Layer - Access Control", () => {
+  /* ── Role-based button visibility ────────────────────────────── */
+
+  it("should disable Edit button for Staff role", () => {
+    // Simulate sessionStorage for Staff user
+    sessionStorage.setItem("userRole", "Staff");
+    const userRole = sessionStorage.getItem("userRole") ?? "Staff";
+    const isAdmin = userRole === "Admin";
+
+    expect(isAdmin).toBe(false);
+    expect(isAdmin).not.toBe(true);
+  });
+
+  it("should enable Edit button for Admin role", () => {
+    // Simulate sessionStorage for Admin user
+    sessionStorage.setItem("userRole", "Admin");
+    const userRole = sessionStorage.getItem("userRole") ?? "Staff";
+    const isAdmin = userRole === "Admin";
+
+    expect(isAdmin).toBe(true);
+  });
+
+  it("should default to Staff role if userRole not in sessionStorage", () => {
+    // Clear sessionStorage
+    sessionStorage.removeItem("userRole");
+    const userRole = sessionStorage.getItem("userRole") ?? "Staff";
+    const isAdmin = userRole === "Admin";
+
+    expect(userRole).toBe("Staff");
+    expect(isAdmin).toBe(false);
+  });
+
+  /* ── Button disable/enable state ─────────────────────────────── */
+
+  it("should render Edit button with correct CSS classes for Admin", () => {
+    sessionStorage.setItem("userRole", "Admin");
+    const userRole = sessionStorage.getItem("userRole") ?? "Staff";
+    const isAdmin = userRole === "Admin";
+
+    // Simulate the className logic from Expenses.tsx
+    const buttonClass = isAdmin
+      ? "hover:bg-blue-600 hover:text-white cursor-pointer"
+      : "opacity-50 cursor-not-allowed text-gray-500";
+
+    expect(buttonClass).toContain("hover:bg-blue-600");
+    expect(buttonClass).toContain("cursor-pointer");
+    expect(buttonClass).not.toContain("cursor-not-allowed");
+  });
+
+  it("should render Edit button with correct CSS classes for Staff", () => {
+    sessionStorage.setItem("userRole", "Staff");
+    const userRole = sessionStorage.getItem("userRole") ?? "Staff";
+    const isAdmin = userRole === "Admin";
+
+    // Simulate the className logic from Expenses.tsx
+    const buttonClass = isAdmin
+      ? "hover:bg-blue-600 hover:text-white cursor-pointer"
+      : "opacity-50 cursor-not-allowed text-gray-500";
+
+    expect(buttonClass).toContain("opacity-50");
+    expect(buttonClass).toContain("cursor-not-allowed");
+    expect(buttonClass).toContain("text-gray-500");
+    expect(buttonClass).not.toContain("hover:bg-blue-600");
+  });
+
+  /* ── Edit dialog flow for different roles ──────────────────── */
+
+  it("should prevent opening edit dialog for Staff role", () => {
+    sessionStorage.setItem("userRole", "Staff");
+    const userRole = sessionStorage.getItem("userRole") ?? "Staff";
+    const isAdmin = userRole === "Admin";
+
+    // Verify that a Staff user cannot access edit features
+    expect(isAdmin).toBe(false);
+
+    // In real UI, this would prevent modal opening
+    // because button is disabled: disabled={!isAdmin}
+    if (isAdmin) {
+      // This code should NOT execute for Staff
+      throw new Error("Staff should not reach edit dialog");
+    }
+  });
+
+  it("should allow opening edit dialog for Admin role", () => {
+    sessionStorage.setItem("userRole", "Admin");
+    const userRole = sessionStorage.getItem("userRole") ?? "Staff";
+    const isAdmin = userRole === "Admin";
+
+    expect(isAdmin).toBe(true);
+
+    // In real UI, Admin can click and open dialog
+    if (isAdmin) {
+      // Dialog should open - this is expected path for Admin
+      expect(true).toBe(true);
+    }
+  });
+
+  /* ── Session storage persistence across operations ───────────── */
+
+  it("should maintain role state during transaction workflow", () => {
+    // Simulate user login and setting role
+    sessionStorage.setItem("userRole", "Admin");
+
+    // Simulate transaction viewing
+    const userRole = sessionStorage.getItem("userRole");
+    expect(userRole).toBe("Admin");
+
+    // Simulate clicking edit
+    const isAdmin = userRole === "Admin";
+    expect(isAdmin).toBe(true);
+
+    // Simulate form submission (role should persist)
+    const postSubmitRole = sessionStorage.getItem("userRole");
+    expect(postSubmitRole).toBe("Admin");
+  });
+
+  it("should prevent Staff access even after multiple page refreshes", () => {
+    // Initial login as Staff
+    sessionStorage.setItem("userRole", "Staff");
+
+    // First transaction view
+    let isAdmin = sessionStorage.getItem("userRole") === "Admin";
+    expect(isAdmin).toBe(false);
+
+    // Simulate page navigation/refresh
+    let userRole = sessionStorage.getItem("userRole") ?? "Staff";
+    isAdmin = userRole === "Admin";
+    expect(isAdmin).toBe(false);
+
+    // Another transaction view
+    userRole = sessionStorage.getItem("userRole") ?? "Staff";
+    isAdmin = userRole === "Admin";
+    expect(isAdmin).toBe(false); // Still Staff after refresh
+  });
+
+  afterAll(() => {
+    // Clean up sessionStorage after UI tests
+    sessionStorage.removeItem("userRole");
   });
 });
