@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { Plus, Wallet, DollarSign, Clock, Check } from "lucide-react";
+import { Label } from "../components/ui/label";
+import { Plus, Wallet, DollarSign, Clock, Check, Edit2 } from "lucide-react";
 import {
   Dialog,
   DialogTrigger,
@@ -18,8 +19,12 @@ import type { Loan, LoanRepayment } from "../../domain";
 export function Loans() {
   const { symbol } = useCurrency();
   const [open, setOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [selectedLoanId, setSelectedLoanId] = useState<string | null>(null);
+  const [editingLoan, setEditingLoan] = useState<Loan | null>(null);
   const [loans, setLoans] = useState<Loan[]>([]);
+  const userRole = sessionStorage.getItem("userRole") ?? "Staff";
+  const isAdmin = userRole === "Admin";
   const [loanRepayments, setLoanRepayments] = useState<{
     [key: string]: LoanRepayment[];
   }>({});
@@ -73,6 +78,17 @@ export function Loans() {
   const handleRepaymentSuccess = () => {
     setOpen(false);
     setSelectedLoanId(null);
+    loadLoans();
+  };
+
+  const handleEditClick = (loan: Loan) => {
+    setEditingLoan(loan);
+    setEditOpen(true);
+  };
+
+  const handleEditSuccess = () => {
+    setEditOpen(false);
+    setEditingLoan(null);
     loadLoans();
   };
 
@@ -325,6 +341,20 @@ export function Loans() {
                     {/* Action Buttons */}
                     {balance.remaining > 0 ? (
                       <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={!isAdmin}
+                          onClick={() => handleEditClick(loan)}
+                          className={`gap-2 ${
+                            isAdmin
+                              ? "hover:bg-blue-600 hover:text-white cursor-pointer"
+                              : "opacity-50 cursor-not-allowed text-gray-500"
+                          }`}
+                        >
+                          <Edit2 className="h-4 w-4" />
+                          Edit
+                        </Button>
                         <Dialog open={open && selectedLoanId === loan.id} onOpenChange={setOpen}>
                           <DialogTrigger asChild>
                             <Button
@@ -366,6 +396,86 @@ export function Loans() {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Loan Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Loan</DialogTitle>
+          </DialogHeader>
+          {editingLoan && (
+            <div className="space-y-4">
+              <div>
+                <Label>Direction</Label>
+                <p className="mt-1 text-sm font-medium text-foreground">
+                  {editingLoan.direction === "taken" ? "Loan Taken" : "Loan Given"}
+                </p>
+              </div>
+              <div>
+                <Label htmlFor="editAmount">Amount</Label>
+                <div className="relative mt-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                    {symbol}
+                  </span>
+                  <input
+                    id="editAmount"
+                    type="number"
+                    step="0.01"
+                    defaultValue={editingLoan.amount}
+                    className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="editDate">Date</Label>
+                <input
+                  id="editDate"
+                  type="date"
+                  defaultValue={editingLoan.date.toISOString().split("T")[0]}
+                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <Label htmlFor="editDescription">Description</Label>
+                <input
+                  id="editDescription"
+                  type="text"
+                  defaultValue={editingLoan.description}
+                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <Button
+                onClick={async () => {
+                  const amount = Number((document.getElementById("editAmount") as HTMLInputElement)?.value);
+                  const date = (document.getElementById("editDate") as HTMLInputElement)?.value;
+                  const description = (document.getElementById("editDescription") as HTMLInputElement)?.value;
+
+                  if (amount && date) {
+                    try {
+                      await loanController.updateLoan(
+                        editingLoan.id,
+                        editingLoan.direction,
+                        amount,
+                        new Date(date),
+                        description
+                      );
+                      handleEditSuccess();
+                    } catch (err) {
+                      console.error("Failed to update loan", err);
+                    }
+                  }
+                }}
+                className="w-full bg-blue-600 hover:bg-blue-700"
+              >
+                Update Loan
+              </Button>
+            </div>
+          )}
+          <DialogClose className="absolute top-2 right-2">
+            <span className="sr-only">Close</span>
+          </DialogClose>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

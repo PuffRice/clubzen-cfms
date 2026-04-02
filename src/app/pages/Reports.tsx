@@ -1,8 +1,20 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { FileText, Download, Plus } from "lucide-react";
+import { FileText, Download, Plus, Edit2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "../components/ui/dialog";
 
 export function Reports() {
+  const userRole = sessionStorage.getItem("userRole") ?? "Staff";
+  const isAdmin = userRole === "Admin";
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingReportId, setEditingReportId] = useState<number | null>(null);
   const reports = [
     { id: 1, name: "Monthly Expense Report", period: "January 2026", generated: "Feb 1, 2026" },
     { id: 2, name: "Annual Income Summary", period: "2025", generated: "Jan 15, 2026" },
@@ -51,11 +63,61 @@ export function Reports() {
                   <Download className="h-4 w-4 mr-1" />
                   Download
                 </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={!isAdmin}
+                  onClick={() => {
+                    setEditingReportId(report.id);
+                    setEditOpen(true);
+                  }}
+                  className={`gap-2 ${
+                    isAdmin
+                      ? "hover:bg-blue-600 hover:text-white cursor-pointer"
+                      : "opacity-50 cursor-not-allowed text-gray-500"
+                  }`}
+                >
+                  <Edit2 className="h-4 w-4" />
+                  Edit
+                </Button>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
+
+      {/* Edit Report Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Report</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-foreground">Report Name</label>
+              <input
+                type="text"
+                defaultValue={reports.find((r) => r.id === editingReportId)?.name}
+                className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground">Period</label>
+              <input
+                type="text"
+                defaultValue={reports.find((r) => r.id === editingReportId)?.period}
+                className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <Button className="w-full bg-blue-600 hover:bg-blue-700">
+              Update Report
+            </Button>
+          </div>
+          <DialogClose className="absolute top-2 right-2">
+            <span className="sr-only">Close</span>
+          </DialogClose>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

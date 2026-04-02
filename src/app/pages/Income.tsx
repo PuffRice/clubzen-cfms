@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { Plus, Filter } from "lucide-react";
+import { Plus, Filter, Edit2 } from "lucide-react";
 import {
   Dialog,
   DialogTrigger,
@@ -18,7 +18,11 @@ import { IncomeTransaction } from "../../domain";
 export function Income() {
   const { symbol } = useCurrency();
   const [open, setOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingIncome, setEditingIncome] = useState<IncomeTransaction | null>(null);
   const [incomeItems, setIncomeItems] = useState<IncomeTransaction[]>([]);
+  const userRole = sessionStorage.getItem("userRole") ?? "Staff";
+  const isAdmin = userRole === "Admin";
 
   const loadIncomes = async () => {
     try {
@@ -27,6 +31,17 @@ export function Income() {
     } catch (err) {
       console.error("Failed to load incomes", err);
     }
+  };
+
+  const handleEditClick = (income: IncomeTransaction) => {
+    setEditingIncome(income);
+    setEditOpen(true);
+  };
+
+  const handleEditSuccess = () => {
+    setEditOpen(false);
+    setEditingIncome(null);
+    loadIncomes();
   };
 
   useEffect(() => {
@@ -88,6 +103,7 @@ export function Income() {
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Amount</th>
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Date</th>
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Type</th>
+                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -116,6 +132,22 @@ export function Income() {
                         {income.payment_method || "-"}
                       </span>
                     </td>
+                    <td className="py-3 px-4">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={!isAdmin}
+                        onClick={() => handleEditClick(income)}
+                        className={`gap-2 ${
+                          isAdmin
+                            ? "hover:bg-blue-600 hover:text-white cursor-pointer"
+                            : "opacity-50 cursor-not-allowed text-gray-500"
+                        }`}
+                      >
+                        <Edit2 className="h-4 w-4" />
+                        Edit
+                      </Button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -123,6 +155,32 @@ export function Income() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Edit Income Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Income</DialogTitle>
+          </DialogHeader>
+          {editingIncome && (
+            <IncomeForm
+              initialData={{
+                amount: editingIncome.amount.toString(),
+                source: editingIncome.source,
+                date: editingIncome.date.toISOString().split("T")[0],
+                description: editingIncome.description,
+                paymentMethod: editingIncome.payment_method || "",
+              }}
+              isEditMode={true}
+              editId={editingIncome.id}
+              onSuccess={handleEditSuccess}
+            />
+          )}
+          <DialogClose className="absolute top-2 right-2">
+            <span className="sr-only">Close</span>
+          </DialogClose>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

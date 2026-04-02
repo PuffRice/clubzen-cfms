@@ -1,10 +1,22 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { CheckCircle, XCircle, Clock } from "lucide-react";
+import { CheckCircle, XCircle, Clock, Edit2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "../components/ui/dialog";
 import { useCurrency } from "../CurrencyContext";
 
 export function Approvals() {
   const { symbol } = useCurrency();
+  const userRole = sessionStorage.getItem("userRole") ?? "Staff";
+  const isAdmin = userRole === "Admin";
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingApprovalId, setEditingApprovalId] = useState<number | null>(null);
   const approvals = [
     { id: 1, type: "Expense", description: "Client Dinner", amount: 320.50, date: "Feb 7, 2026", status: "pending" },
     { id: 2, type: "Reimbursement", description: "Office Supplies", amount: 156.00, date: "Feb 6, 2026", status: "pending" },
@@ -49,6 +61,23 @@ export function Approvals() {
                   </span>
                   {approval.status === "pending" ? (
                     <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={!isAdmin}
+                        onClick={() => {
+                          setEditingApprovalId(approval.id);
+                          setEditOpen(true);
+                        }}
+                        className={`gap-2 ${
+                          isAdmin
+                            ? "hover:bg-blue-600 hover:text-white cursor-pointer"
+                            : "opacity-50 cursor-not-allowed text-gray-500"
+                        }`}
+                      >
+                        <Edit2 className="h-4 w-4" />
+                        Edit
+                      </Button>
                       <Button size="sm" className="bg-green-600 hover:bg-green-700">
                         <CheckCircle className="h-4 w-4 mr-1" />
                         Approve
@@ -75,6 +104,45 @@ export function Approvals() {
           </Card>
         ))}
       </div>
+
+      {/* Edit Approval Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Approval Request</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-foreground">Description</label>
+              <input
+                type="text"
+                defaultValue={approvals.find((a) => a.id === editingApprovalId)?.description}
+                className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground">Amount</label>
+              <div className="relative mt-1">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                  {symbol}
+                </span>
+                <input
+                  type="number"
+                  step="0.01"
+                  defaultValue={approvals.find((a) => a.id === editingApprovalId)?.amount}
+                  className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+            <Button className="w-full bg-blue-600 hover:bg-blue-700">
+              Update Request
+            </Button>
+          </div>
+          <DialogClose className="absolute top-2 right-2">
+            <span className="sr-only">Close</span>
+          </DialogClose>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

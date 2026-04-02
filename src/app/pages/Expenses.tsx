@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { Plus, Filter } from "lucide-react";
+import { Plus, Filter, Edit2 } from "lucide-react";
 import {
   Dialog,
   DialogTrigger,
@@ -18,7 +18,11 @@ import { ExpenseTransaction } from "../../domain";
 export function Expenses() {
   const { symbol } = useCurrency();
   const [open, setOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<ExpenseTransaction | null>(null);
   const [expenses, setExpenses] = useState<ExpenseTransaction[]>([]);
+  const userRole = sessionStorage.getItem("userRole") ?? "Staff";
+  const isAdmin = userRole === "Admin";
 
   const loadExpenses = async () => {
     try {
@@ -27,6 +31,17 @@ export function Expenses() {
     } catch (err) {
       console.error("Failed to load expenses", err);
     }
+  };
+
+  const handleEditClick = (expense: ExpenseTransaction) => {
+    setEditingExpense(expense);
+    setEditOpen(true);
+  };
+
+  const handleEditSuccess = () => {
+    setEditOpen(false);
+    setEditingExpense(null);
+    loadExpenses();
   };
 
   useEffect(() => {
@@ -88,6 +103,7 @@ export function Expenses() {
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Payment Method</th>
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Amount</th>
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Date</th>
+                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -106,6 +122,22 @@ export function Expenses() {
                     <td className="py-3 px-4 text-muted-foreground">
                       {expense.date.toISOString().split("T")[0]}
                     </td>
+                    <td className="py-3 px-4">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={!isAdmin}
+                        onClick={() => handleEditClick(expense)}
+                        className={`gap-2 ${
+                          isAdmin
+                            ? "hover:bg-blue-600 hover:text-white cursor-pointer"
+                            : "opacity-50 cursor-not-allowed text-gray-500"
+                        }`}
+                      >
+                        <Edit2 className="h-4 w-4" />
+                        Edit
+                      </Button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -113,6 +145,32 @@ export function Expenses() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Edit Expense Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Expense</DialogTitle>
+          </DialogHeader>
+          {editingExpense && (
+            <ExpenseForm
+              initialData={{
+                amount: editingExpense.amount.toString(),
+                category: editingExpense.category,
+                date: editingExpense.date.toISOString().split("T")[0],
+                description: editingExpense.description,
+                paymentMethod: editingExpense.payment_method || "",
+              }}
+              isEditMode={true}
+              editId={editingExpense.id}
+              onSuccess={handleEditSuccess}
+            />
+          )}
+          <DialogClose className="absolute top-2 right-2">
+            <span className="sr-only">Close</span>
+          </DialogClose>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
