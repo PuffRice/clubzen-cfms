@@ -2,7 +2,6 @@ import { createBrowserRouter, redirect } from "react-router";
 import { Layout } from "./components/Layout";
 import { Dashboard } from "./pages/Dashboard";
 import { Settings } from "./pages/Settings";
-import { PaymentMethod } from "./pages/AddPaymentMethod ";
 import { MonthlyReports } from "./pages/MonthlyReports";
 import { DailyReports } from "./pages/DailyReports";
 import { ManageCategories } from "./pages/ManageCategories";
@@ -10,10 +9,8 @@ import { Login } from "./pages/Login";
 import { Expenses } from "./pages/Expenses";
 import { Income } from "./pages/Income";
 import { Reports } from "./pages/Reports";
-import { Approvals } from "./pages/Approvals";
 import { Events } from "./pages/Events";
 import { Support } from "./pages/Support";
-import { BankDetails } from "./pages/BankDetails";
 import { Loans } from "./pages/Loans";
 import HelpPage from "./pages/HelpPage";
 import FAQPage from "./pages/FAQPage";
@@ -39,7 +36,6 @@ export const router = createBrowserRouter([
     children: [
       { index: true, Component: Dashboard },
       { path: "settings", Component: Settings },
-      { path: "add-payment-method", Component: PaymentMethod },
       { path: "loans", Component: Loans },
       { path: "manage-categories", Component: ManageCategories },
       { path: "monthly-reports", Component: MonthlyReports },
@@ -47,10 +43,8 @@ export const router = createBrowserRouter([
       { path: "expenses", Component: Expenses },
       { path: "income", Component: Income },
       { path: "reports", Component: Reports },
-      { path: "approvals", Component: Approvals },
       { path: "events", Component: Events },
       { path: "support", Component: Support },
-      { path: "bank-details", Component: BankDetails },
       { path: "help", Component: HelpPage },
       { path: "faq", Component: FAQPage },
     ],
