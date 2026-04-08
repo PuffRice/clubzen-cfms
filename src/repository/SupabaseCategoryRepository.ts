@@ -30,29 +30,29 @@ export class SupabaseCategoryRepository implements ICategoryRepository {
 
     if (error) throw new Error(error.message);
 
-    return this.mapToCategory(data);
+    return this.mapToCategory(data, 0);
   }
 
   async getAllCategories(): Promise<Category[]> {
-    const { data, error } = await supabase
-      .from("categories")
-      .select("*")
-      .order("group_id");
+    const [categoriesResult, expenseCounts, incomeCounts] = await Promise.all([
+      supabase.from("categories").select("*").order("group_id"),
+      this.loadExpenseCategoryCounts(),
+      this.loadIncomeCategoryCounts(),
+    ]);
 
-    if (error) throw new Error(error.message);
+    if (categoriesResult.error) throw new Error(categoriesResult.error.message);
 
-    return data.map(this.mapToCategory);
+    return (categoriesResult.data ?? []).map((row) => {
+      const count = row.group_id === 2
+        ? incomeCounts[row.name] ?? 0
+        : expenseCounts[row.name] ?? 0;
+      return this.mapToCategory(row, count);
+    });
   }
 
   async getCategoriesByGroup(groupId: number): Promise<Category[]> {
-    const { data, error } = await supabase
-      .from("categories")
-      .select("*")
-      .eq("group_id", groupId);
-
-    if (error) throw new Error(error.message);
-
-    return data.map(this.mapToCategory);
+    const categories = await this.getAllCategories();
+    return categories.filter((category) => category.groupId === groupId);
   }
 
   async getCategoryById(id: number): Promise<Category | null> {
@@ -67,7 +67,11 @@ export class SupabaseCategoryRepository implements ICategoryRepository {
       throw new Error(error.message);
     }
 
-    return this.mapToCategory(data);
+    const count = data.group_id === 2
+      ? (await this.loadIncomeCategoryCounts())[data.name] ?? 0
+      : (await this.loadExpenseCategoryCounts())[data.name] ?? 0;
+
+    return this.mapToCategory(data, count);
   }
 
   async updateCategory(
@@ -88,7 +92,7 @@ export class SupabaseCategoryRepository implements ICategoryRepository {
 
     if (error) throw new Error(error.message);
 
-    return this.mapToCategory(data);
+    return this.mapToCategory(data, 0);
   }
 
   async deleteCategory(id: number): Promise<void> {
@@ -100,14 +104,37 @@ export class SupabaseCategoryRepository implements ICategoryRepository {
     if (error) throw new Error(error.message);
   }
 
-  private mapToCategory(row: any): Category {
+  private mapToCategory(row: any, count = 0): Category {
     return {
       id: row.id,
       groupId: row.group_id,
       name: row.name,
       color: row.color,
+      count,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
     };
+  }
+
+  private async loadExpenseCategoryCounts(): Promise<Record<string, number>> {
+    const { data, error } = await supabase.from("expense").select("category");
+    if (error) throw error;
+
+    return (data ?? []).reduce((memo: Record<string, number>, row: any) => {
+      const key = row.category ?? "";
+      memo[key] = (memo[key] ?? 0) + 1;
+      return memo;
+    }, {});
+  }
+
+  private async loadIncomeCategoryCounts(): Promise<Record<string, number>> {
+    const { data, error } = await supabase.from("income").select("source");
+    if (error) throw error;
+
+    return (data ?? []).reduce((memo: Record<string, number>, row: any) => {
+      const key = row.source ?? "";
+      memo[key] = (memo[key] ?? 0) + 1;
+      return memo;
+    }, {});
   }
 }

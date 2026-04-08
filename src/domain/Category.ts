@@ -3,6 +3,7 @@ export interface Category {
   groupId: number;
   name: string;
   color?: string | null;
+  count: number;
   createdAt: Date;
   updatedAt: Date;
 }

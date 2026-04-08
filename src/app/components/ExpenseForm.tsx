@@ -112,6 +112,7 @@ export function ExpenseForm({ onSuccess, initialData, isEditMode = false, editId
       if (onSuccess) {
         onSuccess();
       }
+      window.dispatchEvent(new Event("transactions-updated"));
     } catch (err: unknown) {
       setFormError((err as Error).message);
     }
@@ -126,6 +127,7 @@ export function ExpenseForm({ onSuccess, initialData, isEditMode = false, editId
       if (onSuccess) {
         onSuccess();
       }
+      window.dispatchEvent(new Event("transactions-updated"));
     } catch (err: unknown) {
       setFormError((err as Error).message);
     } finally {

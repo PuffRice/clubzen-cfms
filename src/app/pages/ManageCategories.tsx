@@ -68,38 +68,58 @@ export function ManageCategories() {
     "#14B8A6",
   ];
 
-  useEffect(() => {
-    async function loadCategories() {
-      try {
-        const res = await categoryController.createCategories();
-        if (res.statusCode === 200 && Array.isArray(res.body)) {
-          const expenses = (res.body as any[]).filter((c) => c.type === "Expense");
-          const income = (res.body as any[]).filter((c) => c.type === "Income");
+  const loadCategories = async () => {
+    try {
+      const res = await categoryController.createCategories();
+      if (res.statusCode === 200 && Array.isArray(res.body)) {
+        const expenses = (res.body as any[]).filter((c) => c.type === "Expense");
+        const income = (res.body as any[]).filter((c) => c.type === "Income");
 
-          setExpenseCategories(
-            expenses.map((c) => ({
-              id: Number(c.id),
-              name: c.name as string,
-              color: (c.color as string) || "#3B82F6",
-              count: 0,
-            }))
-          );
+        setExpenseCategories(
+          expenses.map((c) => ({
+            id: Number(c.id),
+            name: c.name as string,
+            color: (c.color as string) || "#3B82F6",
+            count: Number(c.count ?? 0),
+          }))
+        );
 
-          setIncomeCategories(
-            income.map((c) => ({
-              id: Number(c.id),
-              name: c.name as string,
-              color: (c.color as string) || "#059669",
-              count: 0,
-            }))
-          );
-        }
-      } catch (err) {
-        console.error("Failed to load categories", err);
+        setIncomeCategories(
+          income.map((c) => ({
+            id: Number(c.id),
+            name: c.name as string,
+            color: (c.color as string) || "#059669",
+            count: Number(c.count ?? 0),
+          }))
+        );
       }
+    } catch (err) {
+      console.error("Failed to load categories", err);
     }
+  };
 
+  useEffect(() => {
     loadCategories();
+
+    const interval = window.setInterval(loadCategories, 30000);
+    const onFocus = () => loadCategories();
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        loadCategories();
+      }
+    };
+    const onTransactionsUpdated = () => loadCategories();
+
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("transactions-updated", onTransactionsUpdated);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("transactions-updated", onTransactionsUpdated);
+    };
   }, []);
 
   const handleEdit = (category: Category, type: "expense" | "income") => {
@@ -123,24 +143,7 @@ export function ManageCategories() {
       });
 
       if (res.statusCode === 200) {
-        if (editingCategory.type === "expense") {
-          setExpenseCategories(
-            expenseCategories.map((cat) =>
-              cat.id === editingCategory.category.id
-                ? { ...cat, name: editForm.name, color: editForm.color }
-                : cat
-            )
-          );
-        } else {
-          setIncomeCategories(
-            incomeCategories.map((cat) =>
-              cat.id === editingCategory.category.id
-                ? { ...cat, name: editForm.name, color: editForm.color }
-                : cat
-            )
-          );
-        }
-
+        await loadCategories();
         setEditingCategory(null);
       }
     } catch (err) {
@@ -162,20 +165,7 @@ export function ManageCategories() {
       });
 
       if (res.statusCode === 201 && res.body) {
-        const created = res.body as any;
-        const newCategory: Category = {
-          id: Number(created.id),
-          name: created.name as string,
-          color: (created.color as string) || addForm.color,
-          count: 0,
-        };
-
-        if (addingCategory === "expense") {
-          setExpenseCategories([...expenseCategories, newCategory]);
-        } else {
-          setIncomeCategories([...incomeCategories, newCategory]);
-        }
-
+        await loadCategories();
         setAddingCategory(null);
         setAddForm({ name: "", color: "#3B82F6" });
       }
@@ -191,11 +181,7 @@ export function ManageCategories() {
       });
 
       if (res.statusCode === 200) {
-        if (type === "expense") {
-          setExpenseCategories(expenseCategories.filter((cat) => cat.id !== id));
-        } else {
-          setIncomeCategories(incomeCategories.filter((cat) => cat.id !== id));
-        }
+        await loadCategories();
       }
     } catch (err) {
       console.error("Failed to delete category", err);

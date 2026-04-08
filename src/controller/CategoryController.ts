@@ -24,6 +24,7 @@ interface HttpCategory {
   name: string;
   type: CategoryType;
   color?: string | null;
+  count: number;
 }
 
 export class CategoryController {
@@ -41,6 +42,7 @@ export class CategoryController {
       name: category.name,
       type: this.mapToType(category.groupId),
       color: category.color ?? undefined,
+      count: category.count,
     };
   }
 
