@@ -10,7 +10,8 @@ import autoTable from "jspdf-autotable";
 export function MonthlyReports() {
   
   const { symbol } = useCurrency();
-const safeSymbol = typeof symbol === "string" ? symbol : "৳";
+  const safeSymbol = typeof symbol === "string" ? symbol : "৳";
+  const pdfSymbol = typeof symbol === "string" && /^[\x20-\x7E]+$/.test(symbol) ? symbol : "$";
   const [monthlyData, setMonthlyData] = useState({
     totalIncome: 0,
     totalExpenses: 0,
@@ -36,6 +37,7 @@ const safeSymbol = typeof symbol === "string" ? symbol : "৳";
     const breakdowns = calculateBreakdowns(filteredTx);
 
     const doc = new jsPDF();
+    doc.setFont("helvetica", "normal");
 
     doc.setFontSize(18);
     doc.text("Monthly Financial Report", 14, 20);
@@ -49,9 +51,9 @@ const safeSymbol = typeof symbol === "string" ? symbol : "৳";
       startY: 40,
       head: [["Type", "Amount"]],
       body: [
-        ["Total Income", formatMoney(summary.totalIncome)],
-        ["Total Expenses", formatMoney(summary.totalExpenses)],
-        ["Net Savings", formatMoney(summary.netSavings)],
+        ["Total Income", formatMoney(summary.totalIncome, true)],
+        ["Total Expenses", formatMoney(summary.totalExpenses, true)],
+        ["Net Savings", formatMoney(summary.netSavings, true)],
         ["Savings Rate", `${summary.savingsRate}%`],
       ],
     });
@@ -64,7 +66,7 @@ const safeSymbol = typeof symbol === "string" ? symbol : "৳";
       head: [["Income Category", "Amount"]],
       body: breakdowns.income.map((i) => [
         i.category,
-        formatMoney(i.amount),
+        formatMoney(i.amount, true),
       ]),
     });
 
@@ -76,7 +78,7 @@ const safeSymbol = typeof symbol === "string" ? symbol : "৳";
       head: [["Expense Category", "Amount"]],
       body: breakdowns.expense.map((i) => [
         i.category,
-        formatMoney(i.amount),
+        formatMoney(i.amount, true),
       ]),
     });
 
@@ -116,8 +118,9 @@ const safeSymbol = typeof symbol === "string" ? symbol : "৳";
     return Number.isFinite(amount) ? amount : 0;
   };
 
-  const formatMoney = (value: unknown): string => {
-    return `${safeSymbol}${parseAmount(value).toFixed(2)}`;
+  const formatMoney = (value: unknown, forPdf = false): string => {
+    const symbolToUse = forPdf ? pdfSymbol : safeSymbol;
+    return `${symbolToUse}${parseAmount(value).toFixed(2)}`;
   };
 
   const calculateSummary = (tx: any[]) => {
