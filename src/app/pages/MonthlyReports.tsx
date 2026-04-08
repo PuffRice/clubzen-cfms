@@ -26,6 +26,15 @@ const safeSymbol = typeof symbol === "string" ? symbol : "৳";
 
   // ---------------- PDF EXPORT ----------------
   const exportPDF = () => {
+    if (!selectedMonth) {
+      alert("Please select a month first");
+      return;
+    }
+
+    const filteredTx = filterByMonth(allTransactions, selectedMonth);
+    const summary = calculateSummary(filteredTx);
+    const breakdowns = calculateBreakdowns(filteredTx);
+
     const doc = new jsPDF();
 
     doc.setFontSize(18);
@@ -34,15 +43,16 @@ const safeSymbol = typeof symbol === "string" ? symbol : "৳";
     doc.setFontSize(12);
     doc.text(`Month: ${formatMonth(selectedMonth)}`, 14, 30);
 
-    // Summary Table
+    // S
+    // ummary Table
     autoTable(doc, {
       startY: 40,
       head: [["Type", "Amount"]],
       body: [
-        ["Total Income", `${symbol}${monthlyData.totalIncome.toFixed(2)}`],
-        ["Total Expenses", `${symbol}${monthlyData.totalExpenses.toFixed(2)}`],
-        ["Net Savings", `${symbol}${monthlyData.netSavings.toFixed(2)}`],
-        ["Savings Rate", `${monthlyData.savingsRate}%`],
+        ["Total Income", formatMoney(summary.totalIncome)],
+        ["Total Expenses", formatMoney(summary.totalExpenses)],
+        ["Net Savings", formatMoney(summary.netSavings)],
+        ["Savings Rate", `${summary.savingsRate}%`],
       ],
     });
 
@@ -52,9 +62,9 @@ const safeSymbol = typeof symbol === "string" ? symbol : "৳";
     autoTable(doc, {
       startY: finalY1 + 10,
       head: [["Income Category", "Amount"]],
-      body: incomeBreakdown.map((i) => [
+      body: breakdowns.income.map((i) => [
         i.category,
-        `${symbol}${i.amount.toFixed(2)}`,
+        formatMoney(i.amount),
       ]),
     });
 
@@ -64,13 +74,13 @@ const safeSymbol = typeof symbol === "string" ? symbol : "৳";
     autoTable(doc, {
       startY: finalY2 + 10,
       head: [["Expense Category", "Amount"]],
-      body: expenseBreakdown.map((i) => [
+      body: breakdowns.expense.map((i) => [
         i.category,
-        `${symbol}${i.amount.toFixed(2)}`,
+        formatMoney(i.amount),
       ]),
     });
 
-    doc.save(`report-${selectedMonth}.pdf`);
+    doc.save(`monthly-report-${selectedMonth}.pdf`);
   };
 
   // ---------------- HELPERS ----------------
@@ -101,14 +111,23 @@ const safeSymbol = typeof symbol === "string" ? symbol : "৳";
     });
   };
 
+  const parseAmount = (value: unknown): number => {
+    const amount = typeof value === "string" ? Number(value) : Number(value ?? 0);
+    return Number.isFinite(amount) ? amount : 0;
+  };
+
+  const formatMoney = (value: unknown): string => {
+    return `${safeSymbol}${parseAmount(value).toFixed(2)}`;
+  };
+
   const calculateSummary = (tx: any[]) => {
     const income = tx
       .filter((t) => t.type === "income")
-      .reduce((s, t) => s + t.amount, 0);
+      .reduce((s, t) => s + parseAmount(t.amount), 0);
 
     const expense = tx
       .filter((t) => t.type === "expense")
-      .reduce((s, t) => s + t.amount, 0);
+      .reduce((s, t) => s + parseAmount(t.amount), 0);
 
     return {
       totalIncome: income,
@@ -123,10 +142,11 @@ const safeSymbol = typeof symbol === "string" ? symbol : "৳";
     const expenseMap = new Map<string, number>();
 
     tx.forEach((t) => {
+      const amount = parseAmount(t.amount);
       if (t.type === "income") {
-        incomeMap.set(t.category, (incomeMap.get(t.category) || 0) + t.amount);
-      } else {
-        expenseMap.set(t.category, (expenseMap.get(t.category) || 0) + t.amount);
+        incomeMap.set(t.category, (incomeMap.get(t.category) || 0) + amount);
+      } else if (t.type === "expense") {
+        expenseMap.set(t.category, (expenseMap.get(t.category) || 0) + amount);
       }
     });
 
@@ -203,13 +223,13 @@ const safeSymbol = typeof symbol === "string" ? symbol : "৳";
       <div className="grid grid-cols-2 gap-4">
         <Card>
           <CardContent>
-            Income: {symbol}{monthlyData.totalIncome}
+            Income: {formatMoney(monthlyData.totalIncome)}
           </CardContent>
         </Card>
 
         <Card>
           <CardContent>
-            Expense: {symbol}{monthlyData.totalExpenses}
+            Expense: {formatMoney(monthlyData.totalExpenses)}
           </CardContent>
         </Card>
       </div>
