@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Plus, Filter, Edit2 } from "lucide-react";
+import { Skeleton } from "../components/ui/skeleton";
 import {
   Dialog,
   DialogTrigger,
@@ -21,10 +22,12 @@ export function Income() {
   const [editOpen, setEditOpen] = useState(false);
   const [editingIncome, setEditingIncome] = useState<IncomeTransaction | null>(null);
   const [incomeItems, setIncomeItems] = useState<IncomeTransaction[]>([]);
+  const [loading, setLoading] = useState(true);
   const userRole = sessionStorage.getItem("userRole") ?? "Staff";
   const isAdmin = userRole === "Admin";
 
   const loadIncomes = async () => {
+    setLoading(true);
     try {
       const all = await transactionController.getAllTransactions();
 
@@ -35,6 +38,8 @@ export function Income() {
       setIncomeItems(filtered);
     } catch (err) {
       console.error("Failed to load incomes", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -120,55 +125,74 @@ export function Income() {
               </thead>
 
               <tbody>
-                {incomeItems.map((income) => {
-                  return (
-                  <tr key={income.id} className="border-b hover:bg-gray-800 transition-colors">
-                    <td className="py-3 px-4">{income.source}</td>
-                    <td className="py-3 px-4 text-muted-foreground">
-                      {income.description || "-"}
-                    </td>
-                    <td className="py-3 px-4 font-semibold text-green-600">
-                      +{symbol}
-                      {income.amount.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </td>
-                    <td className="py-3 px-4 text-muted-foreground">
-                      {income.date.toISOString().split("T")[0]}
-                    </td>
-                    <td className="py-3 px-4">
-                      <span
-                        className={`px-3 py-1 rounded-full text-sm ${
-                          income.payment_method === "Recurring"
-                            ? "bg-blue-100 text-blue-700"
-                            : income.payment_method === "Investment"
-                              ? "bg-purple-100 text-purple-700"
-                              : "bg-muted text-muted-foreground"
-                        }`}
-                      >
-                        {income.payment_method || "-"}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={!isAdmin}
-                        onClick={() => handleEditClick(income)}
-                        className={`gap-2 ${
-                          isAdmin
-                            ? "hover:bg-blue-600 hover:text-white cursor-pointer"
-                            : "opacity-50 cursor-not-allowed text-gray-500"
-                        }`}
-                      >
-                        <Edit2 className="h-4 w-4" />
-                        Edit
-                      </Button>
-                    </td>
+                {loading ? (
+                  Array.from({ length: 6 }).map((_, index) => (
+                    <tr key={index} className="border-b">
+                      <td className="py-3 px-4"><Skeleton className="h-4 w-24" /></td>
+                      <td className="py-3 px-4"><Skeleton className="h-4 w-40" /></td>
+                      <td className="py-3 px-4"><Skeleton className="h-4 w-20" /></td>
+                      <td className="py-3 px-4"><Skeleton className="h-4 w-24" /></td>
+                      <td className="py-3 px-4"><Skeleton className="h-4 w-24" /></td>
+                      <td className="py-3 px-4"><Skeleton className="h-4 w-20" /></td>
                     </tr>
-                  );
-                })}
+                  ))
+                ) : incomeItems.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="py-8 text-center text-muted-foreground">
+                      No incomes available.
+                    </td>
+                  </tr>
+                ) : (
+                  incomeItems.map((income) => {
+                    return (
+                    <tr key={income.id} className="border-b hover:bg-gray-800 transition-colors">
+                      <td className="py-3 px-4">{income.source}</td>
+                      <td className="py-3 px-4 text-muted-foreground">
+                        {income.description || "-"}
+                      </td>
+                      <td className="py-3 px-4 font-semibold text-green-600">
+                        +{symbol}
+                        {income.amount.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </td>
+                      <td className="py-3 px-4 text-muted-foreground">
+                        {income.date.toISOString().split("T")[0]}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span
+                          className={`px-3 py-1 rounded-full text-sm ${
+                            income.payment_method === "Recurring"
+                              ? "bg-blue-100 text-blue-700"
+                              : income.payment_method === "Investment"
+                                ? "bg-purple-100 text-purple-700"
+                                : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {income.payment_method || "-"}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={!isAdmin}
+                          onClick={() => handleEditClick(income)}
+                          className={`gap-2 ${
+                            isAdmin
+                              ? "hover:bg-blue-600 hover:text-white cursor-pointer"
+                              : "opacity-50 cursor-not-allowed text-gray-500"
+                          }`}
+                        >
+                          <Edit2 className="h-4 w-4" />
+                          Edit
+                        </Button>
+                      </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>

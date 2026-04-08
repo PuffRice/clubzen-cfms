@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Plus, Filter, Edit2 } from "lucide-react";
+import { Skeleton } from "../components/ui/skeleton";
 import {
   Dialog,
   DialogTrigger,
@@ -21,10 +22,12 @@ export function Expenses() {
   const [editOpen, setEditOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<ExpenseTransaction | null>(null);
   const [expenses, setExpenses] = useState<ExpenseTransaction[]>([]);
+  const [loading, setLoading] = useState(true);
   const userRole = sessionStorage.getItem("userRole") ?? "Staff";
   const isAdmin = userRole === "Admin";
 
   const loadExpenses = async () => {
+    setLoading(true);
     try {
       const all = await transactionController.getAllTransactions();
 
@@ -35,6 +38,8 @@ export function Expenses() {
       setExpenses(filtered);
     } catch (err) {
       console.error("Failed to load expenses", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -120,39 +125,58 @@ export function Expenses() {
               </thead>
 
               <tbody>
-                {expenses.map((expense) => (
-                  <tr key={expense.id} className="border-b hover:bg-gray-800 transition-colors">
-                    <td className="py-3 px-4">{expense.category}</td>
-                    <td className="py-3 px-4 text-muted-foreground">
-                      {expense.description || "-"}
-                    </td>
-                    <td className="py-3 px-4 text-muted-foreground">
-                      {expense.payment_method || "-"}
-                    </td>
-                    <td className="py-3 px-4 font-semibold text-red-600">
-                      {symbol}{expense.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </td>
-                    <td className="py-3 px-4 text-muted-foreground">
-                      {expense.date.toISOString().split("T")[0]}
-                    </td>
-                    <td className="py-3 px-4">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={!isAdmin}
-                        onClick={() => handleEditClick(expense)}
-                        className={`gap-2 ${
-                          isAdmin
-                            ? "hover:bg-blue-600 hover:text-white cursor-pointer"
-                            : "opacity-50 cursor-not-allowed text-gray-500"
-                        }`}
-                      >
-                        <Edit2 className="h-4 w-4" />
-                        Edit
-                      </Button>
+                {loading ? (
+                  Array.from({ length: 6 }).map((_, index) => (
+                    <tr key={index} className="border-b">
+                      <td className="py-3 px-4"><Skeleton className="h-4 w-24" /></td>
+                      <td className="py-3 px-4"><Skeleton className="h-4 w-40" /></td>
+                      <td className="py-3 px-4"><Skeleton className="h-4 w-32" /></td>
+                      <td className="py-3 px-4"><Skeleton className="h-4 w-20" /></td>
+                      <td className="py-3 px-4"><Skeleton className="h-4 w-24" /></td>
+                      <td className="py-3 px-4"><Skeleton className="h-4 w-20" /></td>
+                    </tr>
+                  ))
+                ) : expenses.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="py-8 text-center text-muted-foreground">
+                      No expenses available.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  expenses.map((expense) => (
+                    <tr key={expense.id} className="border-b hover:bg-gray-800 transition-colors">
+                      <td className="py-3 px-4">{expense.category}</td>
+                      <td className="py-3 px-4 text-muted-foreground">
+                        {expense.description || "-"}
+                      </td>
+                      <td className="py-3 px-4 text-muted-foreground">
+                        {expense.payment_method || "-"}
+                      </td>
+                      <td className="py-3 px-4 font-semibold text-red-600">
+                        {symbol}{expense.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+                      <td className="py-3 px-4 text-muted-foreground">
+                        {expense.date.toISOString().split("T")[0]}
+                      </td>
+                      <td className="py-3 px-4">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={!isAdmin}
+                          onClick={() => handleEditClick(expense)}
+                          className={`gap-2 ${
+                            isAdmin
+                              ? "hover:bg-blue-600 hover:text-white cursor-pointer"
+                              : "opacity-50 cursor-not-allowed text-gray-500"
+                          }`}
+                        >
+                          <Edit2 className="h-4 w-4" />
+                          Edit
+                        </Button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
