@@ -13,7 +13,7 @@ import {
 } from "../components/ui/dialog";
 import { RepaymentForm } from "../components/RepaymentForm";
 import { LoanForm } from "../components/LoanForm";
-import { loanController } from "../services";
+import { loanController, loanRepaymentController } from "../services";
 import { useCurrency } from "../CurrencyContext";
 import type { Loan, LoanRepayment } from "../../domain";
 
@@ -56,9 +56,9 @@ export function Loans() {
       } = {};
 
       for (const loan of allLoans) {
-        const reps = await loanController.getRepaymentsByLoanId(loan.id);
-        const totalRepaid = await loanController.getTotalRepaid(loan.id);
-        const remaining = await loanController.getRemainingAmount(loan.id);
+        const reps = await loanRepaymentController.getRepaymentsByLoanId(loan.id);
+        const totalRepaid = await loanRepaymentController.getTotalRepaid(loan.id);
+        const remaining = await loanRepaymentController.getRemainingAmount(loan.id);
 
         repayments[loan.id] = reps;
         balances[loan.id] = { totalRepaid, remaining };

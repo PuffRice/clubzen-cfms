@@ -33,6 +33,7 @@ import {
   SettingsController,
   UserController,
   LoanController,
+  LoanRepaymentController,
   SupportTicketController,
 } from "@core/controller";
 
@@ -69,6 +70,10 @@ export const categoryController = new CategoryController(categoryService);
 export const settingsController = new SettingsController(settingsService);
 export const userController = new UserController();
 export const loanController = new LoanController(loanService, loanRepaymentService);
+export const loanRepaymentController = new LoanRepaymentController(
+  loanService,
+  loanRepaymentService,
+);
 export const supportTicketController = new SupportTicketController(
   supportTicketService,
   authRepository,

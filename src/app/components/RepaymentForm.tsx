@@ -1,7 +1,7 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
-import { loanController } from "../services";
+import { loanRepaymentController } from "../services";
 import { useCurrency } from "../CurrencyContext";
 
 interface RepaymentFormProps {
@@ -25,7 +25,7 @@ export function RepaymentForm({ loanId, onSuccess, onError }: RepaymentFormProps
   useEffect(() => {
     async function loadRemainingAmount() {
       try {
-        const remaining = await loanController.getRemainingAmount(loanId);
+        const remaining = await loanRepaymentController.getRemainingAmount(loanId);
         setRemainingAmount(remaining);
       } catch (err) {
         console.error("Failed to load remaining amount", err);
@@ -53,11 +53,11 @@ export function RepaymentForm({ loanId, onSuccess, onError }: RepaymentFormProps
         );
       }
 
-      await loanController.makeRepayment(
+      await loanRepaymentController.makeRepayment(
         loanId,
         amount,
         new Date(formData.date),
-        formData.description || undefined
+        formData.description || undefined,
       );
 
       setFormSuccess(true);

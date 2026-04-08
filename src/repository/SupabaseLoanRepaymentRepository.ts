@@ -1,10 +1,17 @@
 import { supabase } from "@core/supabase/client";
 import { formatLocalDateKey } from "../utils/calendarDate";
-import { ILoanRepaymentRepository } from "./ILoanRepaymentRepository";
+import type {
+  ILoanRepaymentRepository,
+  LoanRepaymentRow,
+} from "./ILoanRepaymentRepository";
 
 export class SupabaseLoanRepaymentRepository implements ILoanRepaymentRepository {
+  constructor(private readonly userIdOverride?: string | null) {}
 
   private async getCurrentUserId(): Promise<string> {
+    if (this.userIdOverride) {
+      return this.userIdOverride;
+    }
     const {
       data: { user },
       error,
@@ -21,28 +28,28 @@ export class SupabaseLoanRepaymentRepository implements ILoanRepaymentRepository
     loanId: string,
     amount: number,
     date: Date,
-    description?: string
-  ) {
+    description?: string,
+  ): Promise<LoanRepaymentRow> {
     const userId = await this.getCurrentUserId();
 
     const { data, error } = await supabase
       .from("loan_repayments")
       .insert({
         loan_id: Number(loanId),
-        user_id: userId, // ✅ FIXED
+        user_id: userId,
         amount,
         date: formatLocalDateKey(date),
-        description: description || null
+        description: description || null,
       })
       .select()
       .single();
 
     if (error) throw new Error(error.message);
 
-    return data;
+    return data as LoanRepaymentRow;
   }
 
-  async findByLoanId(loanId: string) {
+  async findByLoanId(loanId: string): Promise<LoanRepaymentRow[]> {
     const { data, error } = await supabase
       .from("loan_repayments")
       .select("*")
@@ -51,6 +58,6 @@ export class SupabaseLoanRepaymentRepository implements ILoanRepaymentRepository
 
     if (error) throw new Error(error.message);
 
-    return data || [];
+    return (data || []) as LoanRepaymentRow[];
   }
 }
