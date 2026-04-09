@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Button } from "../components/ui/button";
 import { Label } from "../components/ui/label";
 import { Plus, Pencil, Trash2, FolderTree, X } from "lucide-react";
+import { Skeleton } from "../components/ui/skeleton";
 import { useEffect, useState } from "react";
 import { categoryController } from "../services";
 import "./ManageCategories.css";
@@ -55,6 +56,8 @@ export function ManageCategories() {
     color: "#3B82F6",
   });
 
+  const [loading, setLoading] = useState(true);
+
   const colorOptions = [
     "#3B82F6",
     "#10B981",
@@ -70,6 +73,7 @@ export function ManageCategories() {
 
   const loadCategories = async () => {
     try {
+      setLoading(true);
       const res = await categoryController.createCategories();
       if (res.statusCode === 200 && Array.isArray(res.body)) {
         const expenses = (res.body as any[]).filter((c) => c.type === "Expense");
@@ -95,6 +99,8 @@ export function ManageCategories() {
       }
     } catch (err) {
       console.error("Failed to load categories", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -189,7 +195,7 @@ export function ManageCategories() {
   };
 
   return (
-    <div className="p-8 bg-background text-foreground">
+    <div className="p-8">
       {/* Page Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Manage Categories</h1>
@@ -210,7 +216,7 @@ export function ManageCategories() {
                 </CardTitle>
                 <Button
                   size="sm"
-                  className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
+                  className="bg-primary/90 text-primary-foreground hover:bg-primary h-10"
                   onClick={() => setAddingCategory("expense")}
                 >
                   <Plus className="h-4 w-4 mr-1" />
@@ -220,43 +226,61 @@ export function ManageCategories() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {expenseCategories.map((category) => (
-                  <div
-                    key={category.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`h-10 w-10 rounded-full ${categoryColorClass(category.color)}`}
-                      />
-                      <div>
-                        <h4 className="font-semibold text-foreground">
-                          {category.name}
-                        </h4>
-                        <p className="text-sm text-muted-foreground">
-                          {category.count} transactions
-                        </p>
+                {loading ? (
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="flex items-center justify-between p-4 border border-white/10 rounded-lg shadow-sm shadow-white/5">
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="h-10 w-10 rounded-full" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-28" />
+                          <Skeleton className="h-3 w-20" />
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Skeleton className="h-8 w-8 rounded-md" />
+                        <Skeleton className="h-8 w-8 rounded-md" />
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEdit(category, "expense")}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:text-destructive-foreground hover:bg-destructive/20"
-                        onClick={() => handleDelete(category.id, "expense")}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                  ))
+                ) : (
+                  expenseCategories.map((category) => (
+                    <div
+                      key={category.id}
+                      className="flex items-center justify-between p-4 border border-white/10 rounded-lg shadow-sm shadow-white/5 hover:shadow-md hover:shadow-white/10 transition-shadow"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`h-10 w-10 rounded-full ${categoryColorClass(category.color)}`}
+                        />
+                        <div>
+                          <h4 className="font-semibold text-foreground">
+                            {category.name}
+                          </h4>
+                          <p className="text-sm text-muted-foreground">
+                            {category.count} transactions
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEdit(category, "expense")}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive-foreground hover:bg-destructive/20"
+                          onClick={() => handleDelete(category.id, "expense")}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
@@ -273,7 +297,7 @@ export function ManageCategories() {
                 </CardTitle>  
                 <Button
                   size="sm"
-                  className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
+                  className="bg-primary/90 text-primary-foreground hover:bg-primary h-10"
                   onClick={() => setAddingCategory("income")}
                 >
                   <Plus className="h-4 w-4 mr-1" />
@@ -283,43 +307,61 @@ export function ManageCategories() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {incomeCategories.map((category) => (
-                  <div
-                    key={category.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`h-10 w-10 rounded-full ${categoryColorClass(category.color)}`}
-                      />
-                      <div>
-                        <h4 className="font-semibold text-foreground">
-                          {category.name}
-                        </h4>
-                        <p className="text-sm text-muted-foreground">
-                          {category.count} transactions
-                        </p>
+                {loading ? (
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="flex items-center justify-between p-4 border border-white/10 rounded-lg shadow-sm shadow-white/5">
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="h-10 w-10 rounded-full" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-28" />
+                          <Skeleton className="h-3 w-20" />
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Skeleton className="h-8 w-8 rounded-md" />
+                        <Skeleton className="h-8 w-8 rounded-md" />
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEdit(category, "income")}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:text-destructive-foreground hover:bg-destructive/20"
-                        onClick={() => handleDelete(category.id, "paymentMethod")}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                  ))
+                ) : (
+                  incomeCategories.map((category) => (
+                    <div
+                      key={category.id}
+                      className="flex items-center justify-between p-4 border border-white/10 rounded-lg shadow-sm shadow-white/5 hover:shadow-md hover:shadow-white/10 transition-shadow"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`h-10 w-10 rounded-full ${categoryColorClass(category.color)}`}
+                        />
+                        <div>
+                          <h4 className="font-semibold text-foreground">
+                            {category.name}
+                          </h4>
+                          <p className="text-sm text-muted-foreground">
+                            {category.count} transactions
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEdit(category, "income")}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive-foreground hover:bg-destructive/20"
+                          onClick={() => handleDelete(category.id, "paymentMethod")}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
@@ -333,24 +375,35 @@ export function ManageCategories() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-700 mb-1">Total Categories</p>
-              <p className="text-3xl font-bold text-blue-700">
-                {expenseCategories.length + incomeCategories.length}
-              </p>
-            </div>
-            <div className="p-4 bg-red-50 rounded-lg">
-              <p className="text-sm text-red-700 mb-1">Expense Categories</p>
-              <p className="text-3xl font-bold text-red-700">
-                {expenseCategories.length}
-              </p>
-            </div>
-            <div className="p-4 bg-green-50 rounded-lg">
-              <p className="text-sm text-green-700 mb-1">Inflow Categories</p>
-              <p className="text-3xl font-bold text-green-700">
-                {incomeCategories.length}
-              </p>
-            </div>
+            {loading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="p-4 bg-muted/30 rounded-lg space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-9 w-16" />
+                </div>
+              ))
+            ) : (
+              <>
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <p className="text-sm text-blue-700 mb-1">Total Categories</p>
+                  <p className="text-3xl font-bold text-blue-700">
+                    {expenseCategories.length + incomeCategories.length}
+                  </p>
+                </div>
+                <div className="p-4 bg-red-50 rounded-lg">
+                  <p className="text-sm text-red-700 mb-1">Expense Categories</p>
+                  <p className="text-3xl font-bold text-red-700">
+                    {expenseCategories.length}
+                  </p>
+                </div>
+                <div className="p-4 bg-green-50 rounded-lg">
+                  <p className="text-sm text-green-700 mb-1">Inflow Categories</p>
+                  <p className="text-3xl font-bold text-green-700">
+                    {incomeCategories.length}
+                  </p>
+                </div>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>

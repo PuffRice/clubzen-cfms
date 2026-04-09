@@ -205,9 +205,9 @@ export function MonthlyReports() {
           <p className="text-muted-foreground">Financial summary</p>
         </div>
 
-        <Button onClick={exportPDF} className="bg-purple-600 hover:bg-purple-700">
-          <Download className="h-4 w-4 mr-2" />
-          Export Report
+        <Button onClick={exportPDF} className="bg-primary/90 text-primary-foreground hover:bg-primary h-10 gap-1">
+          <Download className="h-4 w-4" />
+          Export Monthly Report
         </Button>
       </div>
 

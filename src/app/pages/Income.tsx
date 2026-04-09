@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { Plus, Filter, Edit2 } from "lucide-react";
+import { Plus, ArrowDown10, ArrowUp10, ArrowDownNarrowWide, ArrowUpNarrowWide, Edit2, ChevronDown } from "lucide-react";
 import { Skeleton } from "../components/ui/skeleton";
 import {
   Dialog,
@@ -11,10 +11,20 @@ import {
   DialogTitle,
   DialogClose,
 } from "../components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuItem,
+} from "../components/ui/dropdown-menu";
 import { IncomeForm } from "../components/IncomeForm";
 import { transactionController } from "../services";
 import { useCurrency } from "../CurrencyContext";
 import { IncomeTransaction } from "../../domain";
+
+type SortOption = "date-desc" | "date-asc" | "amount-desc" | "amount-asc";
 
 export function Income() {
   const { symbol } = useCurrency();
@@ -23,6 +33,7 @@ export function Income() {
   const [editingIncome, setEditingIncome] = useState<IncomeTransaction | null>(null);
   const [incomeItems, setIncomeItems] = useState<IncomeTransaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState<SortOption>("date-desc");
   const userRole = sessionStorage.getItem("userRole") ?? "Staff";
   const isAdmin = userRole === "Admin";
 
@@ -54,6 +65,36 @@ export function Income() {
     loadIncomes();
   };
 
+  const sortedIncomes = useMemo(() => {
+    const copy = [...incomeItems];
+    switch (sortBy) {
+      case "date-asc":
+        return copy.sort((a, b) => a.date.getTime() - b.date.getTime());
+      case "date-desc":
+        return copy.sort((a, b) => b.date.getTime() - a.date.getTime());
+      case "amount-asc":
+        return copy.sort((a, b) => a.amount - b.amount);
+      case "amount-desc":
+        return copy.sort((a, b) => b.amount - a.amount);
+      default:
+        return copy;
+    }
+  }, [incomeItems, sortBy]);
+
+  const sortLabel: Record<SortOption, string> = {
+    "date-desc": "Date: New to Old",
+    "date-asc": "Date: Old to New",
+    "amount-desc": "Amount: High to Low",
+    "amount-asc": "Amount: Low to High",
+  };
+
+  const sortIcon: Record<SortOption, React.ReactNode> = {
+    "date-desc": <ArrowDown10 className="h-3.5 w-3.5 shrink-0" />,
+    "date-asc": <ArrowUp10 className="h-3.5 w-3.5 shrink-0" />,
+    "amount-desc": <ArrowDownNarrowWide className="h-3.5 w-3.5 shrink-0" />,
+    "amount-asc": <ArrowUpNarrowWide className="h-3.5 w-3.5 shrink-0" />,
+  };
+
   useEffect(() => {
     loadIncomes();
   }, []);
@@ -71,8 +112,8 @@ export function Income() {
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-green-600 hover:bg-green-700">
-              <Plus className="h-4 w-4 mr-2" />
+            <Button className="bg-green-600 hover:bg-green-700 h-10">
+              <Plus className="h-4 w-4" />
               Add Income
             </Button>
           </DialogTrigger>
@@ -96,12 +137,32 @@ export function Income() {
         </Dialog>
       </div>
 
-      {/* Filter */}
+      {/* Sort */}
       <div className="mb-6 flex gap-4">
-        <Button variant="outline" className="gap-2">
-          <Filter className="h-4 w-4" />
-          Filter
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger className="inline-flex items-center justify-start gap-2 whitespace-nowrap rounded-md text-sm font-medium h-9 w-56 px-4 py-2 border bg-background text-foreground hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 outline-none" title="Sort income">
+            {sortIcon[sortBy]}
+            {sortLabel[sortBy]}
+            <ChevronDown className="h-3.5 w-3.5 opacity-50 ml-auto" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-52">
+            <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className={`whitespace-nowrap cursor-pointer ${sortBy === "date-desc" ? "bg-accent text-accent-foreground" : ""}`} onSelect={() => setSortBy("date-desc")}>
+              <ArrowDown10 className="h-3.5 w-3.5 shrink-0" /> Date: New to Old
+            </DropdownMenuItem>
+            <DropdownMenuItem className={`whitespace-nowrap cursor-pointer ${sortBy === "date-asc" ? "bg-accent text-accent-foreground" : ""}`} onSelect={() => setSortBy("date-asc")}>
+              <ArrowUp10 className="h-3.5 w-3.5 shrink-0" /> Date: Old to New
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className={`whitespace-nowrap cursor-pointer ${sortBy === "amount-desc" ? "bg-accent text-accent-foreground" : ""}`} onSelect={() => setSortBy("amount-desc")}>
+              <ArrowDownNarrowWide className="h-3.5 w-3.5 shrink-0" /> Amount: High to Low
+            </DropdownMenuItem>
+            <DropdownMenuItem className={`whitespace-nowrap cursor-pointer ${sortBy === "amount-asc" ? "bg-accent text-accent-foreground" : ""}`} onSelect={() => setSortBy("amount-asc")}>
+              <ArrowUpNarrowWide className="h-3.5 w-3.5 shrink-0" /> Amount: Low to High
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Table */}
@@ -136,14 +197,14 @@ export function Income() {
                       <td className="py-3 px-4"><Skeleton className="h-4 w-20" /></td>
                     </tr>
                   ))
-                ) : incomeItems.length === 0 ? (
+                ) : sortedIncomes.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="py-8 text-center text-muted-foreground">
                       No incomes available.
                     </td>
                   </tr>
                 ) : (
-                  incomeItems.map((income) => {
+                  sortedIncomes.map((income) => {
                     return (
                     <tr key={income.id} className="border-b hover:bg-gray-800 transition-colors">
                       <td className="py-3 px-4">{income.source}</td>

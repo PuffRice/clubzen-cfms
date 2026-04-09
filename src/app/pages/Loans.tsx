@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Label } from "../components/ui/label";
-import { Plus, Wallet, DollarSign, Clock, Check, Edit2 } from "lucide-react";
+import { Plus, Wallet, Clock, Check, Edit2 } from "lucide-react";
+import { Skeleton } from "../components/ui/skeleton";
 import {
   Dialog,
   DialogTrigger,
@@ -118,8 +119,8 @@ export function Loans() {
         </div>
         <Dialog open={addLoanOpen} onOpenChange={setAddLoanOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-purple-600 hover:bg-purple-700">
-              <Plus className="h-4 w-4 mr-2" />
+            <Button className="bg-primary/90 text-primary-foreground hover:bg-primary h-10">
+              <Plus className="h-4 w-4" />
               Add Loan
             </Button>
           </DialogTrigger>
@@ -140,21 +141,21 @@ export function Loans() {
         <Button
           variant={filter === "all" ? "default" : "outline"}
           onClick={() => setFilter("all")}
-          className={filter === "all" ? "bg-blue-600" : ""}
+          className={filter === "all" ? "bg-primary/90 text-primary-foreground hover:bg-primary" : ""}
         >
           All Loans
         </Button>
         <Button
           variant={filter === "taken" ? "default" : "outline"}
           onClick={() => setFilter("taken")}
-          className={filter === "taken" ? "bg-blue-600" : ""}
+          className={filter === "taken" ? "bg-primary/90 text-primary-foreground hover:bg-primary" : ""}
         >
           Loans Taken
         </Button>
         <Button
           variant={filter === "given" ? "default" : "outline"}
           onClick={() => setFilter("given")}
-          className={filter === "given" ? "bg-blue-600" : ""}
+          className={filter === "given" ? "bg-primary/90 text-primary-foreground hover:bg-primary" : ""}
         >
           Loans Given
         </Button>
@@ -163,7 +164,7 @@ export function Loans() {
       {/* Summary Cards */}
       {filter !== "all" && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Card>
+          <Card className="bg-card-navy/25 border-card-navy/40 border">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -177,12 +178,12 @@ export function Loans() {
                       .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
-                <DollarSign className="h-8 w-8 text-blue-500" />
+                <span className="text-4xl font-extrabold text-blue-500">{symbol}</span>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-card-navy/25 border-card-navy/40 border">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -199,7 +200,7 @@ export function Loans() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-card-navy/25 border-card-navy/40 border">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -221,7 +222,7 @@ export function Loans() {
       )}
 
       {/* Loans List */}
-      <Card>
+      <Card className="bg-card-navy/25 border-card-navy/40 border">
         <CardHeader>
           <CardTitle>
             {filter === "all"
@@ -233,8 +234,37 @@ export function Loans() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Loading loans...
+            <div className="space-y-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="border border-white/10 rounded-lg p-6 shadow-sm shadow-white/5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                    <div className="space-y-3">
+                      <Skeleton className="h-5 w-48" />
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-4 w-36" />
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-end justify-between">
+                        <div className="space-y-2">
+                          <Skeleton className="h-3 w-20" />
+                          <Skeleton className="h-8 w-36" />
+                        </div>
+                        <Skeleton className="h-4 w-16" />
+                      </div>
+                      <Skeleton className="h-2 w-full rounded-full" />
+                      <div className="flex justify-between">
+                        <Skeleton className="h-3 w-28" />
+                        <Skeleton className="h-3 w-10" />
+                        <Skeleton className="h-3 w-28" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Skeleton className="h-8 w-20 rounded-md" />
+                    <Skeleton className="h-8 w-32 rounded-md" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : filteredLoans.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
@@ -259,7 +289,7 @@ export function Loans() {
                 return (
                   <div
                     key={loan.id}
-                    className="border border-gray-700 rounded-lg p-6 hover:bg-gray-800 transition-colors"
+                    className="border border-white/10 rounded-lg p-6 shadow-sm shadow-white/5 hover:bg-gray-800 hover:shadow-md hover:shadow-white/10 transition-colors transition-shadow"
                   >
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                       {/* Left Side */}
@@ -281,7 +311,7 @@ export function Loans() {
 
                       {/* Right Side - Amount and Balance */}
                       <div className="space-y-3">
-                        <div className="flex items-end justify-between">
+                        <div className="flex items-start justify-between">
                           <div>
                             <p className="text-sm text-muted-foreground mb-1">
                               Total Amount
@@ -290,15 +320,14 @@ export function Loans() {
                               {symbol}{loan.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </p>
                           </div>
-                          {loan.direction === "taken" ? (
-                            <p className="text-sm text-green-600 font-medium">
-                              (Received)
+                          <div className="text-right">
+                            <p className="text-sm text-muted-foreground mb-1">
+                              Remaining
                             </p>
-                          ) : (
-                            <p className="text-sm text-red-600 font-medium">
-                              (Lent)
+                            <p className="text-2xl font-bold text-orange-500">
+                              {symbol}{balance.remaining.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </p>
-                          )}
+                          </div>
                         </div>
 
                         {/* Progress Bar — SVG width avoids inline CSS (lint) */}
@@ -331,7 +360,7 @@ export function Loans() {
                             {repaymentPercentage}%
                           </span>
                           <span>
-                            Remaining: {symbol}{balance.remaining.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            {loan.direction === "taken" ? "Received" : "Lent"}: {symbol}{balance.remaining.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         </div>
                       </div>
@@ -353,7 +382,7 @@ export function Loans() {
                                 {rep.date.toISOString().split("T")[0]}
                                 {rep.description && ` - ${rep.description}`}
                               </span>
-                              <span className="font-medium">
+                              <span className={`font-semibold text-sm ${loan.direction === "taken" ? "text-green-500" : "text-blue-500"}`}>
                                 {symbol}{rep.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </span>
                             </div>
@@ -365,27 +394,13 @@ export function Loans() {
                     {/* Action Buttons */}
                     {balance.remaining > 0 ? (
                       <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={!isAdmin}
-                          onClick={() => handleEditClick(loan)}
-                          className={`gap-2 ${
-                            isAdmin
-                              ? "hover:bg-blue-600 hover:text-white cursor-pointer"
-                              : "opacity-50 cursor-not-allowed text-gray-500"
-                          }`}
-                        >
-                          <Edit2 className="h-4 w-4" />
-                          Edit
-                        </Button>
                         <Dialog open={open && selectedLoanId === loan.id} onOpenChange={setOpen}>
                           <DialogTrigger asChild>
                             <Button
-                              className="bg-green-600 hover:bg-green-700"
+                              className="bg-green-600 hover:bg-green-700 h-10"
                               onClick={() => handleOpenRepaymentDialog(loan.id)}
                             >
-                              <Plus className="h-4 w-4 mr-2" />
+                              <Plus className="h-4 w-4" />
                               Add Repayment
                             </Button>
                           </DialogTrigger>
@@ -406,6 +421,19 @@ export function Loans() {
                             </DialogClose>
                           </DialogContent>
                         </Dialog>
+                        <Button
+                          variant="outline"
+                          disabled={!isAdmin}
+                          onClick={() => handleEditClick(loan)}
+                          className={`h-10 border-blue-600 ${
+                            isAdmin
+                              ? "hover:bg-blue-600 hover:text-white cursor-pointer"
+                              : "opacity-50 cursor-not-allowed text-gray-500"
+                          }`}
+                        >
+                          <Edit2 className="h-4 w-4" />
+                          Edit
+                        </Button>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500/10 border border-green-500/20 text-green-500 text-sm font-medium">

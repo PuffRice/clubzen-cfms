@@ -145,8 +145,8 @@ export function DailyReports() {
           <p className="text-muted-foreground mt-1">Track your daily financial activities</p>
         </div>
         <div className="relative">
-          <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => setExportOpen(!exportOpen)}>
-            <Download className="h-4 w-4 mr-2" />
+          <Button className="bg-primary/90 text-primary-foreground hover:bg-primary h-10 gap-1" onClick={() => setExportOpen(!exportOpen)}>
+            <Download className="h-4 w-4" />
             Export Daily Report
           </Button>
           {exportOpen && (

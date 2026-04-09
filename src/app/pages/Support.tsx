@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { MessageCircle, Plus, Send, ChevronRight, X } from "lucide-react";
+import { Skeleton } from "../components/ui/skeleton";
 import { supportTicketController } from "../services";
 import type { TicketStatus } from "@core/domain/SupportTicket";
 
@@ -151,9 +152,9 @@ export function Support() {
         </div>
         <Button
           onClick={() => setOpenDialog(true)}
-          className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
+          className="bg-primary/90 text-primary-foreground hover:bg-primary h-10 gap-1"
         >
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="h-4 w-4" />
           Open ticket
         </Button>
       </div>
@@ -192,7 +193,18 @@ export function Support() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-muted-foreground">Loading tickets…</p>
+            <ul className="space-y-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <li key={i} className="w-full flex items-center justify-between gap-4 p-4 rounded-xl border border-border bg-card">
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <Skeleton className="h-4 w-3/5" />
+                    <Skeleton className="h-3 w-4/5" />
+                  </div>
+                  <Skeleton className="h-5 w-16 rounded shrink-0" />
+                  <Skeleton className="h-4 w-4 rounded shrink-0" />
+                </li>
+              ))}
+            </ul>
           ) : tickets.length === 0 ? (
             <p className="text-muted-foreground">No tickets in this tab.</p>
           ) : (

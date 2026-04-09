@@ -166,7 +166,7 @@ export function RepaymentForm({ loanId, onSuccess, onError }: RepaymentFormProps
         <Button
           type="submit"
           disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700"
+          className="bg-primary/90 text-primary-foreground hover:bg-primary h-10"
         >
           {loading ? "Processing..." : "Record Repayment"}
         </Button>
