@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Plus, ArrowDown10, ArrowUp10, ArrowDownNarrowWide, ArrowUpNarrowWide, Edit2, ChevronDown } from "lucide-react";
 import { Skeleton } from "../components/ui/skeleton";
@@ -25,6 +25,11 @@ import { useCurrency } from "../CurrencyContext";
 import { IncomeTransaction } from "../../domain";
 
 type SortOption = "date-desc" | "date-asc" | "amount-desc" | "amount-asc";
+
+/** Calendar date first; ties (e.g. same day) broken by save time, then id. */
+function tieBreakTime(t: IncomeTransaction): number {
+  return (t.recordedAt ?? t.date).getTime();
+}
 
 export function Income() {
   const { symbol } = useCurrency();
@@ -69,13 +74,37 @@ export function Income() {
     const copy = [...incomeItems];
     switch (sortBy) {
       case "date-asc":
-        return copy.sort((a, b) => a.date.getTime() - b.date.getTime());
+        return copy.sort((a, b) => {
+          const byDate = a.date.getTime() - b.date.getTime();
+          if (byDate !== 0) return byDate;
+          const byTime = tieBreakTime(a) - tieBreakTime(b);
+          if (byTime !== 0) return byTime;
+          return a.id.localeCompare(b.id);
+        });
       case "date-desc":
-        return copy.sort((a, b) => b.date.getTime() - a.date.getTime());
+        return copy.sort((a, b) => {
+          const byDate = b.date.getTime() - a.date.getTime();
+          if (byDate !== 0) return byDate;
+          const byTime = tieBreakTime(b) - tieBreakTime(a);
+          if (byTime !== 0) return byTime;
+          return a.id.localeCompare(b.id);
+        });
       case "amount-asc":
-        return copy.sort((a, b) => a.amount - b.amount);
+        return copy.sort((a, b) => {
+          const byAmt = a.amount - b.amount;
+          if (byAmt !== 0) return byAmt;
+          const byTime = tieBreakTime(a) - tieBreakTime(b);
+          if (byTime !== 0) return byTime;
+          return a.id.localeCompare(b.id);
+        });
       case "amount-desc":
-        return copy.sort((a, b) => b.amount - a.amount);
+        return copy.sort((a, b) => {
+          const byAmt = b.amount - a.amount;
+          if (byAmt !== 0) return byAmt;
+          const byTime = tieBreakTime(b) - tieBreakTime(a);
+          if (byTime !== 0) return byTime;
+          return a.id.localeCompare(b.id);
+        });
       default:
         return copy;
     }
@@ -137,38 +166,36 @@ export function Income() {
         </Dialog>
       </div>
 
-      {/* Sort */}
-      <div className="mb-6 flex gap-4">
-        <DropdownMenu>
-          <DropdownMenuTrigger className="inline-flex items-center justify-start gap-2 whitespace-nowrap rounded-md text-sm font-medium h-9 w-56 px-4 py-2 border bg-background text-foreground hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 outline-none" title="Sort income">
-            {sortIcon[sortBy]}
-            {sortLabel[sortBy]}
-            <ChevronDown className="h-3.5 w-3.5 opacity-50 ml-auto" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-52">
-            <DropdownMenuLabel>Sort by</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className={`whitespace-nowrap cursor-pointer ${sortBy === "date-desc" ? "bg-accent text-accent-foreground" : ""}`} onSelect={() => setSortBy("date-desc")}>
-              <ArrowDown10 className="h-3.5 w-3.5 shrink-0" /> Date: New to Old
-            </DropdownMenuItem>
-            <DropdownMenuItem className={`whitespace-nowrap cursor-pointer ${sortBy === "date-asc" ? "bg-accent text-accent-foreground" : ""}`} onSelect={() => setSortBy("date-asc")}>
-              <ArrowUp10 className="h-3.5 w-3.5 shrink-0" /> Date: Old to New
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className={`whitespace-nowrap cursor-pointer ${sortBy === "amount-desc" ? "bg-accent text-accent-foreground" : ""}`} onSelect={() => setSortBy("amount-desc")}>
-              <ArrowDownNarrowWide className="h-3.5 w-3.5 shrink-0" /> Amount: High to Low
-            </DropdownMenuItem>
-            <DropdownMenuItem className={`whitespace-nowrap cursor-pointer ${sortBy === "amount-asc" ? "bg-accent text-accent-foreground" : ""}`} onSelect={() => setSortBy("amount-asc")}>
-              <ArrowUpNarrowWide className="h-3.5 w-3.5 shrink-0" /> Amount: Low to High
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
       {/* Table */}
       <Card className="bg-card-navy/25 border-card-navy/40 border">
         <CardHeader>
           <CardTitle>All Income</CardTitle>
+          <CardAction>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="inline-flex items-center justify-start gap-2 whitespace-nowrap rounded-md text-sm font-medium h-9 w-56 px-4 py-2 border bg-background text-foreground hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 outline-none" title="Sort income">
+                {sortIcon[sortBy]}
+                {sortLabel[sortBy]}
+                <ChevronDown className="h-3.5 w-3.5 opacity-50 ml-auto" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className={`whitespace-nowrap cursor-pointer ${sortBy === "date-desc" ? "bg-accent text-accent-foreground" : ""}`} onSelect={() => setSortBy("date-desc")}>
+                  <ArrowDown10 className="h-3.5 w-3.5 shrink-0" /> Date: New to Old
+                </DropdownMenuItem>
+                <DropdownMenuItem className={`whitespace-nowrap cursor-pointer ${sortBy === "date-asc" ? "bg-accent text-accent-foreground" : ""}`} onSelect={() => setSortBy("date-asc")}>
+                  <ArrowUp10 className="h-3.5 w-3.5 shrink-0" /> Date: Old to New
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className={`whitespace-nowrap cursor-pointer ${sortBy === "amount-desc" ? "bg-accent text-accent-foreground" : ""}`} onSelect={() => setSortBy("amount-desc")}>
+                  <ArrowDownNarrowWide className="h-3.5 w-3.5 shrink-0" /> Amount: High to Low
+                </DropdownMenuItem>
+                <DropdownMenuItem className={`whitespace-nowrap cursor-pointer ${sortBy === "amount-asc" ? "bg-accent text-accent-foreground" : ""}`} onSelect={() => setSortBy("amount-asc")}>
+                  <ArrowUpNarrowWide className="h-3.5 w-3.5 shrink-0" /> Amount: Low to High
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </CardAction>
         </CardHeader>
 
         <CardContent>
