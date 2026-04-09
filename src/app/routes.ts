@@ -6,6 +6,8 @@ import { MonthlyReports } from "./pages/MonthlyReports";
 import { DailyReports } from "./pages/DailyReports";
 import { ManageCategories } from "./pages/ManageCategories";
 import { Login } from "./pages/Login";
+import { ForgotPassword } from "./pages/ForgotPassword";
+import { ResetPassword } from "./pages/ResetPassword";
 import { Expenses } from "./pages/Expenses";
 import { Income } from "./pages/Income";
 import { Reports } from "./pages/Reports";
@@ -27,6 +29,14 @@ export const router = createBrowserRouter([
   {
     path: "/login",
     Component: Login,
+  },
+  {
+    path: "/forgot-password",
+    Component: ForgotPassword,
+  },
+  {
+    path: "/reset-password",
+    Component: ResetPassword,
   },
 
   // ── Main app (with sidebar Layout) ────────────────────────

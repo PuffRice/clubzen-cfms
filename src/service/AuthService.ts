@@ -134,6 +134,38 @@ export class AuthService {
     await this.repo.changePassword(currentPassword, newPassword);
   }
 
+  async sendPasswordResetEmail(email: string): Promise<void> {
+    if (!email || email.trim().length === 0) {
+      throw new Error("Email is required.");
+    }
+
+    if (!this.isValidEmail(email)) {
+      throw new Error("Invalid email format.");
+    }
+
+    await this.repo.requestPasswordReset(email);
+  }
+
+  async resetPassword(newPassword: string, confirmPassword: string): Promise<void> {
+    if (!newPassword || newPassword.trim().length === 0) {
+      throw new Error("New password is required.");
+    }
+
+    if (!confirmPassword || confirmPassword.trim().length === 0) {
+      throw new Error("Password confirmation is required.");
+    }
+
+    if (newPassword !== confirmPassword) {
+      throw new Error("Passwords do not match.");
+    }
+
+    if (newPassword.length < 6) {
+      throw new Error("New password must be at least 6 characters.");
+    }
+
+    await this.repo.resetPassword(newPassword);
+  }
+
   /**
    * Simple email validation.
    */

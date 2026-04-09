@@ -6,7 +6,7 @@
  */
 
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -121,17 +121,9 @@ export function Login() {
 
               {/* Password Field */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-gray-700 font-semibold">
-                    Password
-                  </Label>
-                  <a
-                    href="#"
-                    className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
-                  >
-                    Forgot?
-                  </a>
-                </div>
+                <Label htmlFor="password" className="text-gray-700 font-semibold">
+                  Password
+                </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <Input
@@ -175,9 +167,9 @@ export function Login() {
               {/* Forget Password Link */}
               <p className="text-center text-gray-600">
                 Having trouble signing in?{" "}
-                <a href="#" className="text-blue-600 hover:text-blue-700 font-semibold transition-colors">
+                <Link to="/forgot-password" className="text-blue-600 hover:text-blue-700 font-semibold transition-colors">
                   Reset password
-                </a>
+                </Link>
               </p>
             </form>
           </div>
