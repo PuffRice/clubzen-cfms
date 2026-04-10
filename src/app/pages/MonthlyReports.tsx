@@ -196,6 +196,10 @@ export function MonthlyReports() {
     setExpenseBreakdown(b.expense);
   }, [selectedMonth, allTransactions]);
 
+  const filteredTransactions = selectedMonth ? filterByMonth(allTransactions, selectedMonth) : [];
+  const incomeCount = filteredTransactions.filter((t) => t.type === "income").length;
+  const expenseCount = filteredTransactions.filter((t) => t.type === "expense").length;
+
   // ---------------- UI ----------------
   return (
     <div className="p-8">
@@ -211,28 +215,104 @@ export function MonthlyReports() {
         </Button>
       </div>
 
-      <select
-        value={selectedMonth}
-        onChange={(e) => setSelectedMonth(e.target.value)}
-        className="mb-6 p-2 border rounded"
-      >
-        {availableMonths.map((m) => (
-          <option key={m} value={m}>
-            {formatMonth(m)}
-          </option>
-        ))}
-      </select>
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="w-full max-w-xs">
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="w-full p-2 border rounded bg-background text-foreground"
+          >
+            {availableMonths.map((m) => (
+              <option key={m} value={m}>
+                {formatMonth(m)}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <Card>
+        <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+          <div>{incomeCount} income entries</div>
+          <div>{expenseCount} expense entries</div>
+          <div>{filteredTransactions.length} total transactions</div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <Card className="bg-card-navy/25 border-card-navy/40 border">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Income</CardTitle>
+          </CardHeader>
           <CardContent>
-            Income: {formatMoney(monthlyData.totalIncome)}
+            <p className="text-2xl font-bold text-green-500">{formatMoney(monthlyData.totalIncome)}</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-card-navy/25 border-card-navy/40 border">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Expenses</CardTitle>
+          </CardHeader>
           <CardContent>
-            Expense: {formatMoney(monthlyData.totalExpenses)}
+            <p className="text-2xl font-bold text-red-500">{formatMoney(monthlyData.totalExpenses)}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card-navy/25 border-card-navy/40 border">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Net Savings</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-foreground">{formatMoney(monthlyData.netSavings)}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card-navy/25 border-card-navy/40 border">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Savings Rate</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-foreground">{monthlyData.savingsRate}%</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card className="bg-card-navy/25 border-card-navy/40 border">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold">Income Breakdown</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {incomeBreakdown.length ? (
+              <ul className="space-y-3">
+                {incomeBreakdown.map((item) => (
+                  <li key={item.category} className="flex items-center justify-between gap-3 border-b border-border pb-2 last:border-b-0">
+                    <span>{item.category}</span>
+                    <strong>{formatMoney(item.amount)}</strong>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">No income categories recorded for this month.</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card-navy/25 border-card-navy/40 border">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold">Expense Breakdown</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {expenseBreakdown.length ? (
+              <ul className="space-y-3">
+                {expenseBreakdown.map((item) => (
+                  <li key={item.category} className="flex items-center justify-between gap-3 border-b border-border pb-2 last:border-b-0">
+                    <span>{item.category}</span>
+                    <strong>{formatMoney(item.amount)}</strong>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">No expense categories recorded for this month.</p>
+            )}
           </CardContent>
         </Card>
       </div>
