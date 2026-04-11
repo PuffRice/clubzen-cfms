@@ -1,5 +1,5 @@
-import { createBrowserRouter, redirect } from "react-router";
-import { Layout } from "./components/Layout";
+import { createBrowserRouter } from "react-router";
+import { RequireSessionLayout } from "./components/RequireSessionLayout";
 import { Dashboard } from "./pages/Dashboard";
 import { Settings } from "./pages/Settings";
 import { MonthlyReports } from "./pages/MonthlyReports";
@@ -13,6 +13,7 @@ import { Income } from "./pages/Income";
 import { Reports } from "./pages/Reports";
 import { Events } from "./pages/Events";
 import { Support } from "./pages/Support";
+import { SystemAdmin } from "./pages/SystemAdmin";
 import { Loans } from "./pages/Loans";
 import HelpPage from "./pages/HelpPage";
 import FAQPage from "./pages/FAQPage";
@@ -39,10 +40,17 @@ export const router = createBrowserRouter([
     Component: ResetPassword,
   },
 
+  // ── System admin (same sidebar Layout as dashboard) ───────
+  {
+    path: "/systemadmin",
+    Component: RequireSessionLayout,
+    children: [{ index: true, Component: SystemAdmin }],
+  },
+
   // ── Main app (with sidebar Layout) ────────────────────────
   {
     path: "/dashboard",
-    Component: Layout,
+    Component: RequireSessionLayout,
     children: [
       { index: true, Component: Dashboard },
       { path: "settings", Component: Settings },

@@ -1,5 +1,5 @@
 /**
- * Supabase implementation for support tickets and replies.
+ * Supabase implementation for support tickets, replies, and activity log.
  */
 
 import { supabase } from "@core/supabase/client";
@@ -8,8 +8,18 @@ import type {
   SupportTicketRow,
   SupportTicketReplyRow,
   SupportTicketReplyWithAuthor,
+  SupportTicketActivityRow,
+  InsertTicketActivityInput,
 } from "./ISupportTicketRepository";
 import type { TicketStatus } from "../domain/SupportTicket";
+
+const TICKET_USER_SELECT = "*, users(full_name, email)";
+
+function ownerNameFromUsers(users: { full_name?: string; email?: string } | null | undefined): string | undefined {
+  if (!users) return undefined;
+  const n = (users.full_name && users.full_name.trim()) || users.email;
+  return n || undefined;
+}
 
 export class SupabaseSupportTicketRepository implements ISupportTicketRepository {
   async createTicket(
@@ -25,7 +35,7 @@ export class SupabaseSupportTicketRepository implements ISupportTicketRepository
         body: body.trim(),
         status: "pending",
       })
-      .select()
+      .select(TICKET_USER_SELECT)
       .single();
 
     if (error) throw error;
@@ -40,7 +50,7 @@ export class SupabaseSupportTicketRepository implements ISupportTicketRepository
   ): Promise<SupportTicketRow[]> {
     let query = supabase
       .from("support_tickets")
-      .select("*")
+      .select(TICKET_USER_SELECT)
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
 
@@ -56,7 +66,7 @@ export class SupabaseSupportTicketRepository implements ISupportTicketRepository
   async findAllTickets(status?: TicketStatus | "all"): Promise<SupportTicketRow[]> {
     let query = supabase
       .from("support_tickets")
-      .select("*")
+      .select(TICKET_USER_SELECT)
       .order("created_at", { ascending: false });
 
     if (status && status !== "all") {
@@ -71,7 +81,7 @@ export class SupabaseSupportTicketRepository implements ISupportTicketRepository
   async findTicketById(id: number): Promise<SupportTicketRow | null> {
     const { data, error } = await supabase
       .from("support_tickets")
-      .select("*")
+      .select(TICKET_USER_SELECT)
       .eq("id", id)
       .single();
 
@@ -90,7 +100,7 @@ export class SupabaseSupportTicketRepository implements ISupportTicketRepository
       .from("support_tickets")
       .update({ status, updated_at: new Date().toISOString() })
       .eq("id", id)
-      .select()
+      .select(TICKET_USER_SELECT)
       .single();
 
     if (error) {
@@ -104,7 +114,7 @@ export class SupabaseSupportTicketRepository implements ISupportTicketRepository
     ticketId: number,
     authorId: string,
     body: string
-  ): Promise<SupportTicketReplyRow> {
+  ): Promise<SupportTicketReplyWithAuthor> {
     const { data, error } = await supabase
       .from("support_ticket_replies")
       .insert({
@@ -112,19 +122,19 @@ export class SupabaseSupportTicketRepository implements ISupportTicketRepository
         author_id: authorId,
         body: body.trim(),
       })
-      .select()
+      .select("*, users(full_name, email, role)")
       .single();
 
     if (error) throw error;
     if (!data) throw new Error("Insert reply returned no data");
 
-    return this.mapReplyRow(data);
+    return this.mapReplyRowWithAuthor(data);
   }
 
   async getReplies(ticketId: number): Promise<SupportTicketReplyWithAuthor[]> {
     const { data, error } = await supabase
       .from("support_ticket_replies")
-      .select("*, users(full_name, email)")
+      .select("*, users(full_name, email, role)")
       .eq("ticket_id", ticketId)
       .order("created_at", { ascending: true });
 
@@ -132,7 +142,52 @@ export class SupabaseSupportTicketRepository implements ISupportTicketRepository
     return (data ?? []).map((r: Record<string, unknown>) => this.mapReplyRowWithAuthor(r));
   }
 
+  async insertTicketActivity(input: InsertTicketActivityInput): Promise<void> {
+    const row: Record<string, unknown> = {
+      ticket_id: input.ticketId,
+      actor_id: input.actorId,
+      kind: input.kind,
+      from_status: input.fromStatus ?? null,
+      to_status: input.toStatus ?? null,
+      body: input.body ?? null,
+      source_reply_id: input.sourceReplyId ?? null,
+    };
+    const { error } = await supabase.from("support_ticket_activity").insert(row);
+    if (error) throw error;
+  }
+
+  async listTicketActivities(ticketId: number): Promise<SupportTicketActivityRow[]> {
+    const { data, error } = await supabase
+      .from("support_ticket_activity")
+      .select("*")
+      .eq("ticket_id", ticketId)
+      .order("created_at", { ascending: true });
+
+    if (error) throw error;
+    const raw = (data ?? []) as Record<string, unknown>[];
+    const actorIds = [...new Set(raw.map((r) => String(r.actor_id)).filter(Boolean))];
+    const nameById = new Map<string, string>();
+    if (actorIds.length > 0) {
+      const { data: usersData, error: usersError } = await supabase
+        .from("users")
+        .select("id, full_name, email")
+        .in("id", actorIds);
+      if (!usersError && usersData) {
+        for (const u of usersData as {
+          id: string;
+          full_name?: string | null;
+          email?: string | null;
+        }[]) {
+          const n = (u.full_name && u.full_name.trim()) || u.email || "Unknown";
+          nameById.set(u.id, n);
+        }
+      }
+    }
+    return raw.map((r) => this.mapActivityRow(r, nameById.get(String(r.actor_id))));
+  }
+
   private mapTicketRow(r: Record<string, unknown>): SupportTicketRow {
+    const users = r.users as { full_name?: string; email?: string } | null | undefined;
     return {
       id: Number(r.id),
       user_id: String(r.user_id),
@@ -141,6 +196,7 @@ export class SupabaseSupportTicketRepository implements ISupportTicketRepository
       status: r.status as TicketStatus,
       created_at: String(r.created_at),
       updated_at: String(r.updated_at),
+      owner_display_name: ownerNameFromUsers(users),
     };
   }
 
@@ -155,14 +211,40 @@ export class SupabaseSupportTicketRepository implements ISupportTicketRepository
   }
 
   private mapReplyRowWithAuthor(r: Record<string, unknown>): SupportTicketReplyWithAuthor {
-    const users = r.users as { full_name?: string; email?: string } | null | undefined;
+    const users = r.users as { full_name?: string; email?: string; role?: string } | null | undefined;
     const name =
       (users?.full_name && users.full_name.trim()) ||
       users?.email ||
       "Unknown";
+    const roleRaw = users?.role;
+    const author_role =
+      roleRaw === "Admin" || roleRaw === "Staff" || roleRaw === "User" ? roleRaw : undefined;
     return {
       ...this.mapReplyRow(r),
       author_display_name: name,
+      author_email: users?.email?.trim() || undefined,
+      author_role,
+    };
+  }
+
+  private mapActivityRow(
+    r: Record<string, unknown>,
+    actorDisplayNameOverride?: string
+  ): SupportTicketActivityRow {
+    const users = r.users as { full_name?: string; email?: string } | null | undefined;
+    const fromJoin =
+      (users?.full_name && users.full_name.trim()) || users?.email || undefined;
+    const name = fromJoin || actorDisplayNameOverride || "Unknown";
+    return {
+      id: Number(r.id),
+      ticket_id: Number(r.ticket_id),
+      actor_id: String(r.actor_id),
+      kind: r.kind as SupportTicketActivityRow["kind"],
+      from_status: r.from_status != null ? String(r.from_status) : null,
+      to_status: r.to_status != null ? String(r.to_status) : null,
+      body: r.body != null ? String(r.body) : null,
+      created_at: String(r.created_at),
+      actor_display_name: name,
     };
   }
 }

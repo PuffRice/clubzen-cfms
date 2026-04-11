@@ -15,6 +15,7 @@ import {
   FolderTree,
   X,
   Lock,
+  Shield,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
@@ -32,17 +33,19 @@ const navigation = [
   { name: "FAQ", href: "/dashboard/faq", icon: HelpCircle },
 ];
 
+const adminOnlyNav = [{ name: "System admin", href: "/systemadmin", icon: Shield }];
+
 export function Layout() {
   const navigate = useNavigate();
   const [reportsOpen, setReportsOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
-  const userEmail = sessionStorage.getItem("userEmail") ?? "user@example.com";
-  const userRole = sessionStorage.getItem("userRole") ?? "Staff";
+  const userEmail = sessionStorage.getItem("userEmail") ?? "";
+  const userRole = (sessionStorage.getItem("userRole") ?? "Staff").trim();
   const storedName = sessionStorage.getItem("userName");
-  const userName = storedName || userEmail.split("@")[0];
-  const initials = userName.slice(0, 2).toUpperCase();
+  const userName = storedName || (userEmail ? userEmail.split("@")[0] : "User");
+  const initials = (userName.length >= 2 ? userName.slice(0, 2) : userName.padEnd(2, "?")).toUpperCase();
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -51,10 +54,18 @@ export function Layout() {
   const [passwordError, setPasswordError] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState(false);
 
-  function handleLogout() {
-    sessionStorage.removeItem("userRole");
+  async function handleLogout() {
+    try {
+      await authController.logout();
+    } catch {
+      /* still clear local session */
+    }
+    sessionStorage.removeItem("authToken");
+    sessionStorage.removeItem("userId");
     sessionStorage.removeItem("userEmail");
-    navigate("/login");
+    sessionStorage.removeItem("userRole");
+    sessionStorage.removeItem("userName");
+    navigate("/login", { replace: true });
   }
 
   return (
@@ -177,6 +188,31 @@ export function Layout() {
                 ))}
               </ul>
             </div>
+
+            {userRole === "Admin" && (
+              <div className="mb-6">
+                <p className="text-xs uppercase font-semibold text-emerald-400/90 px-4 mb-3">Administration</p>
+                <ul className="space-y-2">
+                  {adminOnlyNav.map((item) => (
+                    <li key={item.name}>
+                      <NavLink
+                        to={item.href}
+                        className={({ isActive }) =>
+                          `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+                            isActive
+                              ? "bg-gradient-to-r from-emerald-600/80 to-emerald-800/80 text-white shadow-lg shadow-emerald-500/20"
+                              : "text-emerald-200/90 hover:bg-slate-700/40"
+                          }`
+                        }
+                      >
+                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                        <span className="font-medium">{item.name}</span>
+                      </NavLink>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Reports Section */}
             <div>

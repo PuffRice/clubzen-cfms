@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import type { ReactNode } from "react";
+import { useNavigate } from "react-router";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import {
@@ -51,10 +52,16 @@ interface ReplyItem {
   authorRole?: string;
 }
 
-export function Support() {
+function statusBadgeClass(status: string): string {
+  if (status === "closed") return "bg-muted text-muted-foreground";
+  if (status === "processing") return "bg-blue-500/20 text-blue-600 dark:text-blue-400";
+  return "bg-amber-500/20 text-amber-600 dark:text-amber-400";
+}
+
+export function SystemAdmin() {
+  const navigate = useNavigate();
+  const [allowed, setAllowed] = useState(false);
   const userId = sessionStorage.getItem("userId") ?? "";
-  const userRole = (sessionStorage.getItem("userRole") ?? "Staff").trim();
-  const isAdmin = userRole === "Admin";
 
   const [activeTab, setActiveTab] = useState<Tab>("all");
   const [tickets, setTickets] = useState<TicketItem[]>([]);
@@ -84,11 +91,27 @@ export function Support() {
     "date-asc": <ArrowUp10 className="h-3.5 w-3.5 shrink-0" />,
   };
 
+  useEffect(() => {
+    const uid = sessionStorage.getItem("userId") ?? "";
+    const token = sessionStorage.getItem("authToken") ?? "";
+    const role = (sessionStorage.getItem("userRole") ?? "").trim();
+    if (!uid || !token) {
+      navigate("/login", { replace: true });
+      return;
+    }
+    if (role !== "Admin") {
+      navigate("/dashboard", { replace: true });
+      return;
+    }
+    setAllowed(true);
+  }, [navigate]);
+
   const fetchTickets = useCallback(async () => {
+    if (!allowed || !userId) return;
     setLoading(true);
     setError("");
     try {
-      const res = await supportTicketController.getTicketsForUser(userId, statusFilter);
+      const res = await supportTicketController.getAllTickets(statusFilter, userId);
       if (res.success && res.tickets) setTickets(res.tickets as TicketItem[]);
       else setTickets([]);
       if (res.error) setError(res.error);
@@ -98,17 +121,20 @@ export function Support() {
     } finally {
       setLoading(false);
     }
-  }, [userId, statusFilter]);
+  }, [allowed, userId, statusFilter]);
 
   useEffect(() => {
     fetchTickets();
   }, [fetchTickets]);
 
-  const fetchReplies = useCallback(async (ticketId: number) => {
-    const res = await supportTicketController.getReplies(ticketId, userId);
-    if (res.success && res.replies) setReplies(res.replies as ReplyItem[]);
-    else setReplies([]);
-  }, [userId]);
+  const fetchReplies = useCallback(
+    async (ticketId: number) => {
+      const res = await supportTicketController.getReplies(ticketId, userId);
+      if (res.success && res.replies) setReplies(res.replies as ReplyItem[]);
+      else setReplies([]);
+    },
+    [userId]
+  );
 
   async function handleOpenTicket() {
     if (!newSubject.trim() || !newBody.trim()) return;
@@ -164,148 +190,142 @@ export function Support() {
     }
   }
 
+  if (!allowed) {
+    return (
+      <div className="min-h-[50vh] flex items-center justify-center text-muted-foreground text-sm">
+        Checking access…
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 md:p-8">
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Support</h1>
-          <p className="text-muted-foreground mt-1">
-            Create a ticket or follow up on your requests.
-          </p>
-        </div>
-        <Button
-          onClick={() => {
-            setNewTicketError("");
-            setOpenDialog(true);
-          }}
-          className="bg-primary/90 text-primary-foreground hover:bg-primary h-10 gap-1"
-        >
-          <Plus className="h-4 w-4" />
-          New ticket
-        </Button>
-      </div>
-
-      {error && (
-        <div className="mb-4 rounded-lg bg-destructive/10 text-destructive px-4 py-2 text-sm">
-          {error}
-        </div>
-      )}
-
-      <div className="flex gap-2 border-b border-border mb-6">
-        {TABS.map(({ key, label }) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setActiveTab(key)}
-            className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-              activeTab === key
-                ? "bg-primary text-primary-foreground border-b-2 border-primary"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      <Card className="bg-card-navy/25 border-card-navy/40 border">
-        <CardHeader>
-          <CardTitle>Tickets</CardTitle>
-          <CardAction>
-            <DropdownMenu>
-              <DropdownMenuTrigger className="inline-flex items-center justify-start gap-2 whitespace-nowrap rounded-md text-sm font-medium h-9 w-56 px-4 py-2 border bg-background text-foreground hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 outline-none" title="Sort tickets">
-                {ticketSortIcon[ticketSort]}
-                {TICKET_OPENED_SORT_LABELS[ticketSort]}
-                <ChevronDown className="h-3.5 w-3.5 opacity-50 ml-auto" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuLabel>Sort by</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className={`whitespace-nowrap cursor-pointer ${ticketSort === "date-desc" ? "bg-accent text-accent-foreground" : ""}`} onSelect={() => setTicketSort("date-desc")}>
-                  <ArrowDown10 className="h-3.5 w-3.5 shrink-0" /> Date: New to Old
-                </DropdownMenuItem>
-                <DropdownMenuItem className={`whitespace-nowrap cursor-pointer ${ticketSort === "date-asc" ? "bg-accent text-accent-foreground" : ""}`} onSelect={() => setTicketSort("date-asc")}>
-                  <ArrowUp10 className="h-3.5 w-3.5 shrink-0" /> Date: Old to New
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </CardAction>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            {loading ? (
-              <ul className="space-y-4">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <li
-                    key={i}
-                    className="w-full flex items-center justify-between gap-4 p-4 rounded-lg border border-white/10 shadow-sm shadow-white/5"
-                  >
-                    <div className="min-w-0 flex-1 space-y-2">
-                      <Skeleton className="h-4 w-3/5" />
-                      <Skeleton className="h-3 w-4/5" />
-                    </div>
-                    <Skeleton className="h-5 w-16 rounded shrink-0" />
-                    <Skeleton className="h-4 w-4 rounded shrink-0" />
-                  </li>
-                ))}
-              </ul>
-            ) : tickets.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">No tickets in this tab.</div>
-            ) : (
-              <ul className="space-y-4">
-                {sortedTickets.map((t) => (
-                  <li key={t.id}>
-                    <button
-                      type="button"
-                      onClick={() => openDetail(t)}
-                      className="w-full flex items-center justify-between gap-4 p-4 rounded-lg border border-white/10 text-left shadow-sm shadow-white/5 transition-all hover:bg-gray-800/50 hover:shadow-md hover:shadow-white/10"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-foreground truncate">{t.subject}</p>
-                        <p className="text-sm text-muted-foreground truncate">{t.body}</p>
-                        {isAdmin ? (
-                          <>
-                            <p className="text-xs text-muted-foreground mt-1.5">
-                              Opened by {t.ownerDisplayName ?? "Unknown"} · {formatExactTimestamp(t.createdAt)}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Last updated {formatExactTimestamp(t.updatedAt)}
-                            </p>
-                          </>
-                        ) : null}
-                      </div>
-                      <span
-                        className={`shrink-0 px-2 py-1 rounded text-xs font-medium ${
-                          t.status === "closed"
-                            ? "bg-muted text-muted-foreground"
-                            : t.status === "processing"
-                              ? "bg-blue-500/20 text-blue-600 dark:text-blue-400"
-                              : "bg-amber-500/20 text-amber-600 dark:text-amber-400"
-                        }`}
-                      >
-                        {t.status}
-                      </span>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-foreground">
+      <div className="p-6 md:p-8">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">System admin</h1>
+            <p className="text-muted-foreground mt-1">Support queue — all tickets, replies, and status.</p>
           </div>
-        </CardContent>
-      </Card>
+          <Button
+            onClick={() => {
+              setNewTicketError("");
+              setOpenDialog(true);
+            }}
+            className="bg-primary/90 text-primary-foreground hover:bg-primary h-10 gap-1"
+          >
+            <Plus className="h-4 w-4" />
+            New ticket
+          </Button>
+        </div>
+
+        {error && (
+          <div className="mb-4 rounded-lg bg-destructive/10 text-destructive px-4 py-2 text-sm">{error}</div>
+        )}
+
+        <div className="flex gap-2 border-b border-border mb-6">
+          {TABS.map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setActiveTab(key)}
+              className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+                activeTab === key
+                  ? "bg-primary text-primary-foreground border-b-2 border-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <Card className="bg-card-navy/25 border-card-navy/40 border">
+          <CardHeader>
+            <CardTitle>Tickets</CardTitle>
+            <CardAction>
+              <DropdownMenu>
+                <DropdownMenuTrigger className="inline-flex items-center justify-start gap-2 whitespace-nowrap rounded-md text-sm font-medium h-9 w-56 px-4 py-2 border bg-background text-foreground hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 outline-none" title="Sort tickets">
+                  {ticketSortIcon[ticketSort]}
+                  {TICKET_OPENED_SORT_LABELS[ticketSort]}
+                  <ChevronDown className="h-3.5 w-3.5 opacity-50 ml-auto" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52">
+                  <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className={`whitespace-nowrap cursor-pointer ${ticketSort === "date-desc" ? "bg-accent text-accent-foreground" : ""}`} onSelect={() => setTicketSort("date-desc")}>
+                    <ArrowDown10 className="h-3.5 w-3.5 shrink-0" /> Date: New to Old
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className={`whitespace-nowrap cursor-pointer ${ticketSort === "date-asc" ? "bg-accent text-accent-foreground" : ""}`} onSelect={() => setTicketSort("date-asc")}>
+                    <ArrowUp10 className="h-3.5 w-3.5 shrink-0" /> Date: Old to New
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </CardAction>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              {loading ? (
+                <ul className="space-y-4">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <li
+                      key={i}
+                      className="w-full flex items-center justify-between gap-4 p-4 rounded-lg border border-white/10 shadow-sm shadow-white/5"
+                    >
+                      <div className="min-w-0 flex-1 space-y-2">
+                        <Skeleton className="h-4 w-3/5" />
+                        <Skeleton className="h-3 w-4/5" />
+                      </div>
+                      <Skeleton className="h-5 w-16 rounded shrink-0" />
+                      <Skeleton className="h-4 w-4 rounded shrink-0" />
+                    </li>
+                  ))}
+                </ul>
+              ) : tickets.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">No tickets in this tab.</div>
+              ) : (
+                <ul className="space-y-4">
+                  {sortedTickets.map((t) => (
+                    <li key={t.id}>
+                      <button
+                        type="button"
+                        onClick={() => openDetail(t)}
+                        className="w-full flex items-center justify-between gap-4 p-4 rounded-lg border border-white/10 text-left shadow-sm shadow-white/5 transition-all hover:bg-gray-800/50 hover:shadow-md hover:shadow-white/10"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-foreground truncate">{t.subject}</p>
+                          <p className="text-xs text-muted-foreground truncate mt-0.5">
+                            #{t.id} · {t.userId.slice(0, 8)}… · Owner: {t.ownerDisplayName ?? "Unknown"}
+                          </p>
+                          <p className="text-sm text-muted-foreground truncate">{t.body}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Opened {formatExactTimestamp(t.createdAt)} · Last updated{" "}
+                            {formatExactTimestamp(t.updatedAt)}
+                          </p>
+                        </div>
+                        <span className={`shrink-0 px-2 py-1 rounded text-xs font-medium ${statusBadgeClass(t.status)}`}>
+                          {t.status}
+                        </span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {openDialog && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">New ticket</h2>
+              <h2 className="text-xl font-bold">Create ticket</h2>
               <button
                 type="button"
                 className="p-2 rounded-lg hover:bg-muted text-muted-foreground"
                 onClick={() => setOpenDialog(false)}
-                title="Cancel"
-                aria-label="Cancel and close"
+                aria-label="Close"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -317,22 +337,30 @@ export function Support() {
                 </div>
               ) : null}
               <div>
-                <label className="block text-sm font-medium mb-1">Subject</label>
+                <label htmlFor="systemadmin-ticket-subject" className="block text-sm font-medium mb-1">
+                  Subject
+                </label>
                 <input
+                  id="systemadmin-ticket-subject"
                   type="text"
                   value={newSubject}
                   onChange={(e) => setNewSubject(e.target.value)}
                   placeholder="Brief subject"
+                  title="Ticket subject"
                   className="w-full px-3 py-2 border border-input rounded-md bg-background"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Message</label>
+                <label htmlFor="systemadmin-ticket-body" className="block text-sm font-medium mb-1">
+                  Message
+                </label>
                 <textarea
+                  id="systemadmin-ticket-body"
                   value={newBody}
                   onChange={(e) => setNewBody(e.target.value)}
-                  placeholder="Describe your issue…"
                   rows={4}
+                  placeholder="Describe the issue…"
+                  title="Ticket message"
                   className="w-full px-3 py-2 border border-input rounded-md bg-background resize-none"
                 />
               </div>
@@ -357,28 +385,19 @@ export function Support() {
           <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col">
             <div className="p-6 border-b border-border flex items-start justify-between gap-4">
               <div className="min-w-0">
+                <p className="text-xs text-muted-foreground mb-1">
+                  #{selectedTicket.id} · {selectedTicket.userId}
+                </p>
                 <h2 className="text-xl font-bold">{selectedTicket.subject}</h2>
                 <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{selectedTicket.body}</p>
-                {isAdmin ? (
-                  <>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Owner: {selectedTicket.ownerDisplayName ?? "Unknown"} · Opened{" "}
-                      {formatExactTimestamp(selectedTicket.createdAt)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Ticket record last updated {formatExactTimestamp(selectedTicket.updatedAt)}
-                    </p>
-                  </>
-                ) : null}
-                <span
-                  className={`inline-block mt-2 px-2 py-1 rounded text-xs font-medium ${
-                    selectedTicket.status === "closed"
-                      ? "bg-muted text-muted-foreground"
-                      : selectedTicket.status === "processing"
-                        ? "bg-blue-500/20 text-blue-600 dark:text-blue-400"
-                        : "bg-amber-500/20 text-amber-600 dark:text-amber-400"
-                  }`}
-                >
+                <p className="text-xs text-muted-foreground mt-2">
+                  Owner: {selectedTicket.ownerDisplayName ?? "Unknown"} · Opened{" "}
+                  {formatExactTimestamp(selectedTicket.createdAt)}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Ticket record last updated {formatExactTimestamp(selectedTicket.updatedAt)}
+                </p>
+                <span className={`inline-block mt-2 px-2 py-1 rounded text-xs font-medium ${statusBadgeClass(selectedTicket.status)}`}>
                   {selectedTicket.status}
                 </span>
               </div>
@@ -389,13 +408,12 @@ export function Support() {
                   setSelectedTicket(null);
                   setReplies([]);
                 }}
-                title="Close"
                 aria-label="Close ticket detail"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
-            {isAdmin && selectedTicket.status !== "closed" && (
+            {selectedTicket.status !== "closed" && (
               <div className="px-6 py-2 border-b border-border flex gap-2 flex-wrap">
                 {(["pending", "processing", "closed"] as const).map((s) => (
                   <Button
@@ -422,7 +440,7 @@ export function Support() {
                   >
                     <p className="text-sm text-foreground whitespace-pre-wrap">{r.body}</p>
                     <div className="pt-2 border-t border-border/50 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
-                      <span>{formatReplyAuthorForViewer(isAdmin, r)}</span>
+                      <span>{formatReplyAuthorForViewer(true, r)}</span>
                       <span className="text-muted-foreground/80" aria-hidden>
                         ·
                       </span>
