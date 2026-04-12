@@ -157,20 +157,6 @@ export function Login() {
                 )}
               </Button>
 
-              {/* Divider */}
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-px bg-gray-300"></div>
-                <span className="text-sm text-gray-500">or</span>
-                <div className="flex-1 h-px bg-gray-300"></div>
-              </div>
-
-              {/* Forget Password Link */}
-              <p className="text-center text-gray-600">
-                Having trouble signing in?{" "}
-                <Link to="/forgot-password" className="text-blue-600 hover:text-blue-700 font-semibold transition-colors">
-                  Reset password
-                </Link>
-              </p>
             </form>
           </div>
 
