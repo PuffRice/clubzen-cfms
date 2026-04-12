@@ -15,7 +15,7 @@ function toSettingsRow(data: Record<string, unknown>): SettingsRow {
     email: (data.email as string) ?? "",
     fullName: data.full_name != null ? String(data.full_name) : "",
     role: (data.role as string) ?? "Staff",
-    currency: data.currency != null ? String(data.currency) : "USD",
+    currency: data.currency != null ? String(data.currency) : "BDT",
     updatedAt: (data.updated_at as string) ?? "",
   };
 }

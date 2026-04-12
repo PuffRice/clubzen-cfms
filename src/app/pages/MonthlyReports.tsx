@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { Download, TrendingUp, TrendingDown, Calendar } from "lucide-react";
+import { Download } from "lucide-react";
 import { useState, useEffect } from "react";
 import { transactionController } from "../services";
 import { useCurrency } from "../CurrencyContext";
@@ -8,10 +8,12 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 export function MonthlyReports() {
-  
+
   const { symbol } = useCurrency();
-  const safeSymbol = typeof symbol === "string" ? symbol : "৳";
-  const pdfSymbol = typeof symbol === "string" && /^[\x20-\x7E]+$/.test(symbol) ? symbol : "$";
+
+  // ✅ Currency Fix
+  const displayCurrency = symbol === "৳" ? "BDT" : symbol;
+
   const [monthlyData, setMonthlyData] = useState({
     totalIncome: 0,
     totalExpenses: 0,
@@ -24,6 +26,16 @@ export function MonthlyReports() {
   const [availableMonths, setAvailableMonths] = useState<string[]>([]);
   const [allTransactions, setAllTransactions] = useState<any[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<string>("");
+
+  // ✅ Format Function (GLOBAL FIX)
+  const parseAmount = (value: unknown): number => {
+    const amount = typeof value === "string" ? Number(value) : Number(value ?? 0);
+    return Number.isFinite(amount) ? amount : 0;
+  };
+
+  const formatWithCurrency = (amount: number) => {
+    return `${displayCurrency} ${parseAmount(amount).toFixed(2)}`;
+  };
 
   // ---------------- PDF EXPORT ----------------
   const exportPDF = () => {
@@ -45,15 +57,14 @@ export function MonthlyReports() {
     doc.setFontSize(12);
     doc.text(`Month: ${formatMonth(selectedMonth)}`, 14, 30);
 
-    // S
-    // ummary Table
+    // Summary Table
     autoTable(doc, {
       startY: 40,
       head: [["Type", "Amount"]],
       body: [
-        ["Total Income", formatMoney(summary.totalIncome, true)],
-        ["Total Expenses", formatMoney(summary.totalExpenses, true)],
-        ["Net Savings", formatMoney(summary.netSavings, true)],
+        ["Total Income", formatWithCurrency(summary.totalIncome)],
+        ["Total Expenses", formatWithCurrency(summary.totalExpenses)],
+        ["Net Savings", formatWithCurrency(summary.netSavings)],
         ["Savings Rate", `${summary.savingsRate}%`],
       ],
     });
@@ -66,7 +77,7 @@ export function MonthlyReports() {
       head: [["Income Category", "Amount"]],
       body: breakdowns.income.map((i) => [
         i.category,
-        formatMoney(i.amount, true),
+        formatWithCurrency(i.amount),
       ]),
     });
 
@@ -78,7 +89,7 @@ export function MonthlyReports() {
       head: [["Expense Category", "Amount"]],
       body: breakdowns.expense.map((i) => [
         i.category,
-        formatMoney(i.amount, true),
+        formatWithCurrency(i.amount),
       ]),
     });
 
@@ -111,16 +122,6 @@ export function MonthlyReports() {
       year: "numeric",
       month: "long",
     });
-  };
-
-  const parseAmount = (value: unknown): number => {
-    const amount = typeof value === "string" ? Number(value) : Number(value ?? 0);
-    return Number.isFinite(amount) ? amount : 0;
-  };
-
-  const formatMoney = (value: unknown, forPdf = false): string => {
-    const symbolToUse = forPdf ? pdfSymbol : safeSymbol;
-    return `${symbolToUse}${parseAmount(value).toFixed(2)}`;
   };
 
   const calculateSummary = (tx: any[]) => {
@@ -238,81 +239,63 @@ export function MonthlyReports() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card className="bg-card-navy/25 border-card-navy/40 border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Income</CardTitle>
-          </CardHeader>
+        <Card>
+          <CardHeader><CardTitle>Total Income</CardTitle></CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-green-500">{formatMoney(monthlyData.totalIncome)}</p>
+            <p className="text-2xl font-bold text-green-500">
+              {formatWithCurrency(monthlyData.totalIncome)}
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-card-navy/25 border-card-navy/40 border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Expenses</CardTitle>
-          </CardHeader>
+        <Card>
+          <CardHeader><CardTitle>Total Expenses</CardTitle></CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-red-500">{formatMoney(monthlyData.totalExpenses)}</p>
+            <p className="text-2xl font-bold text-red-500">
+              {formatWithCurrency(monthlyData.totalExpenses)}
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-card-navy/25 border-card-navy/40 border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Net Savings</CardTitle>
-          </CardHeader>
+        <Card>
+          <CardHeader><CardTitle>Net Savings</CardTitle></CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-foreground">{formatMoney(monthlyData.netSavings)}</p>
+            <p className="text-2xl font-bold">
+              {formatWithCurrency(monthlyData.netSavings)}
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-card-navy/25 border-card-navy/40 border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Savings Rate</CardTitle>
-          </CardHeader>
+        <Card>
+          <CardHeader><CardTitle>Savings Rate</CardTitle></CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-foreground">{monthlyData.savingsRate}%</p>
+            <p className="text-2xl font-bold">{monthlyData.savingsRate}%</p>
           </CardContent>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card className="bg-card-navy/25 border-card-navy/40 border">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold">Income Breakdown</CardTitle>
-          </CardHeader>
+        <Card>
+          <CardHeader><CardTitle>Income Breakdown</CardTitle></CardHeader>
           <CardContent>
-            {incomeBreakdown.length ? (
-              <ul className="space-y-3">
-                {incomeBreakdown.map((item) => (
-                  <li key={item.category} className="flex items-center justify-between gap-3 border-b border-border pb-2 last:border-b-0">
-                    <span>{item.category}</span>
-                    <strong>{formatMoney(item.amount)}</strong>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted-foreground">No income categories recorded for this month.</p>
-            )}
+            {incomeBreakdown.length ? incomeBreakdown.map((item) => (
+              <div key={item.category} className="flex justify-between">
+                <span>{item.category}</span>
+                <strong>{formatWithCurrency(item.amount)}</strong>
+              </div>
+            )) : <p>No data</p>}
           </CardContent>
         </Card>
 
-        <Card className="bg-card-navy/25 border-card-navy/40 border">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold">Expense Breakdown</CardTitle>
-          </CardHeader>
+        <Card>
+          <CardHeader><CardTitle>Expense Breakdown</CardTitle></CardHeader>
           <CardContent>
-            {expenseBreakdown.length ? (
-              <ul className="space-y-3">
-                {expenseBreakdown.map((item) => (
-                  <li key={item.category} className="flex items-center justify-between gap-3 border-b border-border pb-2 last:border-b-0">
-                    <span>{item.category}</span>
-                    <strong>{formatMoney(item.amount)}</strong>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted-foreground">No expense categories recorded for this month.</p>
-            )}
+            {expenseBreakdown.length ? expenseBreakdown.map((item) => (
+              <div key={item.category} className="flex justify-between">
+                <span>{item.category}</span>
+                <strong>{formatWithCurrency(item.amount)}</strong>
+              </div>
+            )) : <p>No data</p>}
           </CardContent>
         </Card>
       </div>
