@@ -37,6 +37,21 @@ CREATE INDEX IF NOT EXISTS idx_support_tickets_user_id ON support_tickets(user_i
 CREATE INDEX IF NOT EXISTS idx_support_tickets_status ON support_tickets(status);
 CREATE INDEX IF NOT EXISTS idx_support_ticket_replies_ticket_id ON support_ticket_replies(ticket_id);
 
+CREATE TABLE IF NOT EXISTS support_ticket_activity (
+    id BIGSERIAL PRIMARY KEY,
+    ticket_id INT NOT NULL REFERENCES support_tickets(id) ON DELETE CASCADE,
+    actor_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    kind VARCHAR(30) NOT NULL CHECK (kind IN ('ticket_created', 'status_changed', 'reply_added')),
+    from_status VARCHAR(20),
+    to_status VARCHAR(20),
+    body TEXT,
+    source_reply_id INT REFERENCES support_ticket_replies(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT support_ticket_activity_source_reply_unique UNIQUE (source_reply_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_support_ticket_activity_ticket_id ON support_ticket_activity(ticket_id, created_at);
+
 -- ─── Expense ────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS EXPENSE (
     id SERIAL PRIMARY KEY,

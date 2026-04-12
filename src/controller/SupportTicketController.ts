@@ -1,6 +1,6 @@
 /**
  * Support ticket controller — delegates to SupportTicketService.
- * Only Admin and Staff may update ticket status.
+ * Only Admin may list all tickets or update status. Replies: ticket owner or Admin.
  */
 
 import { SupportTicketService } from "../service/SupportTicketService";
@@ -43,6 +43,7 @@ export class SupportTicketController {
           status: t.status,
           createdAt: t.createdAt.toISOString(),
           updatedAt: t.updatedAt.toISOString(),
+          ownerDisplayName: t.ownerDisplayName,
         })),
       };
     } catch (e) {
@@ -52,9 +53,20 @@ export class SupportTicketController {
   }
 
   async getAllTickets(
-    status?: TicketStatus | "all"
+    status: TicketStatus | "all" | undefined,
+    requestingUserId: string
   ): Promise<{ success: boolean; tickets?: Array<Record<string, unknown>>; error?: string }> {
     try {
+      if (this.authRepository) {
+        if (!requestingUserId) {
+          return { success: false, error: "Authentication required" };
+        }
+        const profile = await this.authRepository.getUserProfile(requestingUserId);
+        if (!profile) return { success: false, error: "User not found" };
+        if (profile.role !== "Admin") {
+          return { success: false, error: "Only administrators can access all support tickets" };
+        }
+      }
       const tickets = await this.supportTicketService.getAllTickets(status);
       return {
         success: true,
@@ -66,6 +78,7 @@ export class SupportTicketController {
           status: t.status,
           createdAt: t.createdAt.toISOString(),
           updatedAt: t.updatedAt.toISOString(),
+          ownerDisplayName: t.ownerDisplayName,
         })),
       };
     } catch (e) {
@@ -75,11 +88,22 @@ export class SupportTicketController {
   }
 
   async getTicketById(
-    id: number
+    id: number,
+    requestingUserId?: string
   ): Promise<{ success: boolean; ticket?: Record<string, unknown>; error?: string }> {
     try {
       const ticket = await this.supportTicketService.getTicketById(id);
       if (!ticket) return { success: false, error: "Ticket not found" };
+      if (this.authRepository) {
+        if (!requestingUserId) {
+          return { success: false, error: "Authentication required" };
+        }
+        const profile = await this.authRepository.getUserProfile(requestingUserId);
+        if (!profile) return { success: false, error: "User not found" };
+        if (profile.role !== "Admin" && ticket.userId !== requestingUserId) {
+          return { success: false, error: "Access denied" };
+        }
+      }
       return {
         success: true,
         ticket: {
@@ -90,6 +114,7 @@ export class SupportTicketController {
           status: ticket.status,
           createdAt: ticket.createdAt.toISOString(),
           updatedAt: ticket.updatedAt.toISOString(),
+          ownerDisplayName: ticket.ownerDisplayName,
         },
       };
     } catch (e) {
@@ -99,7 +124,7 @@ export class SupportTicketController {
   }
 
   /**
-   * Only Admin and Staff may update ticket status. Pass requestingUserId to enforce.
+   * Only Admin may update ticket status. Pass requestingUserId to enforce.
    */
   async updateStatus(
     id: number,
@@ -107,14 +132,21 @@ export class SupportTicketController {
     requestingUserId?: string
   ): Promise<{ success: boolean; ticket?: Record<string, unknown>; error?: string }> {
     try {
-      if (requestingUserId && this.authRepository) {
+      if (this.authRepository) {
+        if (!requestingUserId) {
+          return { success: false, error: "Authentication required" };
+        }
         const profile = await this.authRepository.getUserProfile(requestingUserId);
         if (!profile) return { success: false, error: "User not found" };
-        if (profile.role !== "Admin" && profile.role !== "Staff") {
-          return { success: false, error: "Only staff can update ticket status" };
+        if (profile.role !== "Admin") {
+          return { success: false, error: "Only administrators can update ticket status" };
         }
       }
-      const ticket = await this.supportTicketService.updateStatus(id, status);
+      const ticket = await this.supportTicketService.updateStatus(
+        id,
+        status,
+        requestingUserId ?? ""
+      );
       if (!ticket) return { success: false, error: "Ticket not found" };
       return {
         success: true,
@@ -126,6 +158,7 @@ export class SupportTicketController {
           status: ticket.status,
           createdAt: ticket.createdAt.toISOString(),
           updatedAt: ticket.updatedAt.toISOString(),
+          ownerDisplayName: ticket.ownerDisplayName,
         },
       };
     } catch (e) {
@@ -140,6 +173,23 @@ export class SupportTicketController {
     body: string
   ): Promise<{ success: boolean; reply?: Record<string, unknown>; error?: string }> {
     try {
+      if (this.authRepository) {
+        if (!authorId) {
+          return { success: false, error: "Authentication required" };
+        }
+        const ticket = await this.supportTicketService.getTicketById(ticketId);
+        if (!ticket) return { success: false, error: "Ticket not found" };
+        if (ticket.status === "closed") {
+          return { success: false, error: "This ticket is closed" };
+        }
+        const profile = await this.authRepository.getUserProfile(authorId);
+        if (!profile) return { success: false, error: "User not found" };
+        const isAdmin = profile.role === "Admin";
+        const isOwner = ticket.userId === authorId;
+        if (!isAdmin && !isOwner) {
+          return { success: false, error: "You can only reply on your own tickets" };
+        }
+      }
       const reply = await this.supportTicketService.addReply(ticketId, authorId, body);
       return {
         success: true,
@@ -149,6 +199,9 @@ export class SupportTicketController {
           authorId: reply.authorId,
           body: reply.body,
           createdAt: reply.createdAt.toISOString(),
+          authorDisplayName: reply.authorDisplayName,
+          authorEmail: reply.authorEmail,
+          authorRole: reply.authorRole,
         },
       };
     } catch (e) {
@@ -158,9 +211,22 @@ export class SupportTicketController {
   }
 
   async getReplies(
-    ticketId: number
+    ticketId: number,
+    requestingUserId: string
   ): Promise<{ success: boolean; replies?: Array<Record<string, unknown>>; error?: string }> {
     try {
+      if (this.authRepository) {
+        if (!requestingUserId) {
+          return { success: false, error: "Authentication required" };
+        }
+        const ticket = await this.supportTicketService.getTicketById(ticketId);
+        if (!ticket) return { success: false, error: "Ticket not found" };
+        const profile = await this.authRepository.getUserProfile(requestingUserId);
+        if (!profile) return { success: false, error: "User not found" };
+        if (profile.role !== "Admin" && ticket.userId !== requestingUserId) {
+          return { success: false, error: "Access denied" };
+        }
+      }
       const replies = await this.supportTicketService.getReplies(ticketId);
       return {
         success: true,
@@ -171,10 +237,53 @@ export class SupportTicketController {
           body: r.body,
           createdAt: r.createdAt.toISOString(),
           authorDisplayName: r.authorDisplayName,
+          authorEmail: r.authorEmail,
+          authorRole: r.authorRole,
         })),
       };
     } catch (e) {
       const message = e instanceof Error ? e.message : "Failed to fetch replies";
+      return { success: false, error: message };
+    }
+  }
+
+  /**
+   * Chronological activity (created, status changes, replies) with actor names. Same access rules as getReplies.
+   */
+  async getTicketActivities(
+    ticketId: number,
+    requestingUserId: string
+  ): Promise<{ success: boolean; activities?: Array<Record<string, unknown>>; error?: string }> {
+    try {
+      if (this.authRepository) {
+        if (!requestingUserId) {
+          return { success: false, error: "Authentication required" };
+        }
+        const ticket = await this.supportTicketService.getTicketById(ticketId);
+        if (!ticket) return { success: false, error: "Ticket not found" };
+        const profile = await this.authRepository.getUserProfile(requestingUserId);
+        if (!profile) return { success: false, error: "User not found" };
+        if (profile.role !== "Admin" && ticket.userId !== requestingUserId) {
+          return { success: false, error: "Access denied" };
+        }
+      }
+      const activities = await this.supportTicketService.getTicketActivities(ticketId);
+      return {
+        success: true,
+        activities: activities.map((a) => ({
+          id: a.id,
+          ticketId: a.ticketId,
+          actorId: a.actorId,
+          actorDisplayName: a.actorDisplayName,
+          kind: a.kind,
+          createdAt: a.createdAt.toISOString(),
+          fromStatus: a.fromStatus,
+          toStatus: a.toStatus,
+          body: a.body,
+        })),
+      };
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to fetch activity";
       return { success: false, error: message };
     }
   }

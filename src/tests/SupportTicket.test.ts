@@ -4,7 +4,12 @@ import { SupportTicketService } from "../service/SupportTicketService";
 import { SupportTicketController } from "../controller/SupportTicketController";
 import { SupabaseSupportTicketRepository } from "../repository/SupabaseSupportTicketRepository";
 import type { IAuthRepository } from "../repository/IAuthRepository";
-import { SupportTicket, SupportTicketReply, type TicketStatus } from "../domain/SupportTicket";
+import {
+  SupportTicket,
+  SupportTicketReply,
+  SupportTicketActivity,
+  type TicketStatus,
+} from "../domain/SupportTicket";
 import { clearSupabaseTables, resolveIntegrationTestUserId } from "./SupabaseTestHelper";
 
 describe("SupportTicketService (Supabase)", () => {
@@ -57,7 +62,7 @@ describe("SupportTicketService (Supabase)", () => {
   it("updates ticket status", async () => {
     const created = await service.createTicket(userId, "Issue", "Body");
 
-    const updated = await service.updateStatus(created.id, "closed");
+    const updated = await service.updateStatus(created.id, "closed", userId);
     expect(updated?.status).toBe("closed");
   });
 
@@ -108,6 +113,21 @@ describe("SupportTicketController", () => {
       overrides.status ?? "pending",
       overrides.createdAt ?? new Date("2024-01-01T12:00:00.000Z"),
       overrides.updatedAt ?? new Date("2024-01-01T12:00:00.000Z"),
+      overrides.ownerDisplayName,
+    );
+  }
+
+  function makeActivity(overrides: Partial<SupportTicketActivity> = {}) {
+    return new SupportTicketActivity(
+      overrides.id ?? 1,
+      overrides.ticketId ?? 1,
+      overrides.actorId ?? "actor-1",
+      overrides.actorDisplayName ?? "Actor Name",
+      overrides.kind ?? "ticket_created",
+      overrides.createdAt ?? new Date("2024-01-01T12:00:00.000Z"),
+      overrides.fromStatus,
+      overrides.toStatus,
+      overrides.body,
     );
   }
 
@@ -119,17 +139,26 @@ describe("SupportTicketController", () => {
       overrides.body ?? "Reply body",
       overrides.createdAt ?? new Date("2024-01-01T13:00:00.000Z"),
       overrides.authorDisplayName,
+      overrides.authorEmail,
+      overrides.authorRole,
     );
   }
 
   beforeEach(() => {
     serviceMock = {};
     authRepositoryMock = {};
-    controller = new SupportTicketController(
-      serviceMock as SupportTicketService,
-      authRepositoryMock as IAuthRepository,
-    );
+    controller = new SupportTicketController(serviceMock as SupportTicketService, undefined);
   });
+
+  function adminProfile() {
+    return {
+      userId: "admin-1",
+      email: "admin@example.com",
+      role: "Admin" as const,
+      token: "token",
+      createdAt: "2024-01-01T00:00:00.000Z",
+    };
+  }
 
   it("creates a ticket successfully", async () => {
     const ticket = makeTicket({ id: 42, subject: "Help me", body: "The app broke" });
@@ -165,6 +194,7 @@ describe("SupportTicketController", () => {
         status: "pending",
         createdAt: ticket.createdAt.toISOString(),
         updatedAt: ticket.updatedAt.toISOString(),
+        ownerDisplayName: undefined,
       },
     ]);
     expect(serviceMock.getTicketsForUser).toHaveBeenCalledWith("user-1", "pending");
@@ -178,11 +208,16 @@ describe("SupportTicketController", () => {
     expect(result).toEqual({ success: false, error: "Database error" });
   });
 
-  it("fetches all tickets", async () => {
+  it("fetches all tickets for an administrator", async () => {
+    authRepositoryMock.getUserProfile = vi.fn().mockResolvedValue(adminProfile());
+    controller = new SupportTicketController(
+      serviceMock as SupportTicketService,
+      authRepositoryMock as IAuthRepository,
+    );
     const ticket = makeTicket({ id: 6 });
     serviceMock.getAllTickets = vi.fn().mockResolvedValue([ticket]);
 
-    const result = await controller.getAllTickets("all");
+    const result = await controller.getAllTickets("all", "admin-1");
 
     expect(result.success).toBe(true);
     expect(result.tickets?.[0]).toEqual({
@@ -193,14 +228,44 @@ describe("SupportTicketController", () => {
       status: "pending",
       createdAt: ticket.createdAt.toISOString(),
       updatedAt: ticket.updatedAt.toISOString(),
+      ownerDisplayName: undefined,
     });
     expect(serviceMock.getAllTickets).toHaveBeenCalledWith("all");
+    expect(authRepositoryMock.getUserProfile).toHaveBeenCalledWith("admin-1");
+  });
+
+  it("rejects listing all tickets for non-admin roles", async () => {
+    authRepositoryMock.getUserProfile = vi.fn().mockResolvedValue({
+      userId: "staff-1",
+      email: "staff@example.com",
+      role: "Staff",
+      token: "token",
+      createdAt: "2024-01-01T00:00:00.000Z",
+    });
+    controller = new SupportTicketController(
+      serviceMock as SupportTicketService,
+      authRepositoryMock as IAuthRepository,
+    );
+    serviceMock.getAllTickets = vi.fn();
+
+    const result = await controller.getAllTickets("all", "staff-1");
+
+    expect(result).toEqual({
+      success: false,
+      error: "Only administrators can access all support tickets",
+    });
+    expect(serviceMock.getAllTickets).not.toHaveBeenCalled();
   });
 
   it("returns an error when fetching all tickets fails", async () => {
+    authRepositoryMock.getUserProfile = vi.fn().mockResolvedValue(adminProfile());
+    controller = new SupportTicketController(
+      serviceMock as SupportTicketService,
+      authRepositoryMock as IAuthRepository,
+    );
     serviceMock.getAllTickets = vi.fn().mockRejectedValue(new Error("List failure"));
 
-    const result = await controller.getAllTickets("closed");
+    const result = await controller.getAllTickets("closed", "admin-1");
 
     expect(result).toEqual({ success: false, error: "List failure" });
   });
@@ -221,6 +286,7 @@ describe("SupportTicketController", () => {
         status: "pending",
         createdAt: ticket.createdAt.toISOString(),
         updatedAt: ticket.updatedAt.toISOString(),
+        ownerDisplayName: undefined,
       },
     });
     expect(serviceMock.getTicketById).toHaveBeenCalledWith(7);
@@ -242,14 +308,8 @@ describe("SupportTicketController", () => {
     expect(result).toEqual({ success: false, error: "Fetch failed" });
   });
 
-  it("updates status successfully for staff", async () => {
-    authRepositoryMock.getUserProfile = vi.fn().mockResolvedValue({
-      userId: "staff-1",
-      email: "staff@example.com",
-      role: "Staff",
-      token: "token",
-      createdAt: "2024-01-01T00:00:00.000Z",
-    });
+  it("updates status successfully for an administrator", async () => {
+    authRepositoryMock.getUserProfile = vi.fn().mockResolvedValue(adminProfile());
     const ticket = makeTicket({ id: 8, status: "processing" });
     serviceMock.updateStatus = vi.fn().mockResolvedValue(ticket);
     controller = new SupportTicketController(
@@ -257,12 +317,33 @@ describe("SupportTicketController", () => {
       authRepositoryMock as IAuthRepository,
     );
 
-    const result = await controller.updateStatus(8, "processing", "staff-1");
+    const result = await controller.updateStatus(8, "processing", "admin-1");
 
     expect(result.success).toBe(true);
     expect(result.ticket?.status).toBe("processing");
-    expect(authRepositoryMock.getUserProfile).toHaveBeenCalledWith("staff-1");
-    expect(serviceMock.updateStatus).toHaveBeenCalledWith(8, "processing");
+    expect(authRepositoryMock.getUserProfile).toHaveBeenCalledWith("admin-1");
+    expect(serviceMock.updateStatus).toHaveBeenCalledWith(8, "processing", "admin-1");
+  });
+
+  it("rejects staff when updating status", async () => {
+    authRepositoryMock.getUserProfile = vi.fn().mockResolvedValue({
+      userId: "staff-1",
+      email: "staff@example.com",
+      role: "Staff",
+      token: "token",
+      createdAt: "2024-01-01T00:00:00.000Z",
+    });
+    controller = new SupportTicketController(
+      serviceMock as SupportTicketService,
+      authRepositoryMock as IAuthRepository,
+    );
+
+    const result = await controller.updateStatus(8, "closed", "staff-1");
+
+    expect(result).toEqual({
+      success: false,
+      error: "Only administrators can update ticket status",
+    });
   });
 
   it("rejects unauthorized users when updating status", async () => {
@@ -280,7 +361,10 @@ describe("SupportTicketController", () => {
 
     const result = await controller.updateStatus(8, "closed", "user-2");
 
-    expect(result).toEqual({ success: false, error: "Only staff can update ticket status" });
+    expect(result).toEqual({
+      success: false,
+      error: "Only administrators can update ticket status",
+    });
   });
 
   it("returns an error when requesting user profile does not exist", async () => {
@@ -334,7 +418,7 @@ describe("SupportTicketController", () => {
   });
 
   it("adds a reply successfully", async () => {
-    const reply = makeReply({ id: 20, body: "New reply" });
+    const reply = makeReply({ id: 20, body: "New reply", authorDisplayName: "Pat Lee" });
     serviceMock.addReply = vi.fn().mockResolvedValue(reply);
 
     const result = await controller.addReply(1, "author-1", "New reply");
@@ -347,6 +431,9 @@ describe("SupportTicketController", () => {
         authorId: "author-1",
         body: "New reply",
         createdAt: reply.createdAt.toISOString(),
+        authorDisplayName: "Pat Lee",
+        authorEmail: undefined,
+        authorRole: undefined,
       },
     });
   });
@@ -363,7 +450,7 @@ describe("SupportTicketController", () => {
     const reply = makeReply({ id: 30, authorDisplayName: "Support Agent" });
     serviceMock.getReplies = vi.fn().mockResolvedValue([reply]);
 
-    const result = await controller.getReplies(1);
+    const result = await controller.getReplies(1, "viewer-1");
 
     expect(result).toEqual({
       success: true,
@@ -375,6 +462,8 @@ describe("SupportTicketController", () => {
           body: "Reply body",
           createdAt: reply.createdAt.toISOString(),
           authorDisplayName: "Support Agent",
+          authorEmail: undefined,
+          authorRole: undefined,
         },
       ],
     });
@@ -383,8 +472,74 @@ describe("SupportTicketController", () => {
   it("returns an error when fetching replies fails", async () => {
     serviceMock.getReplies = vi.fn().mockRejectedValue(new Error("Reply fetch failed"));
 
-    const result = await controller.getReplies(1);
+    const result = await controller.getReplies(1, "viewer-1");
 
     expect(result).toEqual({ success: false, error: "Reply fetch failed" });
+  });
+
+  it("denies replies thread access when user is not admin or ticket owner", async () => {
+    authRepositoryMock.getUserProfile = vi.fn().mockResolvedValue({
+      userId: "other-1",
+      email: "other@example.com",
+      role: "User",
+      token: "token",
+      createdAt: "2024-01-01T00:00:00.000Z",
+    });
+    serviceMock.getTicketById = vi.fn().mockResolvedValue(makeTicket({ id: 1, userId: "owner-1" }));
+    serviceMock.getReplies = vi.fn();
+    controller = new SupportTicketController(
+      serviceMock as SupportTicketService,
+      authRepositoryMock as IAuthRepository,
+    );
+
+    const result = await controller.getReplies(1, "other-1");
+
+    expect(result).toEqual({ success: false, error: "Access denied" });
+    expect(serviceMock.getReplies).not.toHaveBeenCalled();
+  });
+
+  it("fetches ticket activities", async () => {
+    const act = makeActivity({
+      id: 99,
+      kind: "status_changed",
+      fromStatus: "pending",
+      toStatus: "closed",
+    });
+    serviceMock.getTicketActivities = vi.fn().mockResolvedValue([act]);
+
+    const result = await controller.getTicketActivities(1, "viewer-1");
+
+    expect(result.success).toBe(true);
+    expect(result.activities?.[0]).toMatchObject({
+      id: 99,
+      ticketId: 1,
+      actorId: "actor-1",
+      actorDisplayName: "Actor Name",
+      kind: "status_changed",
+      fromStatus: "pending",
+      toStatus: "closed",
+    });
+    expect(serviceMock.getTicketActivities).toHaveBeenCalledWith(1);
+  });
+
+  it("denies activity access when user is not admin or ticket owner", async () => {
+    authRepositoryMock.getUserProfile = vi.fn().mockResolvedValue({
+      userId: "other-1",
+      email: "other@example.com",
+      role: "User",
+      token: "token",
+      createdAt: "2024-01-01T00:00:00.000Z",
+    });
+    serviceMock.getTicketById = vi.fn().mockResolvedValue(makeTicket({ id: 1, userId: "owner-1" }));
+    serviceMock.getTicketActivities = vi.fn();
+    controller = new SupportTicketController(
+      serviceMock as SupportTicketService,
+      authRepositoryMock as IAuthRepository,
+    );
+
+    const result = await controller.getTicketActivities(1, "other-1");
+
+    expect(result).toEqual({ success: false, error: "Access denied" });
+    expect(serviceMock.getTicketActivities).not.toHaveBeenCalled();
   });
 });
