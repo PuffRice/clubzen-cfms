@@ -101,11 +101,11 @@ export function Settings() {
   const initials = (profileName || profileEmail.split("@")[0]).slice(0, 2).toUpperCase();
 
   return (
-    <div className="p-8 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-8 max-w-3xl mx-auto">
       {/* Page header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground">Profile & Settings</h1>
-        <p className="text-muted-foreground mt-1">View and edit your account details</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Profile & Settings</h1>
+        <p className="text-muted-foreground mt-1 text-sm sm:text-base">View and edit your account details</p>
       </div>
 
       {/* Toast */}

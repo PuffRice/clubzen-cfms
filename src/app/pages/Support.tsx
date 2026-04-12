@@ -89,7 +89,7 @@ export function Support() {
     setError("");
     try {
       const res = await supportTicketController.getTicketsForUser(userId, statusFilter);
-      if (res.success && res.tickets) setTickets(res.tickets as TicketItem[]);
+      if (res.success && res.tickets) setTickets(res.tickets as unknown as TicketItem[]);
       else setTickets([]);
       if (res.error) setError(res.error);
     } catch {
@@ -106,7 +106,7 @@ export function Support() {
 
   const fetchReplies = useCallback(async (ticketId: number) => {
     const res = await supportTicketController.getReplies(ticketId, userId);
-    if (res.success && res.replies) setReplies(res.replies as ReplyItem[]);
+    if (res.success && res.replies) setReplies(res.replies as unknown as ReplyItem[]);
     else setReplies([]);
   }, [userId]);
 
@@ -159,16 +159,16 @@ export function Support() {
     const res = await supportTicketController.updateStatus(selectedTicket.id, status, userId);
     setStatusUpdating(false);
     if (res.success && res.ticket) {
-      setSelectedTicket(res.ticket as TicketItem);
+      setSelectedTicket(res.ticket as unknown as TicketItem);
       fetchTickets();
     }
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 md:p-8">
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+      <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Support</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Support</h1>
           <p className="text-muted-foreground mt-1">
             Create a ticket or follow up on your requests.
           </p>
@@ -213,7 +213,7 @@ export function Support() {
           <CardTitle>Tickets</CardTitle>
           <CardAction>
             <DropdownMenu>
-              <DropdownMenuTrigger className="inline-flex items-center justify-start gap-2 whitespace-nowrap rounded-md text-sm font-medium h-9 w-56 px-4 py-2 border bg-background text-foreground hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 outline-none" title="Sort tickets">
+              <DropdownMenuTrigger className="inline-flex items-center justify-start gap-2 whitespace-nowrap rounded-md text-sm font-medium h-9 w-auto sm:w-56 px-2 sm:px-4 py-2 border bg-background text-foreground hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 outline-none" title="Sort tickets">
                 {ticketSortIcon[ticketSort]}
                 {TICKET_OPENED_SORT_LABELS[ticketSort]}
                 <ChevronDown className="h-3.5 w-3.5 opacity-50 ml-auto" />

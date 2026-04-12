@@ -16,11 +16,19 @@ import {
   X,
   Lock,
   Shield,
+  Menu,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { useState } from "react";
 import { authController } from "../services";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "./ui/sheet";
 
 const navigation = [
   { name: "Home", href: "/dashboard", icon: Home },
@@ -40,6 +48,7 @@ export function Layout() {
   const [reportsOpen, setReportsOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const userEmail = sessionStorage.getItem("userEmail") ?? "";
   const userRole = (sessionStorage.getItem("userRole") ?? "Staff").trim();
@@ -69,15 +78,15 @@ export function Layout() {
   }
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="flex h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex-col md:flex-row">
       {/* Animated background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 -top-40 -left-40"></div>
         <div className="absolute w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 bottom-0 right-0"></div>
       </div>
 
-      {/* Sidebar */}
-      <aside className="relative z-20 w-64 bg-gradient-to-b from-slate-800/40 to-slate-900/40 backdrop-blur-md border-r border-slate-700/50 flex flex-col">
+      {/* Desktop Sidebar - Hidden on mobile */}
+      <aside className="relative z-20 w-64 bg-gradient-to-b from-slate-800/40 to-slate-900/40 backdrop-blur-md border-r border-slate-700/50 flex flex-col hidden md:flex">
         {/* Logo Section */}
         <div className="p-6 border-b border-slate-700/30">
           <div className="flex items-center gap-3">
@@ -280,9 +289,224 @@ export function Layout() {
       </aside>
 
       {/* Main Content */}
-      <main className="relative z-10 flex-1 overflow-y-auto">
-        <Outlet />
-      </main>
+      <div className="relative z-10 flex-1 flex flex-col overflow-hidden">
+        {/* Mobile Header */}
+        <div className="md:hidden bg-slate-800/60 backdrop-blur-md border-b border-slate-700/50 px-4 py-3 flex items-center justify-between">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setMobileMenuOpen(true)}
+            className="text-gray-400 hover:text-white"
+          >
+            <Menu className="h-6 w-6" />
+          </Button>
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+              <DollarSign className="h-5 w-5 text-white" />
+            </div>
+            <h1 className="font-bold text-white text-lg">ClubZen</h1>
+          </div>
+        </div>
+
+        {/* Mobile Menu Sheet */}
+        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+          <SheetContent side="left" className="w-64 bg-slate-900 p-0 border-slate-700/50">
+            <SheetHeader className="sr-only">
+              <SheetTitle>Navigation Menu</SheetTitle>
+              <SheetDescription>Main navigation menu for mobile</SheetDescription>
+            </SheetHeader>
+
+            <div className="flex flex-col h-full">
+              {/* Mobile Menu Logo Section */}
+              <div className="p-6 border-b border-slate-700/30">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+                    <DollarSign className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="font-bold text-white text-lg">ClubZen</h1>
+                    <p className="text-xs text-gray-400">CFMS</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile Menu Content */}
+              <nav className="flex-1 p-4 overflow-y-auto">
+                <div className="space-y-1">
+                  {/* Main Navigation */}
+                  <div className="mb-6">
+                    <p className="text-xs uppercase font-semibold text-gray-500 px-4 mb-3">Menu</p>
+                    <ul className="space-y-2">
+                      {navigation.filter(item => !["Help", "FAQ"].includes(item.name)).map((item) => (
+                        <li key={item.name}>
+                          <NavLink
+                            to={item.href}
+                            end={item.href === "/dashboard"}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className={({ isActive }) =>
+                              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+                                isActive
+                                  ? "bg-gradient-to-r from-blue-600/80 to-blue-700/80 text-white shadow-lg shadow-blue-500/20"
+                                  : "text-gray-300 hover:bg-slate-700/40"
+                              }`
+                            }
+                          >
+                            <item.icon className="h-5 w-5 flex-shrink-0" />
+                            <span className="font-medium">{item.name}</span>
+                          </NavLink>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Help & Support Section */}
+                  <div className="mb-6">
+                    <p className="text-xs uppercase font-semibold text-blue-400 px-4 mb-3">Help & Support</p>
+                    <ul className="space-y-2">
+                      {navigation.filter(item => ["Help", "FAQ"].includes(item.name)).map((item) => (
+                        <li key={item.name}>
+                          <NavLink
+                            to={item.href}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className={({ isActive }) =>
+                              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+                                isActive
+                                  ? "bg-gradient-to-r from-blue-500/80 to-blue-700/80 text-white shadow-lg shadow-blue-500/20"
+                                  : "text-blue-300 hover:bg-blue-700/40"
+                              }`
+                            }
+                          >
+                            <item.icon className="h-5 w-5 flex-shrink-0" />
+                            <span className="font-medium">{item.name}</span>
+                          </NavLink>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Admin Section */}
+                  {userRole === "Admin" && (
+                    <div className="mb-6">
+                      <p className="text-xs uppercase font-semibold text-emerald-400/90 px-4 mb-3">Administration</p>
+                      <ul className="space-y-2">
+                        {adminOnlyNav.map((item) => (
+                          <li key={item.name}>
+                            <NavLink
+                              to={item.href}
+                              onClick={() => setMobileMenuOpen(false)}
+                              className={({ isActive }) =>
+                                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+                                  isActive
+                                    ? "bg-gradient-to-r from-emerald-600/80 to-emerald-800/80 text-white shadow-lg shadow-emerald-500/20"
+                                    : "text-emerald-200/90 hover:bg-slate-700/40"
+                                }`
+                              }
+                            >
+                              <item.icon className="h-5 w-5 flex-shrink-0" />
+                              <span className="font-medium">{item.name}</span>
+                            </NavLink>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Reports Section */}
+                  <div>
+                    <p className="text-xs uppercase font-semibold text-gray-500 px-4 mb-3">Analytics</p>
+                    <button
+                      onClick={() => setReportsOpen(!reportsOpen)}
+                      className="flex items-center justify-between w-full px-4 py-3 rounded-xl transition-all duration-200 text-gray-300 hover:bg-slate-700/40"
+                    >
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-5 w-5 flex-shrink-0" />
+                        <span className="font-medium">Reports</span>
+                      </div>
+                      <ChevronRight
+                        className={`h-4 w-4 transition-transform ${reportsOpen ? "rotate-90" : ""}`}
+                      />
+                    </button>
+
+                    {reportsOpen && (
+                      <ul className="mt-2 ml-4 space-y-1 border-l border-slate-700/50 pl-4">
+                        <li>
+                          <NavLink
+                            to="/dashboard/monthly-reports"
+                            onClick={() => setMobileMenuOpen(false)}
+                            className={({ isActive }) =>
+                              `block px-4 py-2 rounded-lg text-sm transition-all ${
+                                isActive
+                                  ? "bg-blue-600/60 text-white"
+                                  : "text-gray-400 hover:text-gray-300 hover:bg-slate-700/40"
+                              }`
+                            }
+                          >
+                            Monthly
+                          </NavLink>
+                        </li>
+                        <li>
+                          <NavLink
+                            to="/dashboard/daily-reports"
+                            onClick={() => setMobileMenuOpen(false)}
+                            className={({ isActive }) =>
+                              `block px-4 py-2 rounded-lg text-sm transition-all ${
+                                isActive
+                                  ? "bg-blue-600/60 text-white"
+                                  : "text-gray-400 hover:text-gray-300 hover:bg-slate-700/40"
+                              }`
+                            }
+                          >
+                            Daily
+                          </NavLink>
+                        </li>
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              </nav>
+
+              {/* Mobile Menu Bottom */}
+              <div className="p-4 border-t border-slate-700/30 space-y-3">
+                <Button
+                  type="button"
+                  className="w-full justify-start px-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-xl transition-all"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    navigate("/dashboard/settings");
+                  }}
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  <span>Settings</span>
+                </Button>
+                <Button
+                  type="button"
+                  className="w-full justify-start px-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 rounded-xl transition-all"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setChangePasswordOpen(true);
+                  }}
+                >
+                  <Lock className="h-4 w-4 mr-2" />
+                  <span>Change Password</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-gray-400 hover:text-white hover:bg-slate-700/40 rounded-xl transition-all"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="h-5 w-5 mr-3" />
+                  <span>Logout</span>
+                </Button>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        {/* Page Content */}
+        <main className="relative z-10 flex-1 overflow-y-auto">
+          <Outlet />
+        </main>
+      </div>
 
       {/* Change Password Modal */}
       {changePasswordOpen && (

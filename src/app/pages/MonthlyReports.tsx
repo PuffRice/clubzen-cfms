@@ -202,16 +202,16 @@ export function MonthlyReports() {
 
   // ---------------- UI ----------------
   return (
-    <div className="p-8">
-      <div className="mb-8 flex items-center justify-between">
+    <div className="p-4 sm:p-8">
+      <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Monthly Reports</h1>
-          <p className="text-muted-foreground">Financial summary</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Monthly Reports</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">Financial summary</p>
         </div>
 
-        <Button onClick={exportPDF} className="bg-primary/90 text-primary-foreground hover:bg-primary h-10 gap-1">
+        <Button onClick={exportPDF} className="bg-primary/90 text-primary-foreground hover:bg-primary h-10 gap-1 w-full sm:w-auto">
           <Download className="h-4 w-4" />
-          Export Monthly Report
+          <span>Export Monthly Report</span>
         </Button>
       </div>
 

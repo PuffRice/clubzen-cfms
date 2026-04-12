@@ -180,18 +180,18 @@ export function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 md:p-8">
       <div className="relative z-10 max-w-7xl mx-auto">
         {/* Header Section */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">
+            <h1 className="text-2xl md:text-4xl font-bold text-white mb-2">
               Welcome back, {userName}! 👋
             </h1>
-            <p className="text-gray-400 text-lg">
+            <p className="text-gray-400 text-sm md:text-lg">
               Here's your financial snapshot
             </p>
           </div>
-          <div className=" border-slate-700 rounded-2xl p-6 text-right">
+          <div className="border-slate-700 rounded-2xl p-4 sm:p-6 text-right">
             {/* <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">Current Time</p> */}
-            <p className="text-2xl font-bold text-white font-mono">{currentTime.split(' • ')[1]}</p>
+            <p className="text-lg sm:text-2xl font-bold text-white font-mono">{currentTime.split(' • ')[1]}</p>
             <p className="text-xs text-gray-500 mt-2">{currentTime.split(' • ')[0]}</p>
             {/* <p className="text-xs text-blue-400 font-semibold mt-3">GMT+6</p> */}
           </div>
@@ -218,7 +218,7 @@ export function Dashboard() {
                     </>
                   ) : (
                     <>
-                      <h2 className="text-5xl font-bold text-white mb-4">
+                      <h2 className="text-3xl sm:text-5xl font-bold text-white mb-4">
                         {symbol}{summary.netProfitLoss.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </h2>
                       <div className="flex items-center gap-2">

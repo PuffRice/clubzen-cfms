@@ -66,7 +66,7 @@ export function Login() {
             </div>
           </div>
 
-          <h1 className="text-5xl font-bold text-white mb-4">ClubZen CFMS</h1>
+          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">ClubZen CFMS</h1>
           <p className="text-xl text-gray-300 leading-relaxed max-w-sm mx-auto">
             Stay connected with us. Manage your finances with ease and elegance.
           </p>

@@ -9,7 +9,6 @@ import { Login } from "./pages/Login";
 import { Expenses } from "./pages/Expenses";
 import { Income } from "./pages/Income";
 import { Reports } from "./pages/Reports";
-import { Events } from "./pages/Events";
 import { Support } from "./pages/Support";
 import { SystemAdmin } from "./pages/SystemAdmin";
 import { Loans } from "./pages/Loans";
@@ -51,7 +50,6 @@ export const router = createBrowserRouter([
       { path: "expenses", Component: Expenses },
       { path: "income", Component: Income },
       { path: "reports", Component: Reports },
-      { path: "events", Component: Events },
       { path: "support", Component: Support },
       { path: "help", Component: HelpPage },
       { path: "faq", Component: FAQPage },

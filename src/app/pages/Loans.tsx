@@ -108,20 +108,20 @@ export function Loans() {
   const filteredLoans = loans;
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       {/* Page Header */}
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Loans</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Loans</h1>
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
             Track and manage your loans and repayments
           </p>
         </div>
         <Dialog open={addLoanOpen} onOpenChange={setAddLoanOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-primary/90 text-primary-foreground hover:bg-primary h-10">
+            <Button className="bg-primary/90 text-primary-foreground hover:bg-primary h-10 w-full sm:w-auto">
               <Plus className="h-4 w-4" />
-              Add Loan
+              <span className="ml-2">Add Loan</span>
             </Button>
           </DialogTrigger>
           <DialogContent>

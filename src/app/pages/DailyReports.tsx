@@ -137,7 +137,7 @@ export function DailyReports() {
   );
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       {/* Page Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
@@ -145,7 +145,7 @@ export function DailyReports() {
           <p className="text-muted-foreground mt-1">Track your daily financial activities</p>
         </div>
         <div className="relative">
-          <Button className="bg-primary/90 text-primary-foreground hover:bg-primary h-10 gap-1" onClick={() => setExportOpen(!exportOpen)}>
+          <Button className="bg-primary/90 text-primary-foreground hover:bg-primary h-10 w-full sm:w-auto" onClick={() => setExportOpen(!exportOpen)}>
             <Download className="h-4 w-4" />
             Export Daily Report
           </Button>
@@ -173,9 +173,9 @@ export function DailyReports() {
       {/* Date Selector */}
       <div className="mb-6">
         <Card className="bg-card-navy/25 border-card-navy/40 border">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-4">
-              <Calendar className="h-5 w-5 text-muted-foreground" />
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+              <Calendar className="h-5 w-5 text-muted-foreground flex-shrink-0" />
               <input
                 type="date"
                 value={selectedDate}
