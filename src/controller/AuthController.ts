@@ -151,23 +151,4 @@ export class AuthController {
     }
   }
 
-  async sendPasswordResetEmail(email: string): Promise<AuthResult> {
-    try {
-      await this.authService.sendPasswordResetEmail(email);
-      return { success: true };
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to send password reset email";
-      return { success: false, error: message };
-    }
-  }
-
-  async resetPassword(newPassword: string, confirmPassword: string): Promise<AuthResult> {
-    try {
-      await this.authService.resetPassword(newPassword, confirmPassword);
-      return { success: true };
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to reset password";
-      return { success: false, error: message };
-    }
-  }
 }

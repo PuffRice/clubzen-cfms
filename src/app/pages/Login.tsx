@@ -66,7 +66,7 @@ export function Login() {
             </div>
           </div>
 
-          <h1 className="text-5xl font-bold text-white mb-4">ClubZen CFMS</h1>
+          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">ClubZen CFMS</h1>
           <p className="text-xl text-gray-300 leading-relaxed max-w-sm mx-auto">
             Stay connected with us. Manage your finances with ease and elegance.
           </p>
@@ -157,20 +157,6 @@ export function Login() {
                 )}
               </Button>
 
-              {/* Divider */}
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-px bg-gray-300"></div>
-                <span className="text-sm text-gray-500">or</span>
-                <div className="flex-1 h-px bg-gray-300"></div>
-              </div>
-
-              {/* Forget Password Link */}
-              <p className="text-center text-gray-600">
-                Having trouble signing in?{" "}
-                <Link to="/forgot-password" className="text-blue-600 hover:text-blue-700 font-semibold transition-colors">
-                  Reset password
-                </Link>
-              </p>
             </form>
           </div>
 

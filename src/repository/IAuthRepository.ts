@@ -50,16 +50,6 @@ export interface IAuthRepository {
   changePassword(currentPassword: string, newPassword: string): Promise<void>;
 
   /**
-   * Send a password reset email to the user.
-   */
-  requestPasswordReset(email: string): Promise<void>;
-
-  /**
-   * Complete password reset using the active recovery session.
-   */
-  resetPassword(newPassword: string): Promise<void>;
-
-  /**
    * Logout user (invalidate session).
    */
   logout(): Promise<void>;

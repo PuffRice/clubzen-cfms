@@ -113,7 +113,7 @@ export function SystemAdmin() {
     setError("");
     try {
       const res = await supportTicketController.getAllTickets(statusFilter, userId);
-      if (res.success && res.tickets) setTickets(res.tickets as TicketItem[]);
+      if (res.success && res.tickets) setTickets((res.tickets as unknown) as TicketItem[]);
       else setTickets([]);
       if (res.error) setError(res.error);
     } catch {
@@ -131,7 +131,7 @@ export function SystemAdmin() {
   const fetchReplies = useCallback(
     async (ticketId: number) => {
       const res = await supportTicketController.getReplies(ticketId, userId);
-      if (res.success && res.replies) setReplies(res.replies as ReplyItem[]);
+      if (res.success && res.replies) setReplies((res.replies as unknown) as ReplyItem[]);
       else setReplies([]);
     },
     [userId]
@@ -191,7 +191,7 @@ export function SystemAdmin() {
     const res = await supportTicketController.updateStatus(selectedTicket.id, status, userId);
     setStatusUpdating(false);
     if (res.success && res.ticket) {
-      setSelectedTicket(res.ticket as TicketItem);
+      setSelectedTicket((res.ticket as unknown) as TicketItem);
       fetchTickets();
     }
   }

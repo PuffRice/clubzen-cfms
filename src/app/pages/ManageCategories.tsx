@@ -195,11 +195,11 @@ export function ManageCategories() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Manage Categories</h1>
-        <p className="text-muted-foreground mt-1">
+        <h1 className="text-2xl sm:text-3xl font-bold">Manage Categories</h1>
+        <p className="text-muted-foreground mt-1 text-sm sm:text-base">
           Organize and customize your transaction categories
         </p>
       </div>

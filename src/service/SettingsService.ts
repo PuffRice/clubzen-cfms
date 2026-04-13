@@ -29,7 +29,7 @@ export class SettingsService {
       row.email,
       row.fullName,
       row.role,
-      (row.currency || "USD") as CurrencyCode,
+      (row.currency || "BDT") as CurrencyCode,
       row.updatedAt ? new Date(row.updatedAt) : new Date(),
     );
   }
@@ -61,7 +61,7 @@ export class SettingsService {
       row.email,
       row.fullName,
       row.role,
-      (row.currency || "USD") as CurrencyCode,
+      (row.currency || "BDT") as CurrencyCode,
       row.updatedAt ? new Date(row.updatedAt) : new Date(),
     );
   }

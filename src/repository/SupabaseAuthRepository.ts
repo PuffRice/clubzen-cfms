@@ -148,48 +148,4 @@ export class SupabaseAuthRepository implements IAuthRepository {
     }
   }
 
-  async requestPasswordReset(email: string): Promise<void> {
-    if (!email || email.trim().length === 0) {
-      throw new Error("Email is required.");
-    }
-
-    const { data: user, error: userError } = await supabase
-      .from("users")
-      .select("id")
-      .eq("email", email)
-      .single();
-
-    if (userError || !user) {
-      throw new Error("Email not found. Please check the address and try again.");
-    }
-
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-
-    if (error) {
-      throw new Error(error.message || "Failed to send password reset email.");
-    }
-  }
-
-  async resetPassword(newPassword: string): Promise<void> {
-    if (!newPassword || newPassword.trim().length === 0) {
-      throw new Error("New password is required.");
-    }
-
-    const { data: sessionData } = await supabase.auth.getSession();
-    const session = sessionData?.session;
-
-    if (!session) {
-      throw new Error("Reset session is invalid or expired. Please request a new password reset.");
-    }
-
-    const { error } = await supabase.auth.updateUser({
-      password: newPassword,
-    });
-
-    if (error) {
-      throw new Error(error.message || "Failed to reset password.");
-    }
-  }
 }

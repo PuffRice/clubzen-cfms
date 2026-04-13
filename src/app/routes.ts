@@ -6,12 +6,9 @@ import { MonthlyReports } from "./pages/MonthlyReports";
 import { DailyReports } from "./pages/DailyReports";
 import { ManageCategories } from "./pages/ManageCategories";
 import { Login } from "./pages/Login";
-import { ForgotPassword } from "./pages/ForgotPassword";
-import { ResetPassword } from "./pages/ResetPassword";
 import { Expenses } from "./pages/Expenses";
 import { Income } from "./pages/Income";
 import { Reports } from "./pages/Reports";
-import { Events } from "./pages/Events";
 import { Support } from "./pages/Support";
 import { ProtectedSystemAdmin } from "./components/ProtectedSystemAdmin";
 import { Loans } from "./pages/Loans";
@@ -30,14 +27,6 @@ export const router = createBrowserRouter([
   {
     path: "/login",
     Component: Login,
-  },
-  {
-    path: "/forgot-password",
-    Component: ForgotPassword,
-  },
-  {
-    path: "/reset-password",
-    Component: ResetPassword,
   },
 
   // ── Super admin (login gate + panel on same URL) ─────────
@@ -60,7 +49,6 @@ export const router = createBrowserRouter([
       { path: "expenses", Component: Expenses },
       { path: "income", Component: Income },
       { path: "reports", Component: Reports },
-      { path: "events", Component: Events },
       { path: "support", Component: Support },
       { path: "help", Component: HelpPage },
       { path: "faq", Component: FAQPage },

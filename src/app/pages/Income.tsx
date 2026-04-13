@@ -129,12 +129,12 @@ export function Income() {
   }, []);
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Income</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Income</h1>
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
             Track your income sources
           </p>
         </div>
@@ -172,7 +172,7 @@ export function Income() {
           <CardTitle>All Income</CardTitle>
           <CardAction>
             <DropdownMenu>
-              <DropdownMenuTrigger className="inline-flex items-center justify-start gap-2 whitespace-nowrap rounded-md text-sm font-medium h-9 w-56 px-4 py-2 border bg-background text-foreground hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 outline-none" title="Sort income">
+              <DropdownMenuTrigger className="inline-flex items-center justify-start gap-2 whitespace-nowrap rounded-md text-sm font-medium h-9 w-auto sm:w-56 px-2 sm:px-4 py-2 border bg-background text-foreground hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 outline-none" title="Sort income">
                 {sortIcon[sortBy]}
                 {sortLabel[sortBy]}
                 <ChevronDown className="h-3.5 w-3.5 opacity-50 ml-auto" />
