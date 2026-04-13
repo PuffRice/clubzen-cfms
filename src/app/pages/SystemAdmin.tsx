@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import type { ReactNode } from "react";
-import { useNavigate } from "react-router";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import {
@@ -11,9 +10,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../components/ui/dropdown-menu";
-import { ArrowDown10, ArrowUp10, ChevronDown, Plus, Send, ChevronRight, X } from "lucide-react";
+import { ArrowDown10, ArrowUp10, ChevronDown, Plus, Send, ChevronRight, X, LogOut } from "lucide-react";
 import { Skeleton } from "../components/ui/skeleton";
 import { supportTicketController } from "../services";
+import { supabase } from "../../supabase/client";
 import type { TicketStatus } from "@core/domain/SupportTicket";
 import { formatExactTimestamp } from "../../utils/formatExactTimestamp";
 import { formatReplyAuthorForViewer } from "../../utils/formatReplyAuthorForViewer";
@@ -58,10 +58,26 @@ function statusBadgeClass(status: string): string {
   return "bg-amber-500/20 text-amber-600 dark:text-amber-400";
 }
 
+const SEEN_KEY = "sa_ticket_seen";
+
+function getSeenMap(): Record<string, string> {
+  try { return JSON.parse(localStorage.getItem(SEEN_KEY) || "{}"); } catch { return {}; }
+}
+
+function markSeen(ticketId: number, updatedAt: string) {
+  const map = getSeenMap();
+  map[String(ticketId)] = updatedAt;
+  localStorage.setItem(SEEN_KEY, JSON.stringify(map));
+}
+
+function hasNewActivity(ticketId: number, updatedAt: string): boolean {
+  const last = getSeenMap()[String(ticketId)];
+  return !last || new Date(updatedAt) > new Date(last);
+}
+
 export function SystemAdmin() {
-  const navigate = useNavigate();
-  const [allowed, setAllowed] = useState(false);
-  const userId = sessionStorage.getItem("userId") ?? "";
+  const isSuperAdmin = sessionStorage.getItem("superAdminAuth") === "true";
+  const userId = sessionStorage.getItem("superAdminUserId") ?? sessionStorage.getItem("userId") ?? "";
 
   const [activeTab, setActiveTab] = useState<Tab>("all");
   const [tickets, setTickets] = useState<TicketItem[]>([]);
@@ -91,23 +107,8 @@ export function SystemAdmin() {
     "date-asc": <ArrowUp10 className="h-3.5 w-3.5 shrink-0" />,
   };
 
-  useEffect(() => {
-    const uid = sessionStorage.getItem("userId") ?? "";
-    const token = sessionStorage.getItem("authToken") ?? "";
-    const role = (sessionStorage.getItem("userRole") ?? "").trim();
-    if (!uid || !token) {
-      navigate("/login", { replace: true });
-      return;
-    }
-    if (role !== "Admin") {
-      navigate("/dashboard", { replace: true });
-      return;
-    }
-    setAllowed(true);
-  }, [navigate]);
-
   const fetchTickets = useCallback(async () => {
-    if (!allowed || !userId) return;
+    if (!userId) return;
     setLoading(true);
     setError("");
     try {
@@ -121,7 +122,7 @@ export function SystemAdmin() {
     } finally {
       setLoading(false);
     }
-  }, [allowed, userId, statusFilter]);
+  }, [userId, statusFilter]);
 
   useEffect(() => {
     fetchTickets();
@@ -158,6 +159,8 @@ export function SystemAdmin() {
   }
 
   function openDetail(t: TicketItem) {
+    markSeen(t.id, t.updatedAt);
+    setTickets((prev) => [...prev]);
     setSelectedTicket(t);
     setReplyBody("");
     setReplies([]);
@@ -176,6 +179,9 @@ export function SystemAdmin() {
     if (res.success) {
       setReplyBody("");
       await fetchReplies(selectedTicket.id);
+      const now = new Date().toISOString();
+      markSeen(selectedTicket.id, now);
+      fetchTickets();
     }
   }
 
@@ -190,14 +196,6 @@ export function SystemAdmin() {
     }
   }
 
-  if (!allowed) {
-    return (
-      <div className="min-h-[50vh] flex items-center justify-center text-muted-foreground text-sm">
-        Checking access…
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-foreground">
       <div className="p-6 md:p-8">
@@ -206,31 +204,50 @@ export function SystemAdmin() {
             <h1 className="text-3xl font-bold text-foreground">System admin</h1>
             <p className="text-muted-foreground mt-1">Support queue — all tickets, replies, and status.</p>
           </div>
-          <Button
-            onClick={() => {
-              setNewTicketError("");
-              setOpenDialog(true);
-            }}
-            className="bg-primary/90 text-primary-foreground hover:bg-primary h-10 gap-1"
-          >
-            <Plus className="h-4 w-4" />
-            New ticket
-          </Button>
+          <div className="flex items-center gap-3">
+            {!isSuperAdmin && (
+              <Button
+                onClick={() => {
+                  setNewTicketError("");
+                  setOpenDialog(true);
+                }}
+                className="bg-primary/90 text-primary-foreground hover:bg-primary h-10 gap-1"
+              >
+                <Plus className="h-4 w-4" />
+                New ticket
+              </Button>
+            )}
+            {isSuperAdmin && (
+              <Button
+                variant="outline"
+              onClick={async () => {
+                sessionStorage.removeItem("superAdminAuth");
+                sessionStorage.removeItem("superAdminUserId");
+                await supabase.auth.signOut();
+                window.location.reload();
+              }}
+                className="h-10 gap-2 border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </Button>
+            )}
+          </div>
         </div>
 
         {error && (
           <div className="mb-4 rounded-lg bg-destructive/10 text-destructive px-4 py-2 text-sm">{error}</div>
         )}
 
-        <div className="flex gap-2 border-b border-border mb-6">
+        <div className="flex gap-2 mb-6">
           {TABS.map(({ key, label }) => (
             <button
               key={key}
               type="button"
               onClick={() => setActiveTab(key)}
-              className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+              className={`px-5 py-2 text-sm font-medium rounded-full transition-colors ${
                 activeTab === key
-                  ? "bg-primary text-primary-foreground border-b-2 border-primary"
+                  ? "bg-primary text-primary-foreground shadow-md"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               }`}
             >
@@ -292,9 +309,14 @@ export function SystemAdmin() {
                         className="w-full flex items-center justify-between gap-4 p-4 rounded-lg border border-white/10 text-left shadow-sm shadow-white/5 transition-all hover:bg-gray-800/50 hover:shadow-md hover:shadow-white/10"
                       >
                         <div className="min-w-0 flex-1">
-                          <p className="font-medium text-foreground truncate">{t.subject}</p>
+                          <p className="font-medium text-foreground truncate flex items-center gap-2">
+                            {t.subject}
+                            {hasNewActivity(t.id, t.updatedAt) && (
+                              <span className="inline-block h-2.5 w-2.5 rounded-full bg-blue-500 shrink-0 animate-pulse" />
+                            )}
+                          </p>
                           <p className="text-xs text-muted-foreground truncate mt-0.5">
-                            #{t.id} · {t.userId.slice(0, 8)}… · Owner: {t.ownerDisplayName ?? "Unknown"}
+                            #{t.id} · Owner: {t.ownerDisplayName ?? "Unknown"}
                           </p>
                           <p className="text-sm text-muted-foreground truncate">{t.body}</p>
                           <p className="text-xs text-muted-foreground mt-1">
@@ -386,7 +408,7 @@ export function SystemAdmin() {
             <div className="p-6 border-b border-border flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground mb-1">
-                  #{selectedTicket.id} · {selectedTicket.userId}
+                  #{selectedTicket.id}
                 </p>
                 <h2 className="text-xl font-bold">{selectedTicket.subject}</h2>
                 <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{selectedTicket.body}</p>

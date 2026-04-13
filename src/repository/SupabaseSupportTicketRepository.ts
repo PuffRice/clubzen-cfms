@@ -128,6 +128,11 @@ export class SupabaseSupportTicketRepository implements ISupportTicketRepository
     if (error) throw error;
     if (!data) throw new Error("Insert reply returned no data");
 
+    await supabase
+      .from("support_tickets")
+      .update({ updated_at: new Date().toISOString() })
+      .eq("id", ticketId);
+
     return this.mapReplyRowWithAuthor(data);
   }
 

@@ -15,7 +15,6 @@ import {
   FolderTree,
   X,
   Lock,
-  Shield,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
@@ -32,8 +31,6 @@ const navigation = [
   { name: "Help", href: "/dashboard/help", icon: HelpCircle },
   { name: "FAQ", href: "/dashboard/faq", icon: HelpCircle },
 ];
-
-const adminOnlyNav = [{ name: "System admin", href: "/systemadmin", icon: Shield }];
 
 export function Layout() {
   const navigate = useNavigate();
@@ -138,7 +135,7 @@ export function Layout() {
         </div>
 
         {/* Navigation Menu */}
-        <nav className="flex-1 p-4 overflow-y-auto">
+        <nav className="flex-1 p-4 overflow-y-auto scrollbar-none" style={{ scrollbarWidth: "none" }}>
           <div className="space-y-1">
             {/* Main Navigation */}
             <div className="mb-6">
@@ -188,31 +185,6 @@ export function Layout() {
                 ))}
               </ul>
             </div>
-
-            {userRole === "Admin" && (
-              <div className="mb-6">
-                <p className="text-xs uppercase font-semibold text-emerald-400/90 px-4 mb-3">Administration</p>
-                <ul className="space-y-2">
-                  {adminOnlyNav.map((item) => (
-                    <li key={item.name}>
-                      <NavLink
-                        to={item.href}
-                        className={({ isActive }) =>
-                          `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
-                            isActive
-                              ? "bg-gradient-to-r from-emerald-600/80 to-emerald-800/80 text-white shadow-lg shadow-emerald-500/20"
-                              : "text-emerald-200/90 hover:bg-slate-700/40"
-                          }`
-                        }
-                      >
-                        <item.icon className="h-5 w-5 flex-shrink-0" />
-                        <span className="font-medium">{item.name}</span>
-                      </NavLink>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
 
             {/* Reports Section */}
             <div>

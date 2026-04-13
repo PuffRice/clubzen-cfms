@@ -202,3 +202,7 @@
     line-height: 1.5;
   }
 }
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}

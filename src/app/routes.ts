@@ -13,7 +13,7 @@ import { Income } from "./pages/Income";
 import { Reports } from "./pages/Reports";
 import { Events } from "./pages/Events";
 import { Support } from "./pages/Support";
-import { SystemAdmin } from "./pages/SystemAdmin";
+import { ProtectedSystemAdmin } from "./components/ProtectedSystemAdmin";
 import { Loans } from "./pages/Loans";
 import HelpPage from "./pages/HelpPage";
 import FAQPage from "./pages/FAQPage";
@@ -40,11 +40,10 @@ export const router = createBrowserRouter([
     Component: ResetPassword,
   },
 
-  // ── System admin (same sidebar Layout as dashboard) ───────
+  // ── Super admin (login gate + panel on same URL) ─────────
   {
     path: "/systemadmin",
-    Component: RequireSessionLayout,
-    children: [{ index: true, Component: SystemAdmin }],
+    Component: ProtectedSystemAdmin,
   },
 
   // ── Main app (with sidebar Layout) ────────────────────────

@@ -51,6 +51,23 @@ interface ReplyItem {
   authorRole?: string;
 }
 
+const SEEN_KEY = "support_ticket_seen";
+
+function getSeenMap(): Record<string, string> {
+  try { return JSON.parse(localStorage.getItem(SEEN_KEY) || "{}"); } catch { return {}; }
+}
+
+function markSeen(ticketId: number, updatedAt: string) {
+  const map = getSeenMap();
+  map[String(ticketId)] = updatedAt;
+  localStorage.setItem(SEEN_KEY, JSON.stringify(map));
+}
+
+function hasNewActivity(ticketId: number, updatedAt: string): boolean {
+  const last = getSeenMap()[String(ticketId)];
+  return !last || new Date(updatedAt) > new Date(last);
+}
+
 export function Support() {
   const userId = sessionStorage.getItem("userId") ?? "";
   const userRole = (sessionStorage.getItem("userRole") ?? "Staff").trim();
@@ -132,6 +149,8 @@ export function Support() {
   }
 
   function openDetail(t: TicketItem) {
+    markSeen(t.id, t.updatedAt);
+    setTickets((prev) => [...prev]);
     setSelectedTicket(t);
     setReplyBody("");
     setReplies([]);
@@ -150,6 +169,9 @@ export function Support() {
     if (res.success) {
       setReplyBody("");
       await fetchReplies(selectedTicket.id);
+      const now = new Date().toISOString();
+      markSeen(selectedTicket.id, now);
+      fetchTickets();
     }
   }
 
@@ -191,15 +213,15 @@ export function Support() {
         </div>
       )}
 
-      <div className="flex gap-2 border-b border-border mb-6">
+      <div className="flex gap-2 mb-6">
         {TABS.map(({ key, label }) => (
           <button
             key={key}
             type="button"
             onClick={() => setActiveTab(key)}
-            className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+            className={`px-5 py-2 text-sm font-medium rounded-full transition-colors ${
               activeTab === key
-                ? "bg-primary text-primary-foreground border-b-2 border-primary"
+                ? "bg-primary text-primary-foreground shadow-md"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
             }`}
           >
@@ -261,7 +283,12 @@ export function Support() {
                       className="w-full flex items-center justify-between gap-4 p-4 rounded-lg border border-white/10 text-left shadow-sm shadow-white/5 transition-all hover:bg-gray-800/50 hover:shadow-md hover:shadow-white/10"
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium text-foreground truncate">{t.subject}</p>
+                        <p className="font-medium text-foreground truncate flex items-center gap-2">
+                          {t.subject}
+                          {hasNewActivity(t.id, t.updatedAt) && (
+                            <span className="inline-block h-2.5 w-2.5 rounded-full bg-blue-500 shrink-0 animate-pulse" />
+                          )}
+                        </p>
                         <p className="text-sm text-muted-foreground truncate">{t.body}</p>
                         {isAdmin ? (
                           <>
@@ -395,21 +422,7 @@ export function Support() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            {isAdmin && selectedTicket.status !== "closed" && (
-              <div className="px-6 py-2 border-b border-border flex gap-2 flex-wrap">
-                {(["pending", "processing", "closed"] as const).map((s) => (
-                  <Button
-                    key={s}
-                    variant={selectedTicket.status === s ? "default" : "outline"}
-                    size="sm"
-                    disabled={statusUpdating}
-                    onClick={() => handleUpdateStatus(s)}
-                  >
-                    Set {s}
-                  </Button>
-                ))}
-              </div>
-            )}
+            
             <div className="flex-1 overflow-y-auto p-6 space-y-3">
               <p className="text-sm font-semibold text-foreground">Replies</p>
               {replies.length === 0 ? (
