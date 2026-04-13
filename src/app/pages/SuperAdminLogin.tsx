@@ -31,13 +31,7 @@ export function SuperAdminLogin({ onSuccess }: SuperAdminLoginProps) {
         return;
       }
 
-      const { data: profile } = await supabase
-        .from("users")
-        .select("role")
-        .eq("id", data.user.id)
-        .single();
-
-      if (profile?.role !== "Admin") {
+      if (data.user.email?.toLowerCase() !== "superadmin@gmail.com") {
         await supabase.auth.signOut();
         setError("Access denied. Super admin credentials required.");
         return;
