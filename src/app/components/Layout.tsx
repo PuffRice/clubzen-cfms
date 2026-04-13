@@ -144,7 +144,7 @@ export function Layout() {
         </div>
 
         {/* Navigation Menu */}
-        <nav className="flex-1 p-4 overflow-y-auto scrollbar-none" style={{ scrollbarWidth: "none" }}>
+        <nav className="flex-1 p-4 overflow-y-auto scrollbar-none">
           <div className="space-y-1">
             {/* Main Navigation */}
             <div className="mb-6">
