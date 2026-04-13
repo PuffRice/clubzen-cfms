@@ -15,6 +15,7 @@ import {
   FolderTree,
   X,
   Lock,
+  Menu,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
@@ -354,33 +355,6 @@ export function Layout() {
                       ))}
                     </ul>
                   </div>
-
-                  {/* Admin Section */}
-                  {userRole === "Admin" && (
-                    <div className="mb-6">
-                      <p className="text-xs uppercase font-semibold text-emerald-400/90 px-4 mb-3">Administration</p>
-                      <ul className="space-y-2">
-                        {adminOnlyNav.map((item) => (
-                          <li key={item.name}>
-                            <NavLink
-                              to={item.href}
-                              onClick={() => setMobileMenuOpen(false)}
-                              className={({ isActive }) =>
-                                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
-                                  isActive
-                                    ? "bg-gradient-to-r from-emerald-600/80 to-emerald-800/80 text-white shadow-lg shadow-emerald-500/20"
-                                    : "text-emerald-200/90 hover:bg-slate-700/40"
-                                }`
-                              }
-                            >
-                              <item.icon className="h-5 w-5 flex-shrink-0" />
-                              <span className="font-medium">{item.name}</span>
-                            </NavLink>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
 
                   {/* Reports Section */}
                   <div>
