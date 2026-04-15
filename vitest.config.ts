@@ -14,5 +14,8 @@ export default defineConfig({
     include: ["src/tests/**/*.test.ts"],
     fileParallelism: false,
     testTimeout: 30000,
+    coverage: {
+      provider: 'v8',
+    },
   },
 });

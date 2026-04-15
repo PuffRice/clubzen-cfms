@@ -11,4 +11,7 @@ coverage/
 *.swp
 *.swo
 *~
-
+.VSCodeCounter
+BUILDER_PATTERN_GUIDE.md
+REPORT_FLOW_DIAGRAMS.md
+REPORT_GENERATION_WALKTHROUGH.md

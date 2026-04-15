@@ -1,6 +1,8 @@
 export { TransactionService } from "./TransactionService";
 export { ReportService } from "./ReportService";
 export type { DailySummary, MonthlySummary, DashboardSummary } from "./ReportService";
+export { ReportBuilder } from "./ReportBuilder";
+export type { ReportQuery, GroupedReport, FilteredReport } from "./ReportBuilder";
 export { LoanService } from "./LoanService";
 export { LoanRepaymentService } from "./LoanRepaymentService";
 export { AuthService } from "./AuthService";

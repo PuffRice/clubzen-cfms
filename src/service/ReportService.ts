@@ -15,6 +15,7 @@
 import { Transaction } from "../domain";
 import { TransactionService } from "./TransactionService";
 import { formatLocalDateKey, formatLocalMonthKey } from "../utils/calendarDate";
+import { ReportBuilder } from "./ReportBuilder";
 
 export interface DailySummary {
   date: string;          // "YYYY-MM-DD"
@@ -71,6 +72,21 @@ export class ReportService {
       totalExpense,
       netProfitLoss: totalIncome - totalExpense,
     };
+  }
+
+  /**
+   * Create a composable report query builder for flexible report generation.
+   *
+   * Example:
+   *   const report = await reportService
+   *     .query()
+   *     .forRange(start, end)
+   *     .byCategory('Food')
+   *     .groupBy('monthly')
+   *     .build();
+   */
+  query(): ReportBuilder {
+    return new ReportBuilder(this.transactionService);
   }
 
   /* ── Daily summary ────────────────────────────────────────── */

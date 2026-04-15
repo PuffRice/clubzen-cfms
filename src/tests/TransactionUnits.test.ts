@@ -516,6 +516,25 @@ describe("Auth Domain Layer", () => {
 
 /* ── UI Layer Access Control Tests ────────────────────────────────────── */
 
+// Polyfill sessionStorage for Node.js test environment
+if (typeof sessionStorage === "undefined") {
+  (global as any).sessionStorage = {
+    data: {} as Record<string, string>,
+    getItem(key: string): string | null {
+      return this.data[key] ?? null;
+    },
+    setItem(key: string, value: string): void {
+      this.data[key] = value;
+    },
+    removeItem(key: string): void {
+      delete this.data[key];
+    },
+    clear(): void {
+      this.data = {};
+    },
+  };
+}
+
 describe("UI Layer - Access Control", () => {
   /* ── Role-based button visibility ────────────────────────────── */
 
@@ -653,6 +672,8 @@ describe("UI Layer - Access Control", () => {
 
   afterAll(() => {
     // Clean up sessionStorage after UI tests
-    sessionStorage.removeItem("userRole");
+    if (typeof sessionStorage !== "undefined") {
+      sessionStorage.removeItem("userRole");
+    }
   });
 });
